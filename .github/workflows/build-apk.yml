@@ -6,6 +6,7 @@ on:
   push:
     paths:
       - 'TORA_Sahil_Fixed.zip'
+      - 'main_fixed.dart'
       - '.github/workflows/build-apk.yml'
 
 jobs:
@@ -39,6 +40,9 @@ jobs:
           flutter create --platforms=android --project-name tora_app project
           cp -r source/TORA_Flutter_Starter/lib project/
           cp source/TORA_Flutter_Starter/pubspec.yaml project/
+
+      - name: Apply fixed TORA code
+        run: cp main_fixed.dart project/lib/main.dart
 
       - name: Install dependencies
         working-directory: project
