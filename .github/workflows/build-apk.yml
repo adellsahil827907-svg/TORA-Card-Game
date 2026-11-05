@@ -6,7 +6,7 @@ on:
   push:
     paths:
       - 'TORA_Sahil_Fixed.zip'
-      - 'main_fixed.dart'
+      - 'TORA_Luxury_Cards_main.dart'
       - '.github/workflows/build-apk.yml'
 
 jobs:
@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Java 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
@@ -29,6 +29,11 @@ jobs:
         with:
           channel: stable
           cache: true
+
+      - name: Check project files
+        run: |
+          test -f TORA_Sahil_Fixed.zip
+          test -f TORA_Luxury_Cards_main.dart
 
       - name: Extract TORA project
         run: |
@@ -41,8 +46,9 @@ jobs:
           cp -r source/TORA_Flutter_Starter/lib project/
           cp source/TORA_Flutter_Starter/pubspec.yaml project/
 
-      - name: Apply fixed TORA code
-        run: cp main_fixed.dart project/lib/main.dart
+      - name: Apply luxury card design
+        run: |
+          cp TORA_Luxury_Cards_main.dart project/lib/main.dart
 
       - name: Install dependencies
         working-directory: project
