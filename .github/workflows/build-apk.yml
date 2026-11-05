@@ -3,42 +3,54 @@ name: Build TORA APK
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - 'TORA_Sahil_Fixed.zip'
+      - '.github/workflows/build-apk.yml'
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    name: Build TORA Android APK
+    runs-on: ubuntu-24.04
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Extract project
-        run: unzip TORA_Flutter_Starter.zip -d project
-
-      - name: Setup Java
+      - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - name: Setup Flutter
+      - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          cache: true
 
-      - name: Create Android files
+      - name: Extract TORA project
         run: |
-          cd project/TORA_Flutter_Starter
-          flutter create --platforms=android .
+          mkdir source
+          unzip -q TORA_Sahil_Fixed.zip -d source
 
-      - name: Build APK
+      - name: Create Android project
         run: |
-          cd project/TORA_Flutter_Starter
-          flutter pub get
-          flutter build apk --release
+          flutter create --platforms=android --project-name tora_app project
+          cp -r source/TORA_Flutter_Starter/lib project/
+          cp source/TORA_Flutter_Starter/pubspec.yaml project/
 
-      - name: Upload APK
+      - name: Install dependencies
+        working-directory: project
+        run: flutter pub get
+
+      - name: Build release APK
+        working-directory: project
+        run: flutter build apk --release
+
+      - name: Upload TORA APK
         uses: actions/upload-artifact@v4
         with:
           name: TORA-APK
-          path: project/TORA_Flutter_Starter/build/app/outputs/flutter-apk/app-release.apk
+          path: project/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
