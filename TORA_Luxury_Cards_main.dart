@@ -167,15 +167,35 @@ class _ToraTablePageState extends State<ToraTablePage> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.spa, color: gold, size: 48),
-                          SizedBox(height: 6),
-                          Text('TORA TABLE', style: TextStyle(
+                          if (tableCards.isNotEmpty) ...[
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 300, maxHeight: 116),
+                              child: Wrap(
+                                alignment: WrapAlignment.center,
+                                runAlignment: WrapAlignment.center,
+                                spacing: 5,
+                                runSpacing: 5,
+                                children: tableCards.map((card) {
+                                  final red = card.contains('♥') || card.contains('♦');
+                                  return SizedBox(
+                                    width: 43,
+                                    height: 64,
+                                    child: _playingCardFace(card, red, false),
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                          ],
+                          Icon(Icons.spa, color: gold, size: 42),
+                          const SizedBox(height: 5),
+                          const Text('TORA TABLE', style: TextStyle(
                             color: gold, fontWeight: FontWeight.bold,
                             letterSpacing: 2,
                           )),
-                          Text('د ورقو میدان', style: TextStyle(color: Colors.white70)),
-                          SizedBox(height: 8),
-                          Text('پر میدان: ${tableCards.length} ورقې', style: TextStyle(color: gold, fontSize: 11)),
+                          const Text('د ورقو میدان', style: TextStyle(color: Colors.white70)),
+                          const SizedBox(height: 8),
+                          Text('پر میدان: ${tableCards.length} ورقې', style: const TextStyle(color: gold, fontSize: 11)),
                         ],
                       ),
                     ),
