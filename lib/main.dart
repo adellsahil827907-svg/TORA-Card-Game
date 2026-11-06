@@ -324,3 +324,669 @@ class _FacePortraitPainter extends CustomPainter {
   bool shouldRepaint(covariant _FacePortraitPainter oldDelegate) =>
       oldDelegate.rank != rank || oldDelegate.robe != robe;
 }
+class ToraCard {
+  final String rank;
+  final String suit;
+  const ToraCard(this.rank, this.suit);
+
+  int get power => _ranks.indexOf(rank);
+
+  int get points {
+    if (suit == '♥') return 1;
+    if (rank == 'Q' && suit == '♠') return 9;
+    if (rank == 'J' && suit == '♣') return 5;
+    if (rank == '10' && suit == '♦') return 3;
+    return 0;
+  }
+}
+
+class PlayedCard {
+  final int player;
+  final ToraCard card;
+  const PlayedCard(this.player, this.card);
+}
+
+class ToraGamePage extends StatefulWidget {
+  final ToraTheme theme;
+  final ValueChanged<int> onThemeChanged;
+
+  const ToraGamePage({
+    super.key,
+    required this.theme,
+    required this.onThemeChanged,
+  });
+
+  @override
+  State<ToraGamePage> createState() => _ToraGamePageState();
+}
+
+class _ToraGamePageState extends State<ToraGamePage> {
+  final Random random = Random();
+  List<List<ToraCard>> hands = [[], [], [], []];
+  List<PlayedCard> tableCards = [];
+  List<ToraCard> captured = [];
+  int currentPlayer = 0;
+  int leader = 0;
+  int trickNumber = 0;
+  int teamOne = 0;
+  int teamTwo = 0;
+  bool dealing = false;
+  bool gameOver = false;
+  bool busy = false;
+  String message = 'Press NEW GAME to begin';
+
+  @override
+  void initState() {
+    super.initState();
+    startGame();
+  }
+
+  Future<void> startGame() async {
+    if (!mounted) return;
+    setState(() {
+      dealing = true;
+      gameOver = false;
+      busy = true;
+      tableCards.clear();
+      captured.clear();
+      hands = [[], [], [], []];
+      teamOne = 0;
+      teamTwo = 0;
+      trickNumber = 0;
+      leader = 0;
+      currentPlayer = 0;
+      message = 'DEALING CARDS...';
+    });
+
+    final deck = <ToraCard>[];
+    for (final suit in _suits) {
+      for (final rank in _ranks) {
+        deck.add(ToraCard(rank, suit));
+      }
+    }
+    deck.shuffle(random);
+
+    for (int i = 0; i < 52; i++) {
+      if (!mounted) return;
+      setState(() {
+        hands[i % 4].add(deck[i]);
+        message = 'DEALING CARDS  ${i + 1}/52';
+      });
+      await Future.delayed(const Duration(milliseconds: 45));
+    }
+
+    if (!mounted) return;
+    setState(() {
+      dealing = false;
+      busy = false;
+      message = 'Sahil, your turn!';
+    });
+    runAI();
+  }
+
+  List<ToraCard> legalCards(int player) {
+    final hand = hands[player];
+    if (tableCards.isEmpty) return List.of(hand);
+
+    final suit = tableCards.first.card.suit;
+    final matching = hand.where((c) => c.suit == suit).toList();
+    return matching.isNotEmpty ? matching : List.of(hand);
+  }
+
+  void playCard(ToraCard card) {
+    if (dealing || busy || gameOver || currentPlayer != 0) return;
+    if (!legalCards(0).contains(card)) return;
+    makeMove(0, card);
+  }
+
+  void makeMove(int player, ToraCard card) {
+    if (!mounted) return;
+
+    setState(() {
+      hands[player].remove(card);
+      tableCards.add(PlayedCard(player, card));
+      currentPlayer = (player + 1) % 4;
+      message = tableCards.length == 4
+          ? 'FOUR CARDS ON THE TABLE'
+          : '${playerName(currentPlayer)} is playing...';
+    });
+
+    if (tableCards.length == 4) {
+      busy = true;
+      Future.delayed(const Duration(milliseconds: 1400), resolveTrick);
+    } else {
+      runAI();
+    }
+  }
+
+  void runAI() {
+    if (!mounted || dealing || gameOver || busy) return;
+    if (currentPlayer == 0) return;
+
+    Future.delayed(const Duration(milliseconds: 650), () {
+      if (!mounted || gameOver || busy || currentPlayer == 0) return;
+      final options = legalCards(currentPlayer);
+      if (options.isEmpty) return;
+      final card = options[random.nextInt(options.length)];
+      makeMove(currentPlayer, card);
+    });
+  }
+
+  void resolveTrick() {
+    if (!mounted || tableCards.length != 4) return;
+
+    final ledSuit = tableCards.first.card.suit;
+    final eligible = tableCards
+        .where((p) => p.card.suit == ledSuit)
+        .toList();
+
+    eligible.sort((a, b) => a.card.power.compareTo(b.card.power));
+    final winner = eligible.last.player;
+    final points = tableCards.fold<int>(
+      0,
+      (sum, p) => sum + p.card.points,
+    );
+
+    setState(() {
+      if (winner == 0 || winner == 2) {
+        teamOne += points;
+      } else {
+        teamTwo += points;
+      }
+
+      captured.addAll(tableCards.map((p) => p.card));
+      tableCards.clear();
+      leader = winner;
+      currentPlayer = winner;
+      trickNumber++;
+      busy = false;
+
+      if (hands.every((h) => h.isEmpty)) {
+        gameOver = true;
+        message = 'GAME FINISHED';
+      } else {
+        message = '${playerName(winner)} won the trick';
+      }
+    });
+
+    if (!gameOver) runAI();
+    else showResult();
+  }
+
+  String playerName(int seat) {
+    switch (seat) {
+      case 0: return 'Sahil';
+      case 1: return 'Right';
+      case 2: return 'Partner';
+      default: return 'Left';
+    }
+  }
+
+  void showResult() {
+    final winner = teamOne < teamTwo
+        ? 'SAHIL TEAM WINS'
+        : teamTwo < teamOne
+            ? 'OPPONENT TEAM WINS'
+            : 'DRAW';
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: widget.theme.panel,
+        title: Text(
+          winner,
+          textAlign: TextAlign.center,
+          style: TextStyle(color: widget.theme.accent),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Sahil + Partner: $teamOne points'),
+            const SizedBox(height: 8),
+            Text('Right + Left: $teamTwo points'),
+            const SizedBox(height: 12),
+            Text('Cards collected: ${captured.length}/52'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              startGame();
+            },
+            child: const Text('PLAY AGAIN'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void showRules() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: widget.theme.panel,
+        title: Text('TORA RULES',
+            style: TextStyle(color: widget.theme.accent)),
+        content: const SingleChildScrollView(
+          child: Text(
+            '• 52 cards, 13 cards per player.\n'
+            '• Sahil and Partner are one team.\n'
+            '• Right and Left are the other team.\n'
+            '• Follow the first suit if you have it.\n'
+            '• Highest card of the first suit wins.\n'
+            '• Hearts = 1 point.\n'
+            '• Queen of Spades = 9 points.\n'
+            '• Jack of Clubs = 5 points.\n'
+            '• Ten of Diamonds = 3 points.\n'
+            '• The team with fewer penalty points wins.',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('CLOSE'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget playerLabel(String name, int count, {bool active = false}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: active
+            ? widget.theme.accent.withOpacity(.22)
+            : widget.theme.panel,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: active ? widget.theme.accent : Colors.white24,
+        ),
+      ),
+      child: Text(
+        '$name  •  $count',
+        style: TextStyle(
+          color: active ? widget.theme.accent : Colors.white,
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
+        ),
+      ),
+    );
+  }
+
+  Widget backCards(int count, {bool vertical = false}) {
+    return SizedBox(
+      width: vertical ? 43 : 90,
+      height: vertical ? 85 : 48,
+      child: Stack(
+        children: List.generate(
+          min(count, 5),
+          (i) => Positioned(
+            left: vertical ? 0 : i * 7.0,
+            top: vertical ? i * 7.0 : 0,
+            child: Container(
+              width: vertical ? 37 : 34,
+              height: vertical ? 49 : 46,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    widget.theme.cardTop,
+                    widget.theme.cardBottom,
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(5),
+                border: Border.all(color: widget.theme.accent, width: 1),
+              ),
+              child: Center(
+                child: Text(
+                  'T',
+                  style: TextStyle(
+                    color: widget.theme.accent,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget tableCard(ToraCard card) {
+    final red = card.suit == '♥' || card.suit == '♦';
+    return Container(
+      width: 62,
+      height: 91,
+      padding: const EdgeInsets.all(5),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFFDF5),
+        borderRadius: BorderRadius.circular(7),
+        border: Border.all(color: widget.theme.accent, width: 1.5),
+        boxShadow: const [
+          BoxShadow(color: Colors.black45, blurRadius: 5, offset: Offset(2, 3)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            card.rank,
+            style: TextStyle(
+              color: red ? Colors.red.shade800 : Colors.black,
+              fontSize: 17,
+              fontWeight: FontWeight.w900,
+              height: 1,
+            ),
+          ),
+          Expanded(
+            child: Center(
+              child: Text(
+                card.suit,
+                style: TextStyle(
+                  color: red ? Colors.red.shade800 : Colors.black,
+                  fontSize: 34,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget playedSlot(int seat) {
+    final played = tableCards.where((p) => p.player == seat).toList();
+    if (played.isEmpty) {
+      return Container(
+        width: 62,
+        height: 91,
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.white24),
+          borderRadius: BorderRadius.circular(7),
+        ),
+      );
+    }
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          playerName(seat),
+          style: TextStyle(color: widget.theme.accent, fontSize: 10),
+        ),
+        tableCard(played.first.card),
+      ],
+    );
+  }
+
+  Widget buildCenterTable() {
+    return Container(
+      width: 330,
+      height: 220,
+      decoration: BoxDecoration(
+        color: widget.theme.table.withOpacity(.88),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: widget.theme.accent.withOpacity(.65),
+          width: 2,
+        ),
+        boxShadow: const [
+          BoxShadow(color: Colors.black38, blurRadius: 18),
+        ],
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned(top: 8, child: playedSlot(2)),
+          Positioned(left: 8, child: playedSlot(3)),
+          Positioned(right: 8, child: playedSlot(1)),
+          Positioned(bottom: 8, child: playedSlot(0)),
+          if (tableCards.isEmpty)
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'TORA',
+                  style: TextStyle(
+                    color: widget.theme.accent.withOpacity(.8),
+                    fontSize: 24,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 5,
+                  ),
+                ),
+                const Text('PLAY YOUR CARDS',
+                    style: TextStyle(color: Colors.white54, fontSize: 9)),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget handCard(ToraCard card) {
+    final red = card.suit == '♥' || card.suit == '♦';
+    final allowed = legalCards(0).contains(card);
+    return GestureDetector(
+      onTap: () => playCard(card),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        width: 48,
+        height: allowed && currentPlayer == 0 && !busy ? 91 : 85,
+        margin: const EdgeInsets.symmetric(horizontal: 1),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFFDF5),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(
+            color: allowed && currentPlayer == 0
+                ? widget.theme.accent
+                : Colors.black26,
+            width: 1.2,
+          ),
+          boxShadow: const [
+            BoxShadow(color: Colors.black38, blurRadius: 3, offset: Offset(1, 2)),
+          ],
+        ),
+        child: Stack(
+          children: [
+            Positioned(
+              left: 4,
+              top: 4,
+              child: Column(
+                children: [
+                  Text(
+                    card.rank,
+                    style: TextStyle(
+                      color: red ? Colors.red.shade800 : Colors.black,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 14,
+                      height: 1,
+                    ),
+                  ),
+                  Text(
+                    card.suit,
+                    style: TextStyle(
+                      color: red ? Colors.red.shade800 : Colors.black,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (card.rank == 'J' || card.rank == 'Q' || card.rank == 'K')
+              Positioned(
+                left: 8,
+                right: 8,
+                top: 29,
+                bottom: 5,
+                child: CustomPaint(
+                  painter: _FacePortraitPainter(
+                    card.rank,
+                    card.suit == '♥' || card.suit == '♦'
+                        ? const Color(0xFF8C3040)
+                        : const Color(0xFF244B3A),
+                  ),
+                ),
+              )
+            else
+              Center(
+                child: Text(
+                  card.suit,
+                  style: TextStyle(
+                    color: red ? Colors.red.shade800 : Colors.black,
+                    fontSize: card.rank == 'A' ? 28 : 21,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = widget.theme;
+    return Scaffold(
+      backgroundColor: t.background,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              child: Row(
+                children: [
+                  Text(
+                    'TORA',
+                    style: TextStyle(
+                      color: t.accent,
+                      fontSize: 21,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 3,
+                    ),
+                  ),
+                  const SizedBox(width: 15),
+                  Text('SAHIL: $teamOne',
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(width: 12),
+                  Text('OPPONENTS: $teamTwo',
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                  const Spacer(),
+                  TextButton(
+                    onPressed: showRules,
+                    child: const Text('RULES'),
+                  ),
+                  PopupMenuButton<int>(
+                    tooltip: 'Table themes',
+                    icon: Icon(Icons.palette, color: t.accent),
+                    onSelected: widget.onThemeChanged,
+                    itemBuilder: (context) => List.generate(
+                      _themes.length,
+                      (i) => PopupMenuItem(
+                        value: i,
+                        child: Text(_themes[i].name),
+                      ),
+                    ),
+                  ),
+                  FilledButton(
+                    onPressed: dealing ? null : startGame,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: t.accent,
+                      foregroundColor: Colors.black,
+                    ),
+                    child: const Text('NEW GAME'),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 85,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        playerLabel('LEFT', hands[3].length,
+                            active: currentPlayer == 3),
+                        const SizedBox(height: 8),
+                        RotatedBox(
+                          quarterTurns: 1,
+                          child: backCards(hands[3].length, vertical: true),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            playerLabel('PARTNER', hands[2].length,
+                                active: currentPlayer == 2),
+                            const SizedBox(width: 12),
+                            backCards(hands[2].length),
+                          ],
+                        ),
+                        Expanded(
+                          child: Center(child: buildCenterTable()),
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            playerLabel('SAHIL', hands[0].length,
+                                active: currentPlayer == 0),
+                            const SizedBox(width: 8),
+                            Text(
+                              message,
+                              style: TextStyle(
+                                color: t.accent,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    width: 85,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        playerLabel('RIGHT', hands[1].length,
+                            active: currentPlayer == 1),
+                        const SizedBox(height: 8),
+                        RotatedBox(
+                          quarterTurns: 1,
+                          child: backCards(hands[1].length, vertical: true),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(
+              height: 103,
+              child: hands[0].isEmpty
+                  ? const Center(
+                      child: Text('Your cards will appear here'),
+                    )
+                  : ListView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      children: hands[0].map(handCard).toList(),
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
