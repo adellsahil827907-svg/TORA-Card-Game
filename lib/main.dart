@@ -174,7 +174,7 @@ class ToraGamePage extends StatefulWidget {
 
 class _ToraGamePageState extends State<ToraGamePage> {
   final Random _random = Random();
-  final List<String> _names = ['Sahil', 'Player 2', 'Player 3', 'Player 4'];
+  final List<String> _names = ['Sahil', 'Computer', 'Zabihullah', 'Mahmood Khan'];
   final List<List<String>> _hands = List.generate(4, (_) => <String>[]);
   final List<List<String>> _won = List.generate(4, (_) => <String>[]);
   final List<String?> _trick = List.filled(4, null);
@@ -589,7 +589,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
           IconButton(onPressed: _editNames, tooltip: 'Player names', icon: const Icon(Icons.people_alt_outlined, size: 19), visualDensity: VisualDensity.compact, padding: EdgeInsets.zero, constraints: const BoxConstraints.tightFor(width: 34, height: 32)),
           IconButton(onPressed: _showRules, tooltip: 'Rules', icon: const Icon(Icons.info_outline, size: 19), visualDensity: VisualDensity.compact, padding: EdgeInsets.zero, constraints: const BoxConstraints.tightFor(width: 34, height: 32)),
           const SizedBox(width: 6),
-        ]),
+        ])),
         Padding(padding: const EdgeInsets.fromLTRB(10, 3, 10, 5), child: Row(children: [Expanded(child: _scoreBox('${_names[0]} + ${_names[2]}', _teamOne)), const SizedBox(width: 8), Expanded(child: _scoreBox('${_names[1]} + ${_names[3]}', _teamTwo))])),
         Expanded(child: Container(margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), padding: const EdgeInsets.all(7), decoration: BoxDecoration(
           gradient: RadialGradient(center: Alignment.center, radius: 1.15,
