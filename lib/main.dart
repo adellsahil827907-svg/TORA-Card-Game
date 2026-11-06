@@ -42,11 +42,32 @@ class ToraApp extends StatefulWidget {
   @override State<ToraApp> createState() => _ToraAppState();
 }
 class _ToraAppState extends State<ToraApp> {
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
   int themeIndex = 0;
   void setTheme(int value) => setState(() => themeIndex = value);
   @override Widget build(BuildContext context) {
     final t = _themes[themeIndex];
-    return MaterialApp(debugShowCheckedModeBanner: false, title: 'TORA', theme: ThemeData(brightness: Brightness.dark, scaffoldBackgroundColor: t.background, colorScheme: ColorScheme.dark(primary: t.accent, secondary: t.accent, surface: t.panel), useMaterial3: true), home: ToraSplashPage(theme: t, onStart: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => ToraGamePage(theme: t, onThemeChanged: setTheme)))));
+    return MaterialApp(
+      navigatorKey: _navigatorKey,
+      debugShowCheckedModeBanner: false,
+      title: 'TORA',
+      theme: ThemeData(
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: t.background,
+        colorScheme: ColorScheme.dark(primary: t.accent, secondary: t.accent, surface: t.panel),
+        useMaterial3: true,
+      ),
+      home: ToraSplashPage(
+        theme: t,
+        onStart: () {
+          _navigatorKey.currentState?.push(
+            MaterialPageRoute(
+              builder: (_) => ToraGamePage(theme: t, onThemeChanged: setTheme),
+            ),
+          );
+        },
+      ),
+    );
   }
 }
 
