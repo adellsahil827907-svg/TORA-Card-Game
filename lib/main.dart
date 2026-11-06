@@ -1,3 +1,4 @@
+
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
@@ -73,6 +74,10 @@ class ToraApp extends StatefulWidget {
 class _ToraAppState extends State<ToraApp> {
   int themeIndex = 0;
 
+  // د Navigator لپاره اصلي Key
+  final GlobalKey<NavigatorState> _navigatorKey =
+      GlobalKey<NavigatorState>();
+
   void setTheme(int value) {
     setState(() => themeIndex = value);
   }
@@ -82,6 +87,7 @@ class _ToraAppState extends State<ToraApp> {
     final t = _themes[themeIndex];
 
     return MaterialApp(
+      navigatorKey: _navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'TORA',
       theme: ThemeData(
@@ -97,7 +103,11 @@ class _ToraAppState extends State<ToraApp> {
       home: ToraSplashPage(
         theme: t,
         onStart: () {
-          Navigator.of(context).push(
+          final navigator = _navigatorKey.currentState;
+
+          if (navigator == null) return;
+
+          navigator.push(
             MaterialPageRoute(
               builder: (_) => ToraGamePage(
                 theme: t,
@@ -549,9 +559,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
     }
   }
 
-  // AI د NO MORE اختیار:
-  // یوازې هغه وخت دعوه کوي چې په نورو درېیو لاسونو کې
-  // د ټاکلي خال هېڅ ورقه نه وي.
+  // AI د NO MORE اختیار
   bool _aiClaimNoMore(int seat) {
     for (final suit in _suits) {
       int remainingCount = 0;
@@ -604,8 +612,6 @@ class _ToraGamePageState extends State<ToraGamePage> {
 
     final seat = _turn;
 
-    // AI لومړی د NO MORE امکان ګوري.
-    // که دعوه سمه وي، ثبتوي یې او بیا خپله قانوني ورقه اچوي.
     final claimed = _aiClaimNoMore(seat);
 
     if (claimed && mounted) {
