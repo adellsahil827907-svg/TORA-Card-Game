@@ -5,8 +5,8 @@ on:
   workflow_dispatch:
   push:
     paths:
+      - 'lib/main.dart'
       - 'TORA_Sahil_Fixed.zip'
-      - 'TORA_Luxury_Cards_main.dart'
       - '.github/workflows/build-apk.yml'
 
 jobs:
@@ -33,7 +33,7 @@ jobs:
       - name: Check project files
         run: |
           test -f TORA_Sahil_Fixed.zip
-          test -f TORA_Luxury_Cards_main.dart
+          test -f lib/main.dart
 
       - name: Extract TORA project
         run: |
@@ -46,9 +46,9 @@ jobs:
           cp -r source/TORA_Flutter_Starter/lib project/
           cp source/TORA_Flutter_Starter/pubspec.yaml project/
 
-      - name: Apply luxury card design
+      - name: Apply new TORA code
         run: |
-          cp TORA_Luxury_Cards_main.dart project/lib/main.dart
+          cp lib/main.dart project/lib/main.dart
 
       - name: Install dependencies
         working-directory: project
