@@ -5,19 +5,21 @@ import 'package:flutter/services.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ]);
+
   await SystemChrome.setEnabledSystemUIMode(
     SystemUiMode.immersiveSticky,
   );
+
   runApp(const ToraApp());
 }
 
 const gold = Color(0xFFD6B15C);
 const black = Color(0xFF090B10);
-const green = Color(0xFF123B2B);
 
 class ToraTheme {
   final String name;
@@ -120,9 +122,6 @@ class ToraSplashPage extends StatelessWidget {
                       fontWeight: FontWeight.w900,
                       letterSpacing: 12,
                       color: theme.accent,
-                      shadows: const [
-                        Shadow(color: Colors.black, blurRadius: 15),
-                      ],
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -187,8 +186,8 @@ class PlayingCard {
 
   int get power {
     const order = [
-      '2', '3', '4', '5', '6', '7',
-      '8', '9', '10', 'J', 'Q', 'K', 'A'
+      '2', '3', '4', '5', '6', '7', '8',
+      '9', '10', 'J', 'Q', 'K', 'A'
     ];
     return order.indexOf(rank);
   }
@@ -236,11 +235,12 @@ class _ToraGamePageState extends State<ToraGamePage> {
   int sahilScore = 0;
   int opponentScore = 0;
   int tricks = 0;
+
   bool dealing = false;
   bool waiting = false;
   bool gameStarted = false;
-  String message = 'Press NEW GAME to begin';
-  String? selectedSuit;
+
+  String message = 'Your table is ready';
 
   ToraTheme get theme => widget.theme;
 
@@ -252,10 +252,12 @@ class _ToraGamePageState extends State<ToraGamePage> {
 
   List<PlayingCard> makeDeck() {
     final deck = <PlayingCard>[];
+
     const ranks = [
       '2', '3', '4', '5', '6', '7', '8',
       '9', '10', 'J', 'Q', 'K', 'A'
     ];
+
     const suits = ['♠', '♥', '♦', '♣'];
 
     for (final suit in suits) {
@@ -263,6 +265,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
         deck.add(PlayingCard(rank, suit));
       }
     }
+
     deck.shuffle(random);
     return deck;
   }
@@ -274,11 +277,14 @@ class _ToraGamePageState extends State<ToraGamePage> {
       dealing = true;
       gameStarted = false;
       waiting = false;
+
       tableCards.clear();
       captured.clear();
+
       for (final hand in hands) {
         hand.clear();
       }
+
       sahilScore = 0;
       opponentScore = 0;
       tricks = 0;
@@ -291,17 +297,24 @@ class _ToraGamePageState extends State<ToraGamePage> {
 
     for (int i = 0; i < 52; i++) {
       if (!mounted) return;
+
       setState(() {
         hands[i % 4].add(deck[i]);
       });
-      await Future.delayed(const Duration(milliseconds: 35));
+
+      await Future.delayed(
+        const Duration(milliseconds: 35),
+      );
     }
 
     for (final hand in hands) {
       hand.sort((a, b) {
         const suits = ['♠', '♥', '♦', '♣'];
-        final suitCompare =
-            suits.indexOf(a.suit).compareTo(suits.indexOf(b.suit));
+
+        final suitCompare = suits
+            .indexOf(a.suit)
+            .compareTo(suits.indexOf(b.suit));
+
         return suitCompare != 0
             ? suitCompare
             : a.power.compareTo(b.power);
@@ -309,6 +322,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
     }
 
     if (!mounted) return;
+
     setState(() {
       dealing = false;
       gameStarted = true;
@@ -323,18 +337,32 @@ class _ToraGamePageState extends State<ToraGamePage> {
 
   List<PlayingCard> legalCards(int player) {
     final hand = hands[player];
-    if (tableCards.isEmpty) return List.of(hand);
+
+    if (tableCards.isEmpty) {
+      return List.of(hand);
+    }
 
     final suit = tableCards.first.card.suit;
-    final matching = hand.where((c) => c.suit == suit).toList();
 
-    return matching.isNotEmpty ? matching : List.of(hand);
+    final matching = hand
+        .where((card) => card.suit == suit)
+        .toList();
+
+    return matching.isNotEmpty
+        ? matching
+        : List.of(hand);
   }
 
   void playHuman(PlayingCard card) {
-    if (!gameStarted || dealing || waiting || turn != 0) return;
+    if (!gameStarted ||
+        dealing ||
+        waiting ||
+        turn != 0) {
+      return;
+    }
 
     final legal = legalCards(0);
+
     if (!legal.contains(card)) return;
 
     playCard(0, card);
@@ -345,8 +373,13 @@ class _ToraGamePageState extends State<ToraGamePage> {
 
     setState(() {
       hands[player].remove(card);
-      tableCards.add(PlayedCard(player, card));
+
+      tableCards.add(
+        PlayedCard(player, card),
+      );
+
       turn = (player + 1) % 4;
+
       message = player == 0
           ? 'Sahil played $card'
           : '${playerName(player)} played a card';
@@ -354,32 +387,49 @@ class _ToraGamePageState extends State<ToraGamePage> {
 
     if (tableCards.length == 4) {
       waiting = true;
-      Future.delayed(const Duration(milliseconds: 1500), finishTrick);
+
+      Future.delayed(
+        const Duration(milliseconds: 1500),
+        finishTrick,
+      );
     } else if (turn == 0) {
-      setState(() => message = 'Your turn, Sahil');
+      setState(() {
+        message = 'Your turn, Sahil';
+      });
     } else {
       scheduleAi();
     }
   }
 
   void scheduleAi() {
-    if (!mounted || !gameStarted || waiting || turn == 0) return;
+    if (!mounted ||
+        !gameStarted ||
+        waiting ||
+        turn == 0) {
+      return;
+    }
 
-    Future.delayed(const Duration(milliseconds: 700), () {
-      if (!mounted || waiting || turn == 0) return;
+    Future.delayed(
+      const Duration(milliseconds: 700),
+      () {
+        if (!mounted || waiting || turn == 0) return;
 
-      final legal = legalCards(turn);
-      if (legal.isEmpty) return;
+        final legal = legalCards(turn);
 
-      final card = legal[random.nextInt(legal.length)];
-      playCard(turn, card);
-    });
+        if (legal.isEmpty) return;
+
+        final card = legal[random.nextInt(legal.length)];
+
+        playCard(turn, card);
+      },
+    );
   }
 
   int trickWinner() {
     if (tableCards.isEmpty) return leader;
 
     final leadSuit = tableCards.first.card.suit;
+
     final eligible = tableCards
         .where((entry) => entry.card.suit == leadSuit)
         .toList();
@@ -395,6 +445,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
     if (!mounted || tableCards.length != 4) return;
 
     final winner = trickWinner();
+
     final points = tableCards.fold<int>(
       0,
       (sum, entry) => sum + entry.card.points,
@@ -414,6 +465,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
       }
 
       tableCards.clear();
+
       tricks++;
       leader = winner;
       turn = winner;
@@ -430,7 +482,9 @@ class _ToraGamePageState extends State<ToraGamePage> {
     if (turn != 0) {
       scheduleAi();
     } else {
-      setState(() => message = 'Your turn, Sahil');
+      setState(() {
+        message = 'Your turn, Sahil';
+      });
     }
   }
 
@@ -443,7 +497,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
       case 2:
         return 'Zabihullah';
       default:
-        return 'Player 4';
+        return 'Computer';
     }
   }
 
@@ -473,7 +527,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
           children: [
             Text('Sahil + Zabihullah: $sahilScore'),
             const SizedBox(height: 8),
-            Text('Mahmood + Player 4: $opponentScore'),
+            Text('Mahmood + Computer: $opponentScore'),
             const SizedBox(height: 12),
             Text('Captured cards: ${captured.length}'),
           ],
@@ -499,29 +553,35 @@ class _ToraGamePageState extends State<ToraGamePage> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: theme.table,
-        title: Text('TORA RULES',
-            style: TextStyle(color: theme.accent)),
+        title: Text(
+          'TORA RULES',
+          style: TextStyle(color: theme.accent),
+        ),
         content: const SingleChildScrollView(
           child: Text(
             '• Four players, 13 cards each.\n'
             '• Sahil and Zabihullah are teammates.\n'
-            '• Mahmood Khan and Player 4 are teammates.\n'
+            '• Mahmood Khan and Computer are teammates.\n'
             '• Follow the suit when possible.\n'
             '• The highest card of the led suit wins.\n'
             '• There is no trump suit.\n'
             '• Hearts = 1 point.\n'
             '• Queen of Spades = 9 points.\n'
             '• Jack of Clubs = 5 points.\n'
-            '• Ten of Diamonds = 3 points.\n\n'
-            'This version uses basic trick-taking rules.',
-            style: TextStyle(color: Colors.white, height: 1.5),
+            '• Ten of Diamonds = 3 points.\n',
+            style: TextStyle(
+              color: Colors.white,
+              height: 1.5,
+            ),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('CLOSE',
-                style: TextStyle(color: theme.accent)),
+            child: Text(
+              'CLOSE',
+              style: TextStyle(color: theme.accent),
+            ),
           ),
         ],
       ),
@@ -533,8 +593,10 @@ class _ToraGamePageState extends State<ToraGamePage> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: theme.table,
-        title: Text('TABLE THEMES',
-            style: TextStyle(color: theme.accent)),
+        title: Text(
+          'TABLE THEMES',
+          style: TextStyle(color: theme.accent),
+        ),
         content: SizedBox(
           width: 300,
           child: ListView.builder(
@@ -542,6 +604,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
             itemCount: themes.length,
             itemBuilder: (context, index) {
               final item = themes[index];
+
               return ListTile(
                 leading: CircleAvatar(
                   backgroundColor: item.accent,
@@ -562,12 +625,14 @@ class _ToraGamePageState extends State<ToraGamePage> {
   Widget playerLabel(String name, int score) {
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: 12,
-        vertical: 5,
+        horizontal: 10,
+        vertical: 4,
       ),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(.65),
-        border: Border.all(color: theme.accent.withOpacity(.7)),
+        color: Colors.black.withOpacity(.75),
+        border: Border.all(
+          color: theme.accent.withOpacity(.7),
+        ),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
@@ -585,24 +650,21 @@ class _ToraGamePageState extends State<ToraGamePage> {
     PlayingCard card, {
     double width = 48,
     double height = 68,
-    bool selected = false,
     VoidCallback? onTap,
   }) {
     final red = card.suit == '♥' || card.suit == '♦';
 
     return GestureDetector(
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
+      child: Container(
         width: width,
         height: height,
-        margin: EdgeInsets.only(bottom: selected ? 10 : 0),
         decoration: BoxDecoration(
           color: const Color(0xFFF9F7F0),
           borderRadius: BorderRadius.circular(6),
           border: Border.all(
-            color: selected ? theme.accent : Colors.black54,
-            width: selected ? 2 : 1,
+            color: Colors.black54,
+            width: 1,
           ),
           boxShadow: const [
             BoxShadow(
@@ -654,19 +716,56 @@ class _ToraGamePageState extends State<ToraGamePage> {
     );
   }
 
-  Widget hiddenCards(int count, {bool horizontal = true}) {
+  Widget hiddenCards(int count) {
     return SizedBox(
-      height: horizontal ? 48 : 75,
-      width: horizontal ? min(count * 13.0 + 25, 180) : 48,
+      width: min(count * 10.0 + 30, 150),
+      height: 50,
       child: Stack(
         children: List.generate(
           min(count, 13),
           (index) => Positioned(
-            left: horizontal ? index * 9.0 : 0,
-            top: horizontal ? 0 : index * 3.0,
+            left: index * 8.0,
+            top: 0,
+            child: Container(
+              width: 34,
+              height: 47,
+              decoration: BoxDecoration(
+                color: const Color(0xFF18243B),
+                borderRadius: BorderRadius.circular(5),
+                border: Border.all(
+                  color: theme.accent,
+                  width: 1,
+                ),
+              ),
+              child: Center(
+                child: Text(
+                  'T',
+                  style: TextStyle(
+                    color: theme.accent,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget sideCards(int count) {
+    return SizedBox(
+      width: 48,
+      height: min(count * 4.0 + 48, 105),
+      child: Stack(
+        children: List.generate(
+          min(count, 13),
+          (index) => Positioned(
+            left: 5,
+            top: index * 4.0,
             child: Container(
               width: 35,
-              height: 48,
+              height: 47,
               decoration: BoxDecoration(
                 color: const Color(0xFF18243B),
                 borderRadius: BorderRadius.circular(5),
@@ -693,8 +792,9 @@ class _ToraGamePageState extends State<ToraGamePage> {
 
   Widget tableCard(int player) {
     final entry = tableCards.where((e) => e.player == player);
+
     if (entry.isEmpty) {
-      return const SizedBox(width: 50, height: 68);
+      return const SizedBox(width: 48, height: 68);
     }
 
     return cardWidget(
@@ -707,36 +807,39 @@ class _ToraGamePageState extends State<ToraGamePage> {
   Widget centerTable() {
     return Container(
       width: 205,
-      height: 160,
+      height: 155,
       decoration: BoxDecoration(
         color: theme.felt,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: theme.accent.withOpacity(.7),
+          color: theme.accent.withOpacity(.8),
           width: 2,
         ),
         boxShadow: const [
-          BoxShadow(color: Colors.black45, blurRadius: 12),
+          BoxShadow(
+            color: Colors.black45,
+            blurRadius: 12,
+          ),
         ],
       ),
       child: Stack(
         alignment: Alignment.center,
         children: [
           Positioned(
-            top: 5,
+            top: 4,
             child: tableCard(2),
           ),
           Positioned(
-            bottom: 5,
+            bottom: 4,
             child: tableCard(0),
           ),
           Positioned(
-            left: 5,
-            child: tableCard(3),
+            left: 4,
+            child: tableCard(1),
           ),
           Positioned(
-            right: 5,
-            child: tableCard(1),
+            right: 4,
+            child: tableCard(3),
           ),
           Text(
             'TORA',
@@ -756,7 +859,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
     final hand = hands[0];
 
     return SizedBox(
-      height: 88,
+      height: 70,
       child: Center(
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
@@ -768,11 +871,11 @@ class _ToraGamePageState extends State<ToraGamePage> {
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 2),
                 child: Opacity(
-                  opacity: turn == 0 && legal ? 1 : .8,
+                  opacity: turn == 0 && legal ? 1 : .65,
                   child: cardWidget(
                     card,
-                    width: 43,
-                    height: 65,
+                    width: 42,
+                    height: 63,
                     onTap: legal ? () => playHuman(card) : null,
                   ),
                 ),
@@ -793,143 +896,147 @@ class _ToraGamePageState extends State<ToraGamePage> {
           builder: (context, constraints) {
             return Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 4,
-                  ),
+                // TOP BAR
+                SizedBox(
+                  height: 38,
                   child: Row(
                     children: [
+                      const SizedBox(width: 10),
                       Text(
                         'TORA',
                         style: TextStyle(
                           color: theme.accent,
-                          fontSize: 20,
+                          fontSize: 19,
                           fontWeight: FontWeight.w900,
                           letterSpacing: 4,
                         ),
                       ),
-                      const SizedBox(width: 14),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           message,
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             color: theme.accent,
-                            fontSize: 12,
+                            fontSize: 11,
                           ),
                         ),
                       ),
                       IconButton(
+                        padding: EdgeInsets.zero,
                         onPressed: showRules,
-                        icon: Icon(Icons.help_outline,
-                            color: theme.accent),
+                        icon: Icon(
+                          Icons.help_outline,
+                          color: theme.accent,
+                          size: 20,
+                        ),
                       ),
                       IconButton(
+                        padding: EdgeInsets.zero,
                         onPressed: showThemes,
-                        icon: Icon(Icons.palette_outlined,
-                            color: theme.accent),
+                        icon: Icon(
+                          Icons.palette_outlined,
+                          color: theme.accent,
+                          size: 20,
+                        ),
                       ),
                       IconButton(
+                        padding: EdgeInsets.zero,
                         onPressed: startGame,
-                        icon: Icon(Icons.refresh,
-                            color: theme.accent),
+                        icon: Icon(
+                          Icons.refresh,
+                          color: theme.accent,
+                          size: 20,
+                        ),
                       ),
+                      const SizedBox(width: 6),
                     ],
                   ),
                 ),
+
+                // FOUR SIDES OF THE PHONE
                 Expanded(
-                  child: Row(
+                  child: Column(
                     children: [
-                      SizedBox(
-                        width: 80,
+                      // TOP: ZABIHULLAH
+                      Expanded(
+                        flex: 1,
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            playerLabel(
-                              'Player 4',
-                              opponentScore,
-                            ),
-                            const SizedBox(height: 8),
-                            RotatedBox(
-                              quarterTurns: 1,
-                              child: hiddenCards(
-                                hands[3].length,
-                                horizontal: true,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: Column(
-                          children: [
-                            const SizedBox(height: 2),
                             playerLabel(
                               'Zabihullah',
                               sahilScore,
                             ),
                             hiddenCards(hands[2].length),
+                          ],
+                        ),
+                      ),
+
+                      // MIDDLE: LEFT, CENTER, RIGHT
+                      Expanded(
+                        flex: 3,
+                        child: Row(
+                          children: [
+                            // LEFT: MAHMOOD KHAN
                             Expanded(
+                              flex: 1,
+                              child: Column(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.center,
+                                children: [
+                                  playerLabel(
+                                    'Mahmood Khan',
+                                    opponentScore,
+                                  ),
+                                  const SizedBox(height: 5),
+                                  sideCards(hands[1].length),
+                                ],
+                              ),
+                            ),
+
+                            // CENTER PLAYING FIELD
+                            Expanded(
+                              flex: 3,
                               child: Center(
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.center,
-                                  children: [
-                                    Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        playerLabel(
-                                          'Mahmood Khan',
-                                          opponentScore,
-                                        ),
-                                        const SizedBox(height: 5),
-                                        RotatedBox(
-                                          quarterTurns: 1,
-                                          child: hiddenCards(
-                                            hands[1].length,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(width: 10),
-                                    centerTable(),
-                                    const SizedBox(width: 10),
-                                    Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          'TRICKS  $tricks / 13',
-                                          style: TextStyle(
-                                            color: theme.accent,
-                                            fontSize: 11,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          'Sahil: $sahilScore',
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 11,
-                                          ),
-                                        ),
-                                        Text(
-                                          'Opponents: $opponentScore',
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 11,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
+                                child: FittedBox(
+                                  fit: BoxFit.contain,
+                                  child: centerTable(),
                                 ),
                               ),
                             ),
-                            playerLabel('Sahil', sahilScore),
-                            const SizedBox(height: 3),
+
+                            // RIGHT: COMPUTER
+                            Expanded(
+                              flex: 1,
+                              child: Column(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.center,
+                                children: [
+                                  playerLabel(
+                                    'Computer',
+                                    opponentScore,
+                                  ),
+                                  const SizedBox(height: 5),
+                                  sideCards(hands[3].length),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // BOTTOM: SAHIL
+                      Expanded(
+                        flex: 1,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            playerLabel(
+                              'Sahil',
+                              sahilScore,
+                            ),
+                            const SizedBox(height: 2),
                             handCards(),
                           ],
                         ),
