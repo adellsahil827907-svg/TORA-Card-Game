@@ -42,11 +42,13 @@ class ToraApp extends StatefulWidget {
   @override State<ToraApp> createState() => _ToraAppState();
 }
 class _ToraAppState extends State<ToraApp> {
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
   int themeIndex = 0;
   void setTheme(int value) => setState(() => themeIndex = value);
   @override Widget build(BuildContext context) {
     final t = _themes[themeIndex];
     return MaterialApp(
+      navigatorKey: _navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'TORA',
       theme: ThemeData(
@@ -57,8 +59,8 @@ class _ToraAppState extends State<ToraApp> {
       ),
       home: ToraSplashPage(
         theme: t,
-        onStart: (splashContext) {
-          Navigator.of(splashContext).push(
+        onStart: () {
+          _navigatorKey.currentState?.push(
             MaterialPageRoute(
               builder: (_) => ToraGamePage(theme: t, onThemeChanged: setTheme),
             ),
@@ -71,7 +73,7 @@ class _ToraAppState extends State<ToraApp> {
 
 class ToraSplashPage extends StatelessWidget {
   final ToraTheme theme;
-  final ValueChanged<BuildContext> onStart;
+  final VoidCallback onStart;
   const ToraSplashPage({super.key, required this.theme, required this.onStart});
 
   @override
@@ -115,7 +117,7 @@ class ToraSplashPage extends StatelessWidget {
                       width: 220,
                       height: 46 * scale,
                       child: FilledButton(
-                        onPressed: () => onStart(context),
+                        onPressed: onStart,
                         style: FilledButton.styleFrom(backgroundColor: theme.accent, foregroundColor: Colors.black, padding: EdgeInsets.zero),
                         child: Text('START GAME', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2, fontSize: 13 * scale)),
                       ),
