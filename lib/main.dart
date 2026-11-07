@@ -54,10 +54,66 @@ class ToraSplashPage extends StatelessWidget {
   final ToraTheme theme;
   final ValueChanged<int> onThemeChanged;
   const ToraSplashPage({super.key, required this.theme, required this.onThemeChanged});
-  @override Widget build(BuildContext context) => Scaffold(backgroundColor: theme.background, body: SafeArea(child: Center(child: Padding(padding: const EdgeInsets.all(28), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-    Container(width: 116, height: 116, decoration: BoxDecoration(shape: BoxShape.circle, gradient: LinearGradient(colors: [theme.cardTop, theme.cardBottom]), border: Border.all(color: theme.accent, width: 2), boxShadow: [BoxShadow(color: theme.accent.withOpacity(.2), blurRadius: 24)]), child: Center(child: Text('T', style: TextStyle(color: theme.accent, fontSize: 72, fontWeight: FontWeight.w900)))),
-    const SizedBox(height: 20), Text('TORA', style: TextStyle(color: theme.accent, fontSize: 38, fontWeight: FontWeight.w900, letterSpacing: 8)), const SizedBox(height: 8), const Text('THINK SMART • PLAY TORA', style: TextStyle(color: Colors.white70, letterSpacing: 2, fontSize: 11)), const SizedBox(height: 38), CircleAvatar(radius: 35, backgroundColor: theme.panel, child: Text('AS', style: TextStyle(color: theme.accent, fontSize: 25, fontWeight: FontWeight.w900))), const SizedBox(height: 10), const Text('Created by Adell Sahil', style: TextStyle(color: Colors.white70, fontSize: 13)), const SizedBox(height: 42), SizedBox(width: 220, child: FilledButton(onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => ToraGamePage(theme: theme, onThemeChanged: onThemeChanged))), style: FilledButton.styleFrom(backgroundColor: theme.accent, foregroundColor: Colors.black, padding: const EdgeInsets.symmetric(vertical: 15)), child: const Text('START GAME', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2)))),
-  ])))));
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: theme.background,
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final compact = constraints.maxHeight < 430;
+            final logoSize = compact ? 66.0 : 92.0;
+            final gap = compact ? 7.0 : 13.0;
+            return SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: compact ? 8 : 18),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: logoSize,
+                          height: logoSize,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(colors: [theme.cardTop, theme.cardBottom]),
+                            border: Border.all(color: theme.accent, width: 2),
+                            boxShadow: [BoxShadow(color: theme.accent.withOpacity(.2), blurRadius: 20)],
+                          ),
+                          child: Center(child: Text('T', style: TextStyle(color: theme.accent, fontSize: compact ? 43 : 58, fontWeight: FontWeight.w900))),
+                        ),
+                        SizedBox(height: gap),
+                        Text('TORA', style: TextStyle(color: theme.accent, fontSize: compact ? 29 : 36, fontWeight: FontWeight.w900, letterSpacing: 7)),
+                        const SizedBox(height: 4),
+                        const Text('THINK SMART • PLAY TORA', style: TextStyle(color: Colors.white70, letterSpacing: 1.5, fontSize: 10)),
+                        SizedBox(height: compact ? 10 : 20),
+                        CircleAvatar(radius: compact ? 21 : 27, backgroundColor: theme.panel, child: Text('AS', style: TextStyle(color: theme.accent, fontSize: compact ? 16 : 20, fontWeight: FontWeight.w900))),
+                        const SizedBox(height: 5),
+                        const Text('Created by Adell Sahil', style: TextStyle(color: Colors.white70, fontSize: 11)),
+                        SizedBox(height: compact ? 10 : 22),
+                        SizedBox(
+                          width: 220,
+                          child: FilledButton(
+                            onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => ToraGamePage(theme: theme, onThemeChanged: onThemeChanged))),
+                            style: FilledButton.styleFrom(backgroundColor: theme.accent, foregroundColor: Colors.black, padding: const EdgeInsets.symmetric(vertical: 13)),
+                            child: const Text('START GAME', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
 }
 
 class _FacePortraitPainter extends CustomPainter {
