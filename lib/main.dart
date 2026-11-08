@@ -716,73 +716,52 @@ class _ToraGamePageState extends State<ToraGamePage> {
   Widget _centerCross() => LayoutBuilder(builder: (context, constraints) {
     final w = constraints.maxWidth;
     final h = constraints.maxHeight;
+    final safeH = h.isFinite ? h : 160.0;
+    final safeW = w.isFinite ? w : 600.0;
 
-    // Keep the four played cards compact and centered, away from player labels.
-    final cardW = (h * .27).clamp(38.0, 52.0).toDouble();
-    final cardH = cardW * 1.42;
-    final cx = w / 2;
-    final cy = h / 2;
-    final verticalOffset = (cardH * .66).toDouble();
-    final horizontalOffset = (cardW * 1.28).toDouble();
-
-    final topY = (cy - verticalOffset - cardH / 2)
-        .clamp(2.0, h - cardH - 2).toDouble();
-    final bottomY = (cy + verticalOffset - cardH / 2)
-        .clamp(2.0, h - cardH - 2).toDouble();
-    final sideY = (cy - cardH / 2)
-        .clamp(2.0, h - cardH - 2).toDouble();
+    // Reserve a narrow strip for the status message. Size cards from the
+    // board height so the top and bottom cards remain visibly separated.
+    final cardH = ((safeH - 34) / 2.15).clamp(30.0, 58.0).toDouble();
+    final cardW = (cardH / 1.42).clamp(29.0, 41.0).toDouble();
+    final topY = 20.0;
+    final bottomY = safeH - cardH - 6.0;
+    final sideY = (topY + bottomY) / 2;
+    final cx = safeW / 2;
+    final sideOffset = cardW * 1.22;
 
     return Stack(clipBehavior: Clip.hardEdge, children: [
-      // Player labels remain in the outer corners, separate from the cards.
-      Positioned(left: 8, top: 7, child: _seat(2, 'TEAMMATE')),
-      Positioned(right: 8, top: 7, child: _seat(1, 'RIGHT OPPONENT')),
+      // Keep the player labels at the far corners, away from the card area.
+      Positioned(left: 8, top: 24, child: _seat(2, 'TEAMMATE')),
+      Positioned(right: 8, top: 24, child: _seat(1, 'RIGHT OPPONENT')),
       Positioned(left: 8, bottom: 7, child: _seat(3, 'LEFT OPPONENT')),
       Positioned(right: 8, bottom: 7, child: _seat(0, 'YOU')),
 
-      // Cross layout: teammate above, you below, opponents on each side.
-      Positioned(
-        left: cx - cardW / 2,
-        top: topY,
-        child: _playedCard(2, width: cardW, height: cardH),
-      ),
-      Positioned(
-        left: cx - cardW / 2,
-        top: bottomY,
-        child: _playedCard(0, width: cardW, height: cardH),
-      ),
-      Positioned(
-        left: (cx - horizontalOffset - cardW / 2)
-            .clamp(2.0, w - cardW - 2).toDouble(),
-        top: sideY,
-        child: _playedCard(3, width: cardW, height: cardH),
-      ),
-      Positioned(
-        left: (cx + horizontalOffset - cardW / 2)
-            .clamp(2.0, w - cardW - 2).toDouble(),
-        top: sideY,
-        child: _playedCard(1, width: cardW, height: cardH),
-      ),
+      // Four distinct positions: top, bottom, left and right of the center.
+      Positioned(left: cx - cardW / 2, top: topY,
+        child: _playedCard(2, width: cardW, height: cardH)),
+      Positioned(left: cx - cardW / 2, top: bottomY,
+        child: _playedCard(0, width: cardW, height: cardH)),
+      Positioned(left: cx - sideOffset - cardW / 2, top: sideY,
+        child: _playedCard(3, width: cardW, height: cardH)),
+      Positioned(left: cx + sideOffset - cardW / 2, top: sideY,
+        child: _playedCard(1, width: cardW, height: cardH)),
 
       if (_dealing)
         Center(child: _dealAnimationWidget())
       else
         Positioned(
-          top: 7,
-          left: w * .30,
-          right: w * .30,
-          child: IgnorePointer(
-            child: Text(
-              _status,
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: t.accent,
-                fontSize: 9,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ),
+          top: 3,
+          left: safeW * .34,
+          right: safeW * .34,
+          child: IgnorePointer(child: Text(
+            _status,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(color: t.accent, fontSize: 9,
+              fontWeight: FontWeight.w900,
+              shadows: const [Shadow(color: Colors.black, blurRadius: 3)]),
+          )),
         ),
     ]);
   });
