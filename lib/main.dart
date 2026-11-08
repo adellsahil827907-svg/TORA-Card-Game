@@ -716,39 +716,53 @@ class _ToraGamePageState extends State<ToraGamePage> {
   Widget _centerCross() => LayoutBuilder(builder: (context, constraints) {
     final w = constraints.maxWidth;
     final h = constraints.maxHeight;
-    // Keep the four played cards in a clear central cross, with fixed separation.
-    final cardW = (w * .052).clamp(48.0, 66.0).toDouble();
+
+    // Keep the four played cards compact and centered, away from player labels.
+    final cardW = (h * .27).clamp(38.0, 52.0).toDouble();
     final cardH = cardW * 1.42;
     final cx = w / 2;
     final cy = h / 2;
-    final sideGap = (cardW * 1.18).clamp(58.0, 82.0).toDouble();
-    final verticalGap = (cardH * .58).clamp(42.0, 58.0).toDouble();
+    final verticalOffset = (cardH * .66).toDouble();
+    final horizontalOffset = (cardW * 1.28).toDouble();
+
+    final topY = (cy - verticalOffset - cardH / 2)
+        .clamp(2.0, h - cardH - 2).toDouble();
+    final bottomY = (cy + verticalOffset - cardH / 2)
+        .clamp(2.0, h - cardH - 2).toDouble();
+    final sideY = (cy - cardH / 2)
+        .clamp(2.0, h - cardH - 2).toDouble();
+
     return Stack(clipBehavior: Clip.hardEdge, children: [
-      // Player labels stay in the four outer corners and never cover the cards.
+      // Player labels remain in the outer corners, separate from the cards.
       Positioned(left: 8, top: 7, child: _seat(2, 'TEAMMATE')),
       Positioned(right: 8, top: 7, child: _seat(1, 'RIGHT OPPONENT')),
       Positioned(left: 8, bottom: 7, child: _seat(3, 'LEFT OPPONENT')),
       Positioned(right: 8, bottom: 7, child: _seat(0, 'YOU')),
+
+      // Cross layout: teammate above, you below, opponents on each side.
       Positioned(
         left: cx - cardW / 2,
-        top: (cy - verticalGap - cardH / 2).clamp(2.0, h - cardH - 2).toDouble(),
+        top: topY,
         child: _playedCard(2, width: cardW, height: cardH),
       ),
       Positioned(
         left: cx - cardW / 2,
-        top: (cy + verticalGap - cardH / 2).clamp(2.0, h - cardH - 2).toDouble(),
+        top: bottomY,
         child: _playedCard(0, width: cardW, height: cardH),
       ),
       Positioned(
-        left: (cx - sideGap - cardW / 2).clamp(2.0, w - cardW - 2).toDouble(),
-        top: cy - cardH / 2,
+        left: (cx - horizontalOffset - cardW / 2)
+            .clamp(2.0, w - cardW - 2).toDouble(),
+        top: sideY,
         child: _playedCard(3, width: cardW, height: cardH),
       ),
       Positioned(
-        left: (cx + sideGap - cardW / 2).clamp(2.0, w - cardW - 2).toDouble(),
-        top: cy - cardH / 2,
+        left: (cx + horizontalOffset - cardW / 2)
+            .clamp(2.0, w - cardW - 2).toDouble(),
+        top: sideY,
         child: _playedCard(1, width: cardW, height: cardH),
       ),
+
       if (_dealing)
         Center(child: _dealAnimationWidget())
       else
@@ -756,13 +770,19 @@ class _ToraGamePageState extends State<ToraGamePage> {
           top: 7,
           left: w * .30,
           right: w * .30,
-          child: IgnorePointer(child: Text(
-            _status,
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: t.accent, fontSize: 9, fontWeight: FontWeight.w900),
-          )),
+          child: IgnorePointer(
+            child: Text(
+              _status,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: t.accent,
+                fontSize: 9,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
         ),
     ]);
   });
