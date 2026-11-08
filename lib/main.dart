@@ -671,10 +671,10 @@ class _ToraGamePageState extends State<ToraGamePage> {
 
   Widget _seat(int seat, String position) => Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5), decoration: BoxDecoration(color: t.background.withOpacity(.94), borderRadius: BorderRadius.circular(10), border: Border.all(color: _turn == seat ? t.accent : t.accent.withOpacity(.35), width: _turn == seat ? 2 : 1)), child: Column(mainAxisSize: MainAxisSize.min, children: [Text(_names[seat], maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: _turn == seat ? t.accent : Colors.white, fontWeight: FontWeight.bold, fontSize: 10)), Text(position, style: const TextStyle(color: Colors.white60, fontSize: 8)), Text('${_hands[seat].length} cards', style: const TextStyle(color: Colors.white70, fontSize: 8))]));
 
-  Widget _playedCard(int seat) {
+  Widget _playedCard(int seat, {double width = 58, double height = 82}) {
     final card = _trick[seat];
-    if (card == null) return const SizedBox(width: 48, height: 68);
-    return _cardFace(card, width: 48, height: 68);
+    if (card == null) return SizedBox(width: width, height: height);
+    return _cardFace(card, width: width, height: height);
   }
 
   Widget _dealAnimationWidget() => Container(
@@ -713,77 +713,60 @@ class _ToraGamePageState extends State<ToraGamePage> {
     ]),
   );
 
-  Widget _tableSeat(int seat, String position, {double fontSize = 12}) =>
-      Container(
-        constraints: const BoxConstraints(maxWidth: 170),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: const Color(0xD9101118),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: _turn == seat ? t.accent : t.accent.withOpacity(.55),
-            width: _turn == seat ? 2 : 1,
-          ),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(.25), blurRadius: 8)],
-        ),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(_names[seat], maxLines: 1, overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: _turn == seat ? t.accent : Colors.white,
-              fontWeight: FontWeight.w900, fontSize: fontSize)),
-          Text('$position  •  ${_hands[seat].length}/13',
-            style: TextStyle(color: Colors.white70, fontSize: fontSize * .72)),
-        ]),
-      );
-
   Widget _centerCross() => LayoutBuilder(builder: (context, constraints) {
     final w = constraints.maxWidth;
     final h = constraints.maxHeight;
-    final cardH = (w * .105 * 1.43).clamp(68.0, 166.0).clamp(0.0, (h - 110).clamp(68.0, 332.0) / 2).toDouble();
-    final cardW = cardH / 1.43;
-    final seatFont = (w * .009).clamp(10.0, 13.0).toDouble();
-    final cardGap = (w * .018).clamp(10.0, 24.0).toDouble();
-    final sideSeatW = (w * .19).clamp(118.0, 190.0).toDouble();
-    final topCardY = 46.0;
-    final bottomCardY = h - cardH - 46.0;
-    final centerCardTop = (h - cardH) / 2;
-    return Stack(clipBehavior: Clip.none, children: [
-      // Partner: name at the top, card below it.
-      Positioned(top: 2, left: 0, right: 0,
-        child: Center(child: _tableSeat(2, 'PARTNER', fontSize: seatFont))),
-      Positioned(top: topCardY, left: 0, right: 0,
-        child: Center(child: (_trick[2] == null ? SizedBox(width: cardW, height: cardH) : _cardFace(_trick[2]!, width: cardW, height: cardH)))),
-
-      // Player: card above the player's own hand area, label below.
-      Positioned(bottom: 2, left: 0, right: 0,
-        child: Center(child: _tableSeat(0, 'YOU', fontSize: seatFont))),
-      Positioned(top: bottomCardY, left: 0, right: 0,
-        child: Center(child: (_trick[0] == null ? SizedBox(width: cardW, height: cardH) : _cardFace(_trick[0]!, width: cardW, height: cardH)))),
-
-      // Left opponent.
-      Positioned(left: 2, top: 0, bottom: 0, width: sideSeatW,
-        child: Center(child: _tableSeat(3, 'LEFT OPPONENT', fontSize: seatFont))),
-      Positioned(left: sideSeatW + cardGap, top: centerCardTop,
-        child: (_trick[3] == null ? SizedBox(width: cardW, height: cardH) : _cardFace(_trick[3]!, width: cardW, height: cardH))),
-
-      // Right opponent.
-      Positioned(right: 2, top: 0, bottom: 0, width: sideSeatW,
-        child: Center(child: _tableSeat(1, 'RIGHT OPPONENT', fontSize: seatFont))),
-      Positioned(right: sideSeatW + cardGap, top: centerCardTop,
-        child: (_trick[1] == null ? SizedBox(width: cardW, height: cardH) : _cardFace(_trick[1]!, width: cardW, height: cardH))),
-
-      // Keep the centre clear so the four cards remain the visual focus.
+    // Keep the four played cards in a clear central cross, with fixed separation.
+    final cardW = (w * .052).clamp(48.0, 66.0).toDouble();
+    final cardH = cardW * 1.42;
+    final cx = w / 2;
+    final cy = h / 2;
+    final sideGap = (cardW * 1.18).clamp(58.0, 82.0).toDouble();
+    final verticalGap = (cardH * .58).clamp(42.0, 58.0).toDouble();
+    return Stack(clipBehavior: Clip.hardEdge, children: [
+      // Player labels stay in the four outer corners and never cover the cards.
+      Positioned(left: 8, top: 7, child: _seat(2, 'TEAMMATE')),
+      Positioned(right: 8, top: 7, child: _seat(1, 'RIGHT OPPONENT')),
+      Positioned(left: 8, bottom: 7, child: _seat(3, 'LEFT OPPONENT')),
+      Positioned(right: 8, bottom: 7, child: _seat(0, 'YOU')),
+      Positioned(
+        left: cx - cardW / 2,
+        top: (cy - verticalGap - cardH / 2).clamp(2.0, h - cardH - 2).toDouble(),
+        child: _playedCard(2, width: cardW, height: cardH),
+      ),
+      Positioned(
+        left: cx - cardW / 2,
+        top: (cy + verticalGap - cardH / 2).clamp(2.0, h - cardH - 2).toDouble(),
+        child: _playedCard(0, width: cardW, height: cardH),
+      ),
+      Positioned(
+        left: (cx - sideGap - cardW / 2).clamp(2.0, w - cardW - 2).toDouble(),
+        top: cy - cardH / 2,
+        child: _playedCard(3, width: cardW, height: cardH),
+      ),
+      Positioned(
+        left: (cx + sideGap - cardW / 2).clamp(2.0, w - cardW - 2).toDouble(),
+        top: cy - cardH / 2,
+        child: _playedCard(1, width: cardW, height: cardH),
+      ),
       if (_dealing)
         Center(child: _dealAnimationWidget())
       else
-        Positioned(top: 5, right: sideSeatW + 8,
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: (w * .22).clamp(120.0, 260.0).toDouble()),
-            child: Text(_ledSuit == null ? _status : 'LEAD: $_ledSuit  •  $_status',
-              textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: t.accent, fontSize: (w * .007).clamp(9.0, 11.0).toDouble(), fontWeight: FontWeight.w900)),
+        Positioned(
+          top: 7,
+          left: w * .30,
+          right: w * .30,
+          child: IgnorePointer(child: Text(
+            _status,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(color: t.accent, fontSize: 9, fontWeight: FontWeight.w900),
           )),
+        ),
     ]);
   });
+
 
   Widget _scoreBox(String label, int score) => Container(padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8), decoration: BoxDecoration(color: t.panel, borderRadius: BorderRadius.circular(10), border: Border.all(color: t.accent.withOpacity(.7))), child: Column(children: [Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70, fontSize: 9)), Text('$score', style: TextStyle(color: t.accent, fontSize: 19, fontWeight: FontWeight.w900))]));
 
