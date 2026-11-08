@@ -714,58 +714,73 @@ class _ToraGamePageState extends State<ToraGamePage> {
   );
 
   Widget _centerCross() => LayoutBuilder(builder: (context, constraints) {
-    final w = constraints.maxWidth;
-    final h = constraints.maxHeight;
-    final safeH = h.isFinite ? h : 160.0;
-    final safeW = w.isFinite ? w : 600.0;
+    final w = constraints.maxWidth.isFinite ? constraints.maxWidth : 600.0;
+    final h = constraints.maxHeight.isFinite ? constraints.maxHeight : 190.0;
 
-    // Reserve a narrow strip for the status message. Size cards from the
-    // board height so the top and bottom cards remain visibly separated.
-    final cardH = ((safeH - 34) / 2.15).clamp(30.0, 58.0).toDouble();
-    final cardW = (cardH / 1.42).clamp(29.0, 41.0).toDouble();
-    final topY = 20.0;
-    final bottomY = safeH - cardH - 6.0;
-    final sideY = (topY + bottomY) / 2;
-    final cx = safeW / 2;
-    final sideOffset = cardW * 1.22;
+    // The table follows the reference screenshot:
+    // teammate at top, opponents at left/right, Sahil at bottom.
+    final cardH = (h * .27).clamp(36.0, 52.0).toDouble();
+    final cardW = (cardH / 1.42).clamp(30.0, 44.0).toDouble();
+    final cx = w / 2;
+    final cy = h / 2;
+    final verticalGap = cardH * .50;
+    final sideGap = cardW * .88;
 
     return Stack(clipBehavior: Clip.hardEdge, children: [
-      // Keep the player labels at the far corners, away from the card area.
-      Positioned(left: 8, top: 24, child: _seat(2, 'TEAMMATE')),
-      Positioned(right: 8, top: 24, child: _seat(1, 'RIGHT OPPONENT')),
-      Positioned(left: 8, bottom: 7, child: _seat(3, 'LEFT OPPONENT')),
-      Positioned(right: 8, bottom: 7, child: _seat(0, 'YOU')),
+      // Player positions match the supplied reference image.
+      Positioned(top: 3, left: 0, right: 0,
+        child: Center(child: _seat(2, 'PARTNER'))),
+      Positioned(left: 3, top: 0, bottom: 0,
+        child: Center(child: _seat(3, 'OPPONENT 2'))),
+      Positioned(right: 3, top: 0, bottom: 0,
+        child: Center(child: _seat(1, 'OPPONENT'))),
+      Positioned(bottom: 3, left: 0, right: 0,
+        child: Center(child: _seat(0, 'PLAYER'))),
 
-      // Four distinct positions: top, bottom, left and right of the center.
-      Positioned(left: cx - cardW / 2, top: topY,
-        child: _playedCard(2, width: cardW, height: cardH)),
-      Positioned(left: cx - cardW / 2, top: bottomY,
-        child: _playedCard(0, width: cardW, height: cardH)),
-      Positioned(left: cx - sideOffset - cardW / 2, top: sideY,
-        child: _playedCard(3, width: cardW, height: cardH)),
-      Positioned(left: cx + sideOffset - cardW / 2, top: sideY,
-        child: _playedCard(1, width: cardW, height: cardH)),
+      // Four played cards form a compact cross in the exact middle.
+      Positioned(
+        left: cx - cardW / 2,
+        top: cy - verticalGap - cardH / 2,
+        child: _playedCard(2, width: cardW, height: cardH),
+      ),
+      Positioned(
+        left: cx - cardW / 2,
+        top: cy + verticalGap - cardH / 2,
+        child: _playedCard(0, width: cardW, height: cardH),
+      ),
+      Positioned(
+        left: cx - sideGap - cardW / 2,
+        top: cy - cardH / 2,
+        child: _playedCard(3, width: cardW, height: cardH),
+      ),
+      Positioned(
+        left: cx + sideGap - cardW / 2,
+        top: cy - cardH / 2,
+        child: _playedCard(1, width: cardW, height: cardH),
+      ),
 
       if (_dealing)
         Center(child: _dealAnimationWidget())
       else
         Positioned(
           top: 3,
-          left: safeW * .34,
-          right: safeW * .34,
+          left: 8,
+          right: w * .70,
           child: IgnorePointer(child: Text(
             _status,
-            textAlign: TextAlign.center,
+            textAlign: TextAlign.left,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: t.accent, fontSize: 9,
+            style: TextStyle(
+              color: t.accent,
+              fontSize: 9,
               fontWeight: FontWeight.w900,
-              shadows: const [Shadow(color: Colors.black, blurRadius: 3)]),
+              shadows: const [Shadow(color: Colors.black, blurRadius: 3)],
+            ),
           )),
         ),
     ]);
   });
-
 
   Widget _scoreBox(String label, int score) => Container(padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8), decoration: BoxDecoration(color: t.panel, borderRadius: BorderRadius.circular(10), border: Border.all(color: t.accent.withOpacity(.7))), child: Column(children: [Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70, fontSize: 9)), Text('$score', style: TextStyle(color: t.accent, fontSize: 19, fontWeight: FontWeight.w900))]));
 
