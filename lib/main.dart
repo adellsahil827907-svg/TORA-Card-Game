@@ -411,13 +411,14 @@ class _ToraGamePageState extends State<ToraGamePage> {
   int _roundPenalty(List<String> cards) {
     final hasQueen = cards.contains('Q♠');
     final otherPenaltyCards = cards.any((c) => _suit(c) == '♥' || c == 'J♣' || c == '10♦');
+    // Q♠ by itself carries no penalty. Otherwise apply the fixed TORA bands:
+    // below 10 = 0, 10–15 = 10, 16–20 = 20, above 20 = 30.
     if (hasQueen && !otherPenaltyCards) return 0;
     final raw = cards.fold<int>(0, (sum, card) => sum + _cardPenalty(card));
-    if (raw == 13 || raw == 14) return 10;
-    if (raw == 15) return hasQueen ? 20 : 10;
-    if (raw >= 16 && raw <= 20) return 20;
-    if (raw > 20 && raw <= 30) return 30;
-    return raw;
+    if (raw < 10) return 0;
+    if (raw <= 15) return 10;
+    if (raw <= 20) return 20;
+    return 30;
   }
 
   void _resolveTrick() {
