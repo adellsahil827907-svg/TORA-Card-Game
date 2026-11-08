@@ -714,58 +714,83 @@ class _ToraGamePageState extends State<ToraGamePage> {
   );
 
   Widget _centerCross() => LayoutBuilder(builder: (context, constraints) {
-    final w = constraints.maxWidth;
-    final h = constraints.maxHeight;
-    final safeH = h.isFinite ? h : 160.0;
-    final safeW = w.isFinite ? w : 600.0;
+    final w = constraints.maxWidth.isFinite ? constraints.maxWidth : 600.0;
+    final h = constraints.maxHeight.isFinite ? constraints.maxHeight : 190.0;
 
-    // Reserve a narrow strip for the status message. Size cards from the
-    // board height so the top and bottom cards remain visibly separated.
-    final cardH = ((safeH - 34) / 2.15).clamp(30.0, 58.0).toDouble();
-    final cardW = (cardH / 1.42).clamp(29.0, 41.0).toDouble();
-    final topY = 20.0;
-    final bottomY = safeH - cardH - 6.0;
-    final sideY = (topY + bottomY) / 2;
-    final cx = safeW / 2;
-    final sideOffset = cardW * 1.22;
+    // The table follows the reference screenshot:
+    // teammate at top, opponents at left/right, Sahil at bottom.
+    // Give the table and played cards substantially more visual space.
+    // The sizing is responsive: card height follows the available table
+    // height, while width is limited so the left/right cards stay on-screen.
+    final cardH = (h * .48).clamp(80.0, 106.0).toDouble();
+    final cardW = (cardH / 1.42).clamp(56.0, 75.0).toDouble();
+    final cx = w / 2;
+    final cy = h / 2;
+    // Slightly tighter cross spacing keeps all four large cards in the field.
+    final verticalGap = cardH * .34;
+    final sideGap = cardW * .78;
 
     return Stack(clipBehavior: Clip.hardEdge, children: [
-      // Keep the player labels at the far corners, away from the card area.
-      Positioned(left: 8, top: 24, child: _seat(2, 'TEAMMATE')),
-      Positioned(right: 8, top: 24, child: _seat(1, 'RIGHT OPPONENT')),
-      Positioned(left: 8, bottom: 7, child: _seat(3, 'LEFT OPPONENT')),
-      Positioned(right: 8, bottom: 7, child: _seat(0, 'YOU')),
+      // Keep the scores on the table corners so the playing field can use
+      // more of the phone's landscape height.
+      Positioned(top: 3, left: 4, child: SizedBox(width: w * .25,
+        child: _scoreBox('${_names[0]} + ${_names[2]}', _teamOne))),
+      Positioned(top: 3, right: 4, child: SizedBox(width: w * .25,
+        child: _scoreBox('${_names[1]} + ${_names[3]}', _teamTwo))),
+      // Player positions match the supplied reference image.
+      Positioned(top: 3, left: 0, right: 0,
+        child: Center(child: _seat(2, 'PARTNER'))),
+      Positioned(left: 3, top: 0, bottom: 0,
+        child: Center(child: _seat(3, 'OPPONENT 2'))),
+      Positioned(right: 3, top: 0, bottom: 0,
+        child: Center(child: _seat(1, 'OPPONENT'))),
+      Positioned(bottom: 3, left: 0, right: 0,
+        child: Center(child: _seat(0, 'PLAYER'))),
 
-      // Four distinct positions: top, bottom, left and right of the center.
-      Positioned(left: cx - cardW / 2, top: topY,
-        child: _playedCard(2, width: cardW, height: cardH)),
-      Positioned(left: cx - cardW / 2, top: bottomY,
-        child: _playedCard(0, width: cardW, height: cardH)),
-      Positioned(left: cx - sideOffset - cardW / 2, top: sideY,
-        child: _playedCard(3, width: cardW, height: cardH)),
-      Positioned(left: cx + sideOffset - cardW / 2, top: sideY,
-        child: _playedCard(1, width: cardW, height: cardH)),
+      // Four played cards form a compact cross in the exact middle.
+      Positioned(
+        left: cx - cardW / 2,
+        top: cy - verticalGap - cardH / 2,
+        child: _playedCard(2, width: cardW, height: cardH),
+      ),
+      Positioned(
+        left: cx - cardW / 2,
+        top: cy + verticalGap - cardH / 2,
+        child: _playedCard(0, width: cardW, height: cardH),
+      ),
+      Positioned(
+        left: cx - sideGap - cardW / 2,
+        top: cy - cardH / 2,
+        child: _playedCard(3, width: cardW, height: cardH),
+      ),
+      Positioned(
+        left: cx + sideGap - cardW / 2,
+        top: cy - cardH / 2,
+        child: _playedCard(1, width: cardW, height: cardH),
+      ),
 
       if (_dealing)
         Center(child: _dealAnimationWidget())
       else
         Positioned(
           top: 3,
-          left: safeW * .34,
-          right: safeW * .34,
+          left: 8,
+          right: w * .70,
           child: IgnorePointer(child: Text(
             _status,
-            textAlign: TextAlign.center,
+            textAlign: TextAlign.left,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: t.accent, fontSize: 9,
+            style: TextStyle(
+              color: t.accent,
+              fontSize: 9,
               fontWeight: FontWeight.w900,
-              shadows: const [Shadow(color: Colors.black, blurRadius: 3)]),
+              shadows: const [Shadow(color: Colors.black, blurRadius: 3)],
+            ),
           )),
         ),
     ]);
   });
-
 
   Widget _scoreBox(String label, int score) => Container(padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8), decoration: BoxDecoration(color: t.panel, borderRadius: BorderRadius.circular(10), border: Border.all(color: t.accent.withOpacity(.7))), child: Column(children: [Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70, fontSize: 9)), Text('$score', style: TextStyle(color: t.accent, fontSize: 19, fontWeight: FontWeight.w900))]));
 
@@ -777,7 +802,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
     final legal = _legalCards(0);
     return Scaffold(backgroundColor: t.background,
       body: SafeArea(child: Column(children: [
-        SizedBox(height: 34, child: Row(children: [
+        SizedBox(height: 29, child: Row(children: [
           const SizedBox(width: 10),
           Text('♛ TORA', style: TextStyle(color: t.accent, fontWeight: FontWeight.w900, letterSpacing: 3, fontSize: 16)),
           const Spacer(),
@@ -786,17 +811,16 @@ class _ToraGamePageState extends State<ToraGamePage> {
           IconButton(onPressed: _showRules, tooltip: 'Rules', icon: const Icon(Icons.info_outline, size: 19), visualDensity: VisualDensity.compact, padding: EdgeInsets.zero, constraints: const BoxConstraints.tightFor(width: 34, height: 32)),
           const SizedBox(width: 6),
         ])),
-        Padding(padding: const EdgeInsets.fromLTRB(10, 3, 10, 5), child: Row(children: [Expanded(child: _scoreBox('${_names[0]} + ${_names[2]}', _teamOne)), const SizedBox(width: 8), Expanded(child: _scoreBox('${_names[1]} + ${_names[3]}', _teamTwo))])),
-        Expanded(child: Container(margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), padding: const EdgeInsets.all(7), decoration: BoxDecoration(
+        Expanded(child: Container(margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 1), padding: const EdgeInsets.all(3), decoration: BoxDecoration(
           gradient: RadialGradient(center: Alignment.center, radius: 1.15,
             colors: [Color.lerp(t.table, t.accent, .12)!, t.table, t.background]),
           borderRadius: BorderRadius.circular(22),
           border: Border.all(color: t.accent, width: 2),
           boxShadow: [BoxShadow(color: t.accent.withOpacity(.18), blurRadius: 18)],
         ), child: DragTarget<String>(onWillAcceptWithDetails: (d) => _turn == 0 && !_dealing && !_aiBusy && !_gameOver && !_resolvingTrick && legal.contains(d.data), onAcceptWithDetails: (d) => _playCard(0, d.data), builder: (ctx, candidates, rejected) => Stack(children: [_centerCross(), if (candidates.isNotEmpty) Positioned.fill(child: IgnorePointer(child: Container(decoration: BoxDecoration(border: Border.all(color: Colors.white, width: 3), borderRadius: BorderRadius.circular(18)))))])))),
-        Padding(padding: const EdgeInsets.fromLTRB(10, 4, 10, 0), child: Row(children: [Expanded(child: Text('${_names[0].toUpperCase()} — YOUR CARDS', style: TextStyle(color: t.accent, fontWeight: FontWeight.w900, fontSize: 10, letterSpacing: 1))), Text('${_myHand.length}/13', style: const TextStyle(color: Colors.white70, fontSize: 10))])),
-        SizedBox(height: 100, child: ListView.separated(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7), itemCount: _myHand.length, separatorBuilder: (_, __) => const SizedBox(width: 4), itemBuilder: (ctx, i) { final card = _myHand[i]; final allowed = legal.contains(card) && _turn == 0 && !_dealing && !_aiBusy && !_gameOver && !_resolvingTrick; return Draggable<String>(data: card, maxSimultaneousDrags: allowed ? 1 : 0, feedback: Material(color: Colors.transparent, child: _cardFace(card, width: 58, height: 82)), childWhenDragging: Opacity(opacity: .25, child: _cardFace(card, width: 53, height: 76)), child: Opacity(opacity: allowed ? 1 : .48, child: _cardFace(card, width: 53, height: 76))); })),
-        Padding(padding: const EdgeInsets.fromLTRB(9, 0, 9, 8), child: Row(children: [Expanded(child: OutlinedButton(onPressed: _turn == 0 && !_dealing && !_aiBusy && !_gameOver && !_resolvingTrick ? () => _claimNoMore(0) : null, style: OutlinedButton.styleFrom(foregroundColor: t.accent, side: BorderSide(color: t.accent)), child: const Text('NO MORE / نورې نشته', style: TextStyle(fontSize: 10)))), const SizedBox(width: 7), Expanded(child: OutlinedButton(onPressed: _editNames, style: OutlinedButton.styleFrom(foregroundColor: t.accent, side: BorderSide(color: t.accent)), child: const Text('PLAYERS', style: TextStyle(fontSize: 10)))), const SizedBox(width: 7), Expanded(child: FilledButton(onPressed: _gameOver && !_dealing ? _deal : null, style: FilledButton.styleFrom(backgroundColor: t.accent, foregroundColor: Colors.black), child: Text(_gameOver ? 'NEW ROUND' : (_dealing ? 'DEALING...' : 'PLAYING'), style: const TextStyle(fontSize: 10))))])),
+        Padding(padding: const EdgeInsets.fromLTRB(8, 2, 8, 0), child: Row(children: [Expanded(child: Text('${_names[0].toUpperCase()} — YOUR CARDS', style: TextStyle(color: t.accent, fontWeight: FontWeight.w900, fontSize: 10, letterSpacing: 1))), Text('${_myHand.length}/13', style: const TextStyle(color: Colors.white70, fontSize: 10))])),
+        SizedBox(height: 88, child: ListView.separated(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), itemCount: _myHand.length, separatorBuilder: (_, __) => const SizedBox(width: 4), itemBuilder: (ctx, i) { final card = _myHand[i]; final allowed = legal.contains(card) && _turn == 0 && !_dealing && !_aiBusy && !_gameOver && !_resolvingTrick; return Draggable<String>(data: card, maxSimultaneousDrags: allowed ? 1 : 0, feedback: Material(color: Colors.transparent, child: _cardFace(card, width: 53, height: 76)), childWhenDragging: Opacity(opacity: .25, child: _cardFace(card, width: 48, height: 69)), child: Opacity(opacity: allowed ? 1 : .48, child: _cardFace(card, width: 48, height: 69))); })),
+        Padding(padding: const EdgeInsets.fromLTRB(8, 0, 8, 4), child: Row(children: [Expanded(child: OutlinedButton(onPressed: _turn == 0 && !_dealing && !_aiBusy && !_gameOver && !_resolvingTrick ? () => _claimNoMore(0) : null, style: OutlinedButton.styleFrom(foregroundColor: t.accent, side: BorderSide(color: t.accent)), child: const Text('NO MORE / نورې نشته', style: TextStyle(fontSize: 10)))), const SizedBox(width: 7), Expanded(child: OutlinedButton(onPressed: _editNames, style: OutlinedButton.styleFrom(foregroundColor: t.accent, side: BorderSide(color: t.accent)), child: const Text('PLAYERS', style: TextStyle(fontSize: 10)))), const SizedBox(width: 7), Expanded(child: FilledButton(onPressed: _gameOver && !_dealing ? _deal : null, style: FilledButton.styleFrom(backgroundColor: t.accent, foregroundColor: Colors.black), child: Text(_gameOver ? 'NEW ROUND' : (_dealing ? 'DEALING...' : 'PLAYING'), style: const TextStyle(fontSize: 10))))])),
       ])));
   }
 }
