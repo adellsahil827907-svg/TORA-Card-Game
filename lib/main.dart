@@ -257,6 +257,8 @@ class _ToraGamePageState extends State<ToraGamePage> {
   int _dealProgress = 0, _lastDealtSeat = -1;
   List<String> _dealDeck = [];
   late ToraTheme _activeTheme;
+  int _cardFaceStyle = 0;
+  int _cardBackStyle = 0;
   String? _ledSuit;
   String _status = 'Your turn: drag a card to the centre.';
   int _lastWinner = -1;
@@ -588,84 +590,67 @@ class _ToraGamePageState extends State<ToraGamePage> {
   Color _suitColor(String suit) => _isRed(suit) ? const Color(0xFFE14B5A) : const Color(0xFFE9E2D1);
 
   Widget _cardFace(String card, {Key? key, double width = 52, double height = 74, bool back = false}) {
+    const faceNames = ['Classic Ivory', 'Black & Gold', 'Red Royal', 'Emerald Gold', 'Silver', 'Midnight Blue'];
+    const faceTop = [Color(0xFFFFFEFA), Color(0xFF24201A), Color(0xFF351018), Color(0xFF102D24), Color(0xFFE9EDF1), Color(0xFF10233B)];
+    const faceBottom = [Color(0xFFECE5D7), Color(0xFF080808), Color(0xFF12070B), Color(0xFF06140F), Color(0xFFBFC8D1), Color(0xFF050D1A)];
+    const faceGold = [Color(0xFFB58A3A), Color(0xFFE2BD62), Color(0xFFE6B8A0), Color(0xFFD8BB69), Color(0xFF9CA8B4), Color(0xFF9EBDEB)];
+    const backNames = ['TORA Gold', 'Royal Spade', 'Golden Lion', 'Diamond Grid', 'Emerald Crest', 'Purple Galaxy'];
+    const backSymbols = ['T', '♠', '♛', '◇', '♜', '✦'];
+    const backTop = [Color(0xFF29231A), Color(0xFF171717), Color(0xFF30200D), Color(0xFF101010), Color(0xFF0B3025), Color(0xFF21113C)];
+    const backBottom = [Color(0xFF080808), Color(0xFF050505), Color(0xFF090909), Color(0xFF171717), Color(0xFF04150F), Color(0xFF08051A)];
+    final fi = _cardFaceStyle.clamp(0, 5).toInt();
+    final bi = _cardBackStyle.clamp(0, 5).toInt();
     if (back) {
       return Container(
-        key: key,
-        width: width, height: height,
+        key: key, width: width, height: height,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
-          gradient: LinearGradient(colors: [t.cardTop, t.cardBottom], begin: Alignment.topLeft, end: Alignment.bottomRight),
-          border: Border.all(color: t.accent, width: 1.4),
+          gradient: LinearGradient(colors: [backTop[bi], backBottom[bi]], begin: Alignment.topLeft, end: Alignment.bottomRight),
+          border: Border.all(color: const Color(0xFFE0B85C), width: 1.5),
           boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 5, offset: Offset(1, 2))],
         ),
         child: Center(child: Container(
-          width: width * .72, height: height * .78,
-          decoration: BoxDecoration(border: Border.all(color: t.accent.withOpacity(.8), width: 1), borderRadius: BorderRadius.circular(5)),
-          child: Center(child: Text('T', style: TextStyle(color: t.accent, fontSize: width * .55, fontWeight: FontWeight.w900))),
+          width: width * .76, height: height * .80,
+          decoration: BoxDecoration(border: Border.all(color: const Color(0xFFDDB75F).withOpacity(.9), width: 1), borderRadius: BorderRadius.circular(5)),
+          child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Text(backSymbols[bi], style: TextStyle(color: const Color(0xFFE5BF67), fontSize: width * .42, height: 1)),
+            if (bi == 0 || bi == 2 || bi == 4) Text('TORA', style: TextStyle(color: const Color(0xFFE5BF67), fontSize: width * .13, fontWeight: FontWeight.w900, letterSpacing: .7)),
+          ])),
         )),
       );
     }
     final suit = _suit(card), rank = _rank(card);
     final red = _isRed(suit);
-    final ink = red ? const Color(0xFFC6283D) : const Color(0xFF17202A);
+    final ink = red ? const Color(0xFFC6283D) : (fi == 0 ? const Color(0xFF17202A) : faceGold[fi]);
     final isFace = ['J', 'Q', 'K'].contains(rank);
     final isAce = rank == 'A';
     return Container(
       width: width, height: height,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(7),
-        gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
-          colors: [Color(0xFFFFFEFA), Color(0xFFECE5D7)]),
-        border: Border.all(color: const Color(0xFFB58A3A), width: 1.25),
+        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [faceTop[fi], faceBottom[fi]]),
+        border: Border.all(color: faceGold[fi], width: 1.35),
         boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 5, offset: Offset(1, 2))],
       ),
       child: Stack(children: [
-        Positioned.fill(child: Padding(
-          padding: EdgeInsets.all(width * .075),
-          child: DecoratedBox(decoration: BoxDecoration(
-            border: Border.all(color: const Color(0xFFD8C18F).withOpacity(.75), width: .65),
-            borderRadius: BorderRadius.circular(4),
-          )),
-        )),
-        Positioned(left: 4, top: 3, child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(rank, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: width * .22, height: 1)),
-          Text(suit, style: TextStyle(color: ink, fontSize: width * .19, height: 1)),
-        ])),
+        Positioned.fill(child: Padding(padding: EdgeInsets.all(width * .075), child: DecoratedBox(decoration: BoxDecoration(border: Border.all(color: faceGold[fi].withOpacity(.75), width: .65), borderRadius: BorderRadius.circular(4))))),
+        Positioned(left: 4, top: 3, child: Column(mainAxisSize: MainAxisSize.min, children: [Text(rank, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: width * .22, height: 1)), Text(suit, style: TextStyle(color: ink, fontSize: width * .19, height: 1))])),
         if (isFace)
           Center(child: Container(
             width: width * .68, height: height * .64,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(5),
-              gradient: LinearGradient(colors: [const Color(0xFFF8E8BE), const Color(0xFFD8B66B).withOpacity(.55)]),
-              border: Border.all(color: const Color(0xFF9A7131), width: .9),
-            ),
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(5), gradient: LinearGradient(colors: [faceTop[fi].withOpacity(.92), faceBottom[fi].withOpacity(.88)]), border: Border.all(color: faceGold[fi], width: .9)),
             child: Stack(alignment: Alignment.center, children: [
               Positioned(top: 2, child: Text(suit, style: TextStyle(color: ink, fontSize: width * .2))),
-              Positioned.fill(child: CustomPaint(
-                painter: _FacePortraitPainter(
-                  rank,
-                  rank == 'Q' ? const Color(0xFF8D3152) : (rank == 'K' ? const Color(0xFF24527A) : const Color(0xFF3E7058)),
-                ),
-              )),
-              Positioned(bottom: 1, child: Text(rank == 'J' ? 'KNIGHT' : rank == 'Q' ? 'QUEEN' : 'KING',
-                style: TextStyle(color: const Color(0xFF5B3C1D), fontSize: width * .075, fontWeight: FontWeight.w900, letterSpacing: .3))),
-              Positioned.fill(child: IgnorePointer(child: CustomPaint(painter: _FaceOrnamentPainter(const Color(0xFF9A7131))))),
+              Positioned.fill(child: CustomPaint(painter: _FacePortraitPainter(rank, rank == 'Q' ? const Color(0xFF8D3152) : (rank == 'K' ? const Color(0xFF24527A) : const Color(0xFF3E7058))))),
+              Positioned(bottom: 1, child: Text(rank == 'J' ? 'KNIGHT' : rank == 'Q' ? 'QUEEN' : 'KING', style: TextStyle(color: fi == 0 ? const Color(0xFF5B3C1D) : faceGold[fi], fontSize: width * .075, fontWeight: FontWeight.w900, letterSpacing: .3))),
+              Positioned.fill(child: IgnorePointer(child: CustomPaint(painter: _FaceOrnamentPainter(faceGold[fi])))),
             ]),
           ))
         else if (isAce)
-          Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Text(suit, style: TextStyle(color: ink, fontSize: width * .66, height: 1)),
-            Text('A', style: TextStyle(color: ink, fontSize: width * .28, fontWeight: FontWeight.w900)),
-          ]))
+          Center(child: Column(mainAxisSize: MainAxisSize.min, children: [Text(suit, style: TextStyle(color: ink, fontSize: width * .66, height: 1)), Text('A', style: TextStyle(color: ink, fontSize: width * .28, fontWeight: FontWeight.w900))]))
         else
-          Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Text(suit, style: TextStyle(color: ink, fontSize: width * .43, fontWeight: FontWeight.w900, height: 1)),
-            Text(rank, style: TextStyle(color: ink, fontSize: width * .22, fontWeight: FontWeight.w900, height: 1)),
-          ])),
-        Positioned(right: 4, bottom: 3, child: RotatedBox(quarterTurns: 2, child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(rank, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: width * .22, height: 1)),
-          Text(suit, style: TextStyle(color: ink, fontSize: width * .19, height: 1)),
-        ]))),
+          Center(child: Column(mainAxisSize: MainAxisSize.min, children: [Text(suit, style: TextStyle(color: ink, fontSize: width * .43, fontWeight: FontWeight.w900, height: 1)), Text(rank, style: TextStyle(color: ink, fontSize: width * .22, fontWeight: FontWeight.w900, height: 1))])),
+        Positioned(right: 4, bottom: 3, child: RotatedBox(quarterTurns: 2, child: Column(mainAxisSize: MainAxisSize.min, children: [Text(rank, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: width * .22, height: 1)), Text(suit, style: TextStyle(color: ink, fontSize: width * .19, height: 1))]))),
       ]),
     );
   }
@@ -796,7 +781,39 @@ class _ToraGamePageState extends State<ToraGamePage> {
   Widget _scoreBox(String label, int score) => Container(padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8), decoration: BoxDecoration(color: t.panel, borderRadius: BorderRadius.circular(10), border: Border.all(color: t.accent.withOpacity(.7))), child: Column(children: [Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70, fontSize: 9)), Text('$score', style: TextStyle(color: t.accent, fontSize: 19, fontWeight: FontWeight.w900))]));
 
   Future<void> _settings() async {
-    await showModalBottomSheet<void>(context: context, backgroundColor: t.panel, builder: (ctx) => SafeArea(child: Padding(padding: const EdgeInsets.all(16), child: Column(mainAxisSize: MainAxisSize.min, children: [Text('TORA APPEARANCE', style: TextStyle(color: t.accent, fontWeight: FontWeight.w900)), const SizedBox(height: 12), for (int i = 0; i < _themes.length; i++) ListTile(leading: CircleAvatar(backgroundColor: _themes[i].background, child: Icon(Icons.style, color: _themes[i].accent)), title: Text(_themes[i].name), trailing: _activeTheme.name == _themes[i].name ? Icon(Icons.check_circle, color: t.accent) : null, onTap: () { setState(() => _activeTheme = _themes[i]); widget.onThemeChanged(i); Navigator.pop(ctx); })]))));
+    const faceNames = ['Classic Ivory', 'Black & Gold', 'Red Royal', 'Emerald Gold', 'Silver', 'Midnight Blue'];
+    const backNames = ['TORA Gold', 'Royal Spade', 'Golden Lion', 'Diamond Grid', 'Emerald Crest', 'Purple Galaxy'];
+    await showModalBottomSheet<void>(
+      context: context, isScrollControlled: true, backgroundColor: t.panel,
+      builder: (ctx) => StatefulBuilder(builder: (ctx, sheetSetState) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 18),
+          child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Center(child: Text('TORA APPEARANCE', style: TextStyle(color: t.accent, fontWeight: FontWeight.w900, letterSpacing: 1.2))),
+            const SizedBox(height: 12),
+            Text('TABLE / د میدان ډیزاین', style: TextStyle(color: t.accent, fontWeight: FontWeight.w900)),
+            SizedBox(height: 112, child: ListView(scrollDirection: Axis.horizontal, children: [
+              for (int i = 0; i < _themes.length; i++) Padding(padding: const EdgeInsets.only(right: 8), child: InkWell(
+                onTap: () { setState(() => _activeTheme = _themes[i]); widget.onThemeChanged(i); sheetSetState(() {}); },
+                child: Container(width: 112, padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: _themes[i].table, borderRadius: BorderRadius.circular(12), border: Border.all(color: _activeTheme.name == _themes[i].name ? _themes[i].accent : Colors.white24, width: _activeTheme.name == _themes[i].name ? 2 : 1)), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.table_restaurant, color: _themes[i].accent, size: 30), const SizedBox(height: 5), Text(_themes[i].name, textAlign: TextAlign.center, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold))])),
+              )),
+            ])),
+            const SizedBox(height: 12),
+            Text('CARD FRONT / د ورقو مخ', style: TextStyle(color: t.accent, fontWeight: FontWeight.w900)),
+            Wrap(spacing: 8, runSpacing: 8, children: [for (int i = 0; i < faceNames.length; i++) ChoiceChip(label: Text(faceNames[i]), selected: _cardFaceStyle == i, onSelected: (_) { setState(() => _cardFaceStyle = i); sheetSetState(() {}); })]),
+            const SizedBox(height: 8),
+            Center(child: _cardFace('A♠', width: 66, height: 94)),
+            const SizedBox(height: 14),
+            Text('CARD BACK / د ورقو شا', style: TextStyle(color: t.accent, fontWeight: FontWeight.w900)),
+            Wrap(spacing: 8, runSpacing: 8, children: [for (int i = 0; i < backNames.length; i++) ChoiceChip(label: Text(backNames[i]), selected: _cardBackStyle == i, onSelected: (_) { setState(() => _cardBackStyle = i); sheetSetState(() {}); })]),
+            const SizedBox(height: 8),
+            Center(child: _cardFace('A♠', back: true, width: 66, height: 94)),
+            const SizedBox(height: 10),
+            SizedBox(width: double.infinity, child: FilledButton(onPressed: () => Navigator.pop(ctx), style: FilledButton.styleFrom(backgroundColor: t.accent, foregroundColor: Colors.black), child: const Text('DONE / بشپړ'))),
+          ])),
+        ),
+      )),
+    );
   }
 
   @override Widget build(BuildContext context) {
