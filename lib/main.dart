@@ -253,7 +253,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
   final List<int> _trickSeats = [];
   final List<String> _history = [];
   int _turn = 0, _leader = 0, _round = 0, _teamOne = 0, _teamTwo = 0;
-  bool _aiBusy = false, _gameOver = false, _checkingClaim = false, _resolvingTrick = false, _auditShown = false, _dealing = false;
+  bool _aiBusy = false, _gameOver = false, _checkingClaim = false, _resolvingTrick = false, _auditShown = false, _dealing = false, _queenExchangeChecked = false;
   int _dealProgress = 0, _lastDealtSeat = -1;
   List<String> _dealDeck = [];
   late ToraTheme _activeTheme;
@@ -293,6 +293,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
       _checkingClaim = false;
       _resolvingTrick = false;
       _auditShown = false;
+      _queenExchangeChecked = false;
       _lastWinner = -1;
       _round++;
       _status = 'SHUFFLING & DEALING CARDS...';
@@ -322,6 +323,80 @@ class _ToraGamePageState extends State<ToraGamePage> {
       _leader = 0;
       _status = 'CARDS DEALT — SAHIL STARTS';
     });
+    // The optional Q-spade exchange is offered immediately after all 52 cards
+    // have been dealt and before the first trick begins.
+    await Future.delayed(const Duration(milliseconds: 250));
+    if (mounted) await _offerQueenExchange();
+  }
+
+  Future<void> _offerQueenExchange() async {
+    if (!mounted || _queenExchangeChecked) return;
+    _queenExchangeChecked = true;
+    final hasOnlyQueenSpade = _hands[0].contains('Q♠') &&
+        !_hands[0].any((card) => _suit(card) == '♠' && card != 'Q♠');
+    if (!hasOnlyQueenSpade) return;
+
+    final partnerSpades = _hands[2].where((card) => _suit(card) == '♠').toList();
+    final usePartner = partnerSpades.length >= 3;
+    final targetSeats = usePartner ? <int>[2] : <int>[1, 3];
+    final hasExchangeCard = targetSeats.any((seat) => _hands[seat].any((card) {
+      if (_suit(card) != '♠') return false;
+      // Opponents may return any spade except the ace or king.
+      return usePartner || (card != 'A♠' && card != 'K♠');
+    }));
+
+    if (!hasExchangeCard) {
+      setState(() => _status = 'Q♠ HELD — NO LEGAL EXCHANGE CARD');
+      return;
+    }
+
+    final shouldExchange = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: t.panel,
+        title: Text('Q♠ EXCHANGE', style: TextStyle(color: t.accent, fontWeight: FontWeight.w900)),
+        content: Text(
+          usePartner
+              ? 'You have Q♠ and no other spade. Your partner has three or more spades. Exchange Q♠ for one of your partner’s spades?'
+              : 'You have Q♠ and no other spade. Your partner has fewer than three spades. You may exchange Q♠ with an opponent. The opponent cannot return A♠ or K♠.',
+          style: const TextStyle(color: Colors.white, height: 1.4),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('KEEP Q♠')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('EXCHANGE')),
+        ],
+      ),
+    );
+    if (!mounted || shouldExchange != true) return;
+
+    final eligibleSeats = targetSeats.where((seat) => _hands[seat].any((card) {
+      if (_suit(card) != '♠') return false;
+      return usePartner || (card != 'A♠' && card != 'K♠');
+    })).toList();
+    if (eligibleSeats.isEmpty) return;
+    final targetSeat = eligibleSeats[_random.nextInt(eligibleSeats.length)];
+    final eligibleCards = _hands[targetSeat].where((card) {
+      if (_suit(card) != '♠') return false;
+      return usePartner || (card != 'A♠' && card != 'K♠');
+    }).toList();
+    final returnedCard = eligibleCards[_random.nextInt(eligibleCards.length)];
+
+    setState(() {
+      _hands[0].remove('Q♠');
+      _hands[targetSeat].remove(returnedCard);
+      _hands[0].add(returnedCard);
+      _hands[targetSeat].add('Q♠');
+      _hands[0].sort(_compareCards);
+      _hands[targetSeat].sort(_compareCards);
+      _status = 'Q♠ EXCHANGED WITH ${_names[targetSeat]}';
+    });
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Q♠ exchanged for $returnedCard with ${_names[targetSeat]}'),
+        duration: const Duration(seconds: 3),
+      ));
+    }
   }
 
   int _compareCards(String a, String b) {
@@ -443,13 +518,13 @@ class _ToraGamePageState extends State<ToraGamePage> {
       final teamTwoCards = [..._won[1], ..._won[3]];
       _teamOne += _roundPenalty(teamOneCards);
       _teamTwo += _roundPenalty(teamTwoCards);
-      _gameOver = true; // Round is complete; NEW ROUND continues the match until 310 points.
-      final loser = _teamOne >= 310
+      _gameOver = true; // Round is complete; NEW ROUND continues the match until 200 points.
+      final loser = _teamOne >= 200
           ? 'Team Sahil'
-          : (_teamTwo >= 310 ? 'Opponents' : 'No team');
+          : (_teamTwo >= 200 ? 'Opponents' : 'No team');
       _status = loser == 'No team'
           ? 'Round complete. Scores: $_teamOne / $_teamTwo'
-          : '$loser reached 310 penalty points and loses.';
+          : '$loser reached 200 penalty points and loses.';
     }
   }
 
@@ -563,13 +638,13 @@ class _ToraGamePageState extends State<ToraGamePage> {
       final penalty = count * 30;
       if (_team(seat) == 0) { _teamOne += penalty; } else { _teamTwo += penalty; }
       _history.add('${_names[seat]} claimed no more $suit but $count remained: +$penalty penalty.');
-      if (_teamOne >= 310 || _teamTwo >= 310) _gameOver = true;
+      if (_teamOne >= 200 || _teamTwo >= 200) _gameOver = true;
     } else {
       _history.add('${_names[seat]} correctly claimed no more $suit.');
     }
     await showDialog<void>(context: context, barrierDismissible: false, builder: (ctx) => AlertDialog(backgroundColor: t.panel, title: Text(correct ? 'CORRECT — NO TAKKOL' : 'TAKKOL! WRONG COUNT', style: TextStyle(color: correct ? t.accent : Colors.redAccent, fontWeight: FontWeight.w900)), content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [Text(correct ? 'No $suit cards were in the other three hands. No penalty.' : '$count $suit card(s) were still in the other players’ hands. ${count * 30} penalty points.'), const SizedBox(height: 10), for (final e in remaining.entries) Text('${_names[e.key]}: ${e.value.isEmpty ? 'none' : e.value.join('  ')}', style: const TextStyle(fontSize: 12, color: Colors.white70))]), actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: Text('CONTINUE', style: TextStyle(color: t.accent)))]));
     if (!mounted) return;
-    setState(() { _checkingClaim = false; _status = _gameOver ? '310 points reached — game lost.' : (correct ? '${_names[seat]} counted correctly: no $suit remains.' : '${_names[seat]} was wrong: ${count * 30} penalty points.'); });
+    setState(() { _checkingClaim = false; _status = _gameOver ? '200 points reached — game lost.' : (correct ? '${_names[seat]} counted correctly: no $suit remains.' : '${_names[seat]} was wrong: ${count * 30} penalty points.'); });
     if (seat != 0 && !_gameOver) _runAi();
   }
 
@@ -708,13 +783,13 @@ class _ToraGamePageState extends State<ToraGamePage> {
     // Give the table and played cards substantially more visual space.
     // The sizing is responsive: card height follows the available table
     // height, while width is limited so the left/right cards stay on-screen.
-    final cardH = (h * .48).clamp(80.0, 106.0).toDouble();
-    final cardW = (cardH / 1.42).clamp(56.0, 75.0).toDouble();
+    final cardH = (h * .62).clamp(104.0, 142.0).toDouble();
+    final cardW = (cardH / 1.42).clamp(73.0, 100.0).toDouble();
     final cx = w / 2;
     final cy = h / 2;
     // Slightly tighter cross spacing keeps all four large cards in the field.
-    final verticalGap = cardH * .34;
-    final sideGap = cardW * .78;
+    final verticalGap = cardH * .32;
+    final sideGap = cardW * .76;
 
     return Stack(clipBehavior: Clip.hardEdge, children: [
       // Keep the scores on the table corners so the playing field can use
