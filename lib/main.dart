@@ -783,9 +783,9 @@ class _ToraGamePageState extends State<ToraGamePage> {
 
   Widget _cardFace(String card, {Key? key, double width = 52, double height = 74, bool back = false}) {
     if (back) {
-      const backSymbols = ['♛', '♠', '♜', '❖', '♔', '✥', '✦', '♕', '❋', '◈'];
-      const backColors = [Color(0xFF17120A), Color(0xFF10233C), Color(0xFF123B2B), Color(0xFF32183F), Color(0xFF501827), Color(0xFF063C50), Color(0xFF333B42), Color(0xFF56351F), Color(0xFF124A3C), Color(0xFF34535A)];
-      final style = _cardBackStyle.clamp(0, 9).toInt();
+      const backSymbols = ['♛', '♠', '♜', '❖', '♔'];
+      const backColors = [Color(0xFF17120A), Color(0xFF10233C), Color(0xFF123B2B), Color(0xFF32183F), Color(0xFF501827)];
+      final style = _cardBackStyle.clamp(0, 4).toInt();
       return Container(key: key, width: width, height: height,
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(8),
           gradient: LinearGradient(colors: [Color.lerp(backColors[style], t.accent, .25)!, backColors[style]], begin: Alignment.topLeft, end: Alignment.bottomRight),
@@ -989,11 +989,11 @@ class _ToraGamePageState extends State<ToraGamePage> {
       builder: (ctx) => SafeArea(child: SizedBox(height: MediaQuery.of(ctx).size.height*.88, child: ListView(padding: const EdgeInsets.all(14), children: [
         Text('ROYAL TORA DESIGNS', textAlign: TextAlign.center, style: TextStyle(color:t.accent,fontWeight:FontWeight.w900,fontSize:16)),
         const SizedBox(height:8), const Text('۱۰ بېلابېل شاهي میدانونه',textAlign:TextAlign.center,style:TextStyle(color:Colors.white70)),
-        for (int i=0;i<_themes.length;i++) ListTile(leading:CircleAvatar(backgroundColor:_themes[i].table,child:Text(['♛','✦','❖','♜','♕','✧','◈','♔','❋','✥'][i],style:TextStyle(color:_themes[i].accent))),title:Text(_themes[i].name),trailing:_activeTheme.name==_themes[i].name?Icon(Icons.check_circle,color:t.accent):null,onTap:(){setState((){_activeTheme=_themes[i];_cardFaceStyle=i;_cardBackStyle=i;});widget.onThemeChanged(i);}),
+        for (int i=0;i<_themes.length;i++) ListTile(leading:CircleAvatar(backgroundColor:_themes[i].table,child:Text(['♛','✦','❖','♜','♕','✧','◈','♔','❋','✥'][i],style:TextStyle(color:_themes[i].accent))),title:Text(_themes[i].name),trailing:_activeTheme.name==_themes[i].name?Icon(Icons.check_circle,color:t.accent):null,onTap:(){setState((){_activeTheme=_themes[i];});widget.onThemeChanged(i);}),
         const Divider(), Text('CARD FRONT DESIGN — ۱۰ ډولونه',style:TextStyle(color:t.accent,fontWeight:FontWeight.bold)),
         Wrap(spacing:6,children:[for(int i=0;i<10;i++)ChoiceChip(label:Text('${i+1}'),selected:_cardFaceStyle==i,onSelected:(_){setState(()=>_cardFaceStyle=i);})]),
-        const SizedBox(height:8), Text('CARD BACK DESIGN — ۱۰ ډولونه',style:TextStyle(color:t.accent,fontWeight:FontWeight.bold)),
-        Wrap(spacing:6,children:[for(int i=0;i<10;i++)ChoiceChip(label:Text('${i+1}'),selected:_cardBackStyle==i,onSelected:(_){setState(()=>_cardBackStyle=i);})]),
+        const SizedBox(height:8), Text('CARD BACK DESIGN — ۵ شاهي ډولونه',style:TextStyle(color:t.accent,fontWeight:FontWeight.bold)),
+        Wrap(spacing:6,children:[for(int i=0;i<5;i++)ChoiceChip(label:Text('${i+1}'),selected:_cardBackStyle==i,onSelected:(_){setState(()=>_cardBackStyle=i);})]),
         const Divider(), ListTile(leading:Icon(Icons.people,color:t.accent),title:const Text('د لوبغاړو نومونه بدلول'),onTap:(){Navigator.pop(ctx);_editNames();})
       ]))));
   }
