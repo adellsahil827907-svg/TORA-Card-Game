@@ -702,7 +702,11 @@ class _ToraGamePageState extends State<ToraGamePage> {
     _aiBusy = true;
     setState(() => _status = '${_names[_turn]} is thinking…');
     await Future.delayed(const Duration(milliseconds: 650));
-    if (!mounted || _gameOver) return;
+    if (!mounted) return;
+    if (_gameOver) {
+      _aiBusy = false;
+      return;
+    }
     final seat = _turn;
     // Computer players also have the NO MORE option. They check the same 52-card state.
     for (final suit in _suits) {
