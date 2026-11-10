@@ -307,6 +307,8 @@ class _ToraGamePageState extends State<ToraGamePage> {
   final List<int> _trickSeats = [];
   final List<String> _history = [];
   int _turn = 0, _leader = 0, _round = 0, _teamOne = 0, _teamTwo = 0;
+  // The player who captures Q♠ deals the next 52-card round and leads its first trick.
+  int _nextDealerAndLeader = 0;
   bool _aiBusy = false, _gameOver = false, _matchFinished = false, _checkingClaim = false, _resolvingTrick = false, _auditShown = false, _dealing = false;
   int _dealProgress = 0, _lastDealtSeat = -1;
   List<String> _dealDeck = [];
@@ -323,6 +325,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
   int get _playedCount => _trick.where((c) => c != null).length;
 
   void _deal({bool first = false}) {
+    final startSeat = first ? 0 : _nextDealerAndLeader;
     final deck = [for (final suit in _suits) for (final rank in _ranks) '$rank$suit']..shuffle(_random);
     setState(() {
       for (int i = 0; i < 4; i++) {
@@ -337,8 +340,8 @@ class _ToraGamePageState extends State<ToraGamePage> {
       _trickOrder.clear();
       _trickSeats.clear();
       _history.clear();
-      _turn = 0;
-      _leader = 0;
+      _turn = startSeat;
+      _leader = startSeat;
       _ledSuit = null;
       _aiBusy = false;
       _gameOver = false;
@@ -349,15 +352,15 @@ class _ToraGamePageState extends State<ToraGamePage> {
       _round++;
       _status = 'SHUFFLING & DEALING CARDS...';
     });
-    _animateDeal(deck);
+    _animateDeal(deck, startSeat);
   }
 
-  Future<void> _animateDeal(List<String> deck) async {
-    // Cards are dealt one by one clockwise to Player 1, Player 2, Player 3, and Player 4.
+  Future<void> _animateDeal(List<String> deck, int startSeat) async {
+    // Deal clockwise, beginning with the player who captured Q♠ in the previous round.
     for (int i = 0; i < deck.length; i++) {
       await Future.delayed(const Duration(milliseconds: 65));
       if (!mounted || !_dealing) return;
-      final seat = i % 4;
+      final seat = (startSeat + i) % 4;
       setState(() {
         _hands[seat].add(deck[i]);
         _hands[seat].sort(_compareCards);
@@ -370,9 +373,9 @@ class _ToraGamePageState extends State<ToraGamePage> {
     setState(() {
       _dealing = false;
       _lastDealtSeat = -1;
-      _turn = 0;
-      _leader = 0;
-      _status = 'CARDS DEALT — PLAYER 1 STARTS';
+      _turn = startSeat;
+      _leader = startSeat;
+      _status = 'CARDS DEALT — ${_names[startSeat]} STARTS';
     });
   }
 
@@ -503,6 +506,16 @@ class _ToraGamePageState extends State<ToraGamePage> {
             : candidatePenalty * 4.0;
       }
 
+      // Opponent AI (teams 2+4) actively tries to draw Q♠ out when it is
+      // known to be in the human team's hands (Player 1 or Player 3).
+      final queenInHumanTeam = _hands[0].contains('Q♠') || _hands[2].contains('Q♠');
+      if (myTeam == 1 && queenInHumanTeam && _suit(candidate) == '♠') {
+        // Prefer leading/following with a high spade to force the queen into play.
+        score += 18.0 + _rankValue(candidate) * 1.8;
+      }
+      // Do not deliberately lead Q♠ from our own team if we hold it.
+      if (candidate == 'Q♠' && myTeam == 1) score -= 35.0;
+
       // When no penalty is at stake, preserve high cards and use low cards first.
       score -= _rankValue(candidate) * (_ledSuit == null ? 0.55 : 0.18);
 
@@ -571,6 +584,10 @@ class _ToraGamePageState extends State<ToraGamePage> {
   void _resolveTrick() {
     final winner = _trickWinner();
     final captured = _trick.whereType<String>().toList();
+    if (captured.contains('Q♠')) {
+      _nextDealerAndLeader = winner;
+      _history.add('${_names[winner]} captured Q♠ and will deal and lead the next round.');
+    }
     for (final c in captured) {
       _won[winner].add(c);
     }
@@ -721,7 +738,8 @@ class _ToraGamePageState extends State<ToraGamePage> {
   }
 
   void _showRules() {
-    showDialog<void>(context: context, builder: (ctx) => AlertDialog(backgroundColor: t.panel, title: Text('TORA RULES', style: TextStyle(color: t.accent)), content: const SingleChildScrollView(child: Text('• 52 cards: 13 cards per player.\n• Two teams: Player 1 + Player 3 versus Player 2 + Player 4.\n• Follow the suit led if you have that suit.\n• If you do not have it, any suit may be played; it cannot win the trick.\n• Highest card of the led suit wins. Winner collects all four cards and leads next.\n• Spade Takkol: if nobody else holds a spade when a spade is led, 30 points transfer.\n• “No more” checks a chosen suit in the other three hands; each remaining card causes 30 penalty points.\n• Card penalties: each heart 1, Q♠ 9, J♣ 5, 10♦ 3.\n• Match ends when either team reaches 200 penalty points.')), actions: []));
+    showDialog<void>(context: context, builder: (ctx) => AlertDialog(backgroundColor: t.panel, title: Text('TORA RULES', style: TextStyle(color: t.accent)), content: const SingleChildScrollView(child: Text('• 52 cards: 13 cards per player.\n• Two teams: Player 1 + Player 3 versus Player 2 + Player 4.\n• Follow the suit led if you have that suit.\n• If you do not have it, any suit may be played; it cannot win the trick.\n• Highest card of the led suit wins. Winner collects all four cards and leads next.
+• Whoever captures Q♠ deals the next round and plays its first card.\n• Spade Takkol: if nobody else holds a spade when a spade is led, 30 points transfer.\n• “No more” checks a chosen suit in the other three hands; each remaining card causes 30 penalty points.\n• Card penalties: each heart 1, Q♠ 9, J♣ 5, 10♦ 3.\n• Match ends when either team reaches 200 penalty points.')), actions: []));
   }
 
   void _toast(String text) { if (!mounted) return; ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text), duration: const Duration(seconds: 2))); }
@@ -880,13 +898,14 @@ class _ToraGamePageState extends State<ToraGamePage> {
   Widget _centerCross() => LayoutBuilder(builder: (context, constraints) {
     final w = constraints.maxWidth;
     final h = constraints.maxHeight;
-    final cardH = (w * .105 * 1.43).clamp(68.0, 166.0).clamp(0.0, (h - 110).clamp(68.0, 332.0) / 2).toDouble();
+    // Keep the four played cards visibly large while respecting the available table height.
+    final cardH = min(w * .105 * 1.43, max(54.0, h * .40)).clamp(54.0, 150.0).toDouble();
     final cardW = cardH / 1.43;
     final seatFont = (w * .009).clamp(10.0, 13.0).toDouble();
-    final cardGap = (w * .018).clamp(10.0, 24.0).toDouble();
-    final sideSeatW = (w * .19).clamp(118.0, 190.0).toDouble();
-    final topCardY = 46.0;
-    final bottomCardY = h - cardH - 46.0;
+    final cardGap = (w * .012).clamp(7.0, 18.0).toDouble();
+    final sideSeatW = (w * .16).clamp(105.0, 165.0).toDouble();
+    final topCardY = 38.0;
+    final bottomCardY = h - cardH - 38.0;
     final centerCardTop = (h - cardH) / 2;
     return Stack(clipBehavior: Clip.none, children: [
       // Partner: name at the top, card below it.
@@ -934,7 +953,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
       builder: (ctx) => SafeArea(child: SizedBox(height: MediaQuery.of(ctx).size.height*.88, child: ListView(padding: const EdgeInsets.all(14), children: [
         Text('ROYAL TORA DESIGNS', textAlign: TextAlign.center, style: TextStyle(color:t.accent,fontWeight:FontWeight.w900,fontSize:16)),
         const SizedBox(height:8), const Text('۱۰ بېلابېل شاهي میدانونه',textAlign:TextAlign.center,style:TextStyle(color:Colors.white70)),
-        for (int i=0;i<_themes.length;i++) ListTile(leading:CircleAvatar(backgroundColor:_themes[i].table,child:Text(['♛','✦','❖','♜','♕','✧','◈','♔','❋','✥'][i],style:TextStyle(color:_themes[i].accent))),title:Text(_themes[i].name),trailing:_activeTheme.name==_themes[i].name?Icon(Icons.check_circle,color:t.accent):null,onTap:(){setState(()=>_activeTheme=_themes[i]);widget.onThemeChanged(i);}),
+        for (int i=0;i<_themes.length;i++) ListTile(leading:CircleAvatar(backgroundColor:_themes[i].table,child:Text(['♛','✦','❖','♜','♕','✧','◈','♔','❋','✥'][i],style:TextStyle(color:_themes[i].accent))),title:Text(_themes[i].name),trailing:_activeTheme.name==_themes[i].name?Icon(Icons.check_circle,color:t.accent):null,onTap:(){setState((){_activeTheme=_themes[i];_cardFaceStyle=i;_cardBackStyle=i;});widget.onThemeChanged(i);}),
         const Divider(), Text('CARD FRONT DESIGN — ۱۰ ډولونه',style:TextStyle(color:t.accent,fontWeight:FontWeight.bold)),
         Wrap(spacing:6,children:[for(int i=0;i<10;i++)ChoiceChip(label:Text('${i+1}'),selected:_cardFaceStyle==i,onSelected:(_){setState(()=>_cardFaceStyle=i);})]),
         const SizedBox(height:8), Text('CARD BACK DESIGN — ۱۰ ډولونه',style:TextStyle(color:t.accent,fontWeight:FontWeight.bold)),
@@ -957,7 +976,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
           const SizedBox(width: 6),
         ])),
         Padding(padding: const EdgeInsets.fromLTRB(10, 3, 10, 5), child: Row(children: [Expanded(child: _scoreBox('${_names[0]} + ${_names[2]}', _teamOne)), const SizedBox(width: 8), Expanded(child: _scoreBox('${_names[1]} + ${_names[3]}', _teamTwo))])),
-        Expanded(child: Container(margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), padding: const EdgeInsets.all(7), decoration: BoxDecoration(
+        Expanded(child: Container(margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 2), padding: const EdgeInsets.all(4), decoration: BoxDecoration(
           gradient: RadialGradient(center: Alignment.center, radius: 1.15,
             colors: [Color.lerp(t.table, t.accent, .12)!, t.table, t.background]),
           borderRadius: BorderRadius.circular(22),
@@ -965,7 +984,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
           boxShadow: [BoxShadow(color: t.accent.withOpacity(.18), blurRadius: 18)],
         ), child: DragTarget<String>(onWillAcceptWithDetails: (d) => _turn == 0 && !_dealing && !_aiBusy && !_gameOver && !_resolvingTrick && legal.contains(d.data), onAcceptWithDetails: (d) => _playCard(0, d.data), builder: (ctx, candidates, rejected) => Stack(children: [Positioned.fill(child: IgnorePointer(child: CustomPaint(painter: _RoyalTablePainter(t.accent, t.pattern)))), _centerCross(), if (candidates.isNotEmpty) Positioned.fill(child: IgnorePointer(child: Container(decoration: BoxDecoration(border: Border.all(color: Colors.white, width: 3), borderRadius: BorderRadius.circular(18)))))])))),
         Padding(padding: const EdgeInsets.fromLTRB(10, 4, 10, 0), child: Row(children: [Expanded(child: Text('${_names[0].toUpperCase()} — YOUR CARDS', style: TextStyle(color: t.accent, fontWeight: FontWeight.w900, fontSize: 10, letterSpacing: 1))), Text('${_myHand.length}/13', style: const TextStyle(color: Colors.white70, fontSize: 10))])),
-        SizedBox(height: 100, child: ListView.separated(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7), itemCount: _myHand.length, separatorBuilder: (_, __) => const SizedBox(width: 4), itemBuilder: (ctx, i) { final card = _myHand[i]; final allowed = legal.contains(card) && _turn == 0 && !_dealing && !_aiBusy && !_gameOver && !_resolvingTrick; return Draggable<String>(data: card, maxSimultaneousDrags: allowed ? 1 : 0, feedback: Material(color: Colors.transparent, child: _cardFace(card, width: 58, height: 82)), childWhenDragging: Opacity(opacity: .25, child: _cardFace(card, width: 53, height: 76)), child: Opacity(opacity: allowed ? 1 : .48, child: _cardFace(card, width: 53, height: 76))); })),
+        SizedBox(height: 116, child: ListView.separated(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7), itemCount: _myHand.length, separatorBuilder: (_, __) => const SizedBox(width: 4), itemBuilder: (ctx, i) { final card = _myHand[i]; final allowed = legal.contains(card) && _turn == 0 && !_dealing && !_aiBusy && !_gameOver && !_resolvingTrick; return Draggable<String>(data: card, maxSimultaneousDrags: allowed ? 1 : 0, feedback: Material(color: Colors.transparent, child: _cardFace(card, width: 66, height: 94)), childWhenDragging: Opacity(opacity: .25, child: _cardFace(card, width: 62, height: 88)), child: Opacity(opacity: allowed ? 1 : .48, child: _cardFace(card, width: 62, height: 88))); })),
         Padding(padding: const EdgeInsets.fromLTRB(9, 0, 9, 8), child: Row(children: [Expanded(child: OutlinedButton(onPressed: _turn == 0 && !_dealing && !_aiBusy && !_gameOver && !_resolvingTrick ? () => _claimNoMore(0) : null, style: OutlinedButton.styleFrom(foregroundColor: t.accent, side: BorderSide(color: t.accent)), child: const Text('NO MORE / نورې نشته', style: TextStyle(fontSize: 10)))), const SizedBox(width: 7), Expanded(child: OutlinedButton(onPressed: _editNames, style: OutlinedButton.styleFrom(foregroundColor: t.accent, side: BorderSide(color: t.accent)), child: const Text('PLAYERS', style: TextStyle(fontSize: 10)))), const SizedBox(width: 7), Expanded(child: FilledButton(onPressed: _gameOver && !_dealing && !_matchFinished ? _deal : null, style: FilledButton.styleFrom(backgroundColor: t.accent, foregroundColor: Colors.black), child: Text(_matchFinished ? 'MATCH OVER' : (_gameOver ? 'NEW ROUND' : (_dealing ? 'DEALING...' : 'PLAYING')), style: const TextStyle(fontSize: 10))))])),
       ])));
   }
