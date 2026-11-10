@@ -1014,4 +1014,4 @@ class _ToraGamePageState extends State<ToraGamePage> {
         Padding(padding: const EdgeInsets.fromLTRB(9, 0, 9, 8), child: Row(children: [Expanded(child: OutlinedButton(onPressed: _turn == 0 && !_dealing && !_aiBusy && !_gameOver && !_resolvingTrick ? () => _claimNoMore(0) : null, style: OutlinedButton.styleFrom(foregroundColor: t.accent, side: BorderSide(color: t.accent)), child: const Text('NO MORE / نورې نشته', style: TextStyle(fontSize: 10)))), const SizedBox(width: 7), Expanded(child: OutlinedButton(onPressed: _editNames, style: OutlinedButton.styleFrom(foregroundColor: t.accent, side: BorderSide(color: t.accent)), child: const Text('PLAYERS', style: TextStyle(fontSize: 10)))), const SizedBox(width: 7), Expanded(child: FilledButton(onPressed: _gameOver && !_dealing && !_matchFinished ? _deal : null, style: FilledButton.styleFrom(backgroundColor: t.accent, foregroundColor: Colors.black), child: Text(_matchFinished ? 'MATCH OVER' : (_gameOver ? 'NEW ROUND' : (_dealing ? 'DEALING...' : 'PLAYING')), style: const TextStyle(fontSize: 10))))])),
       ])));
   }
-} 
+}
