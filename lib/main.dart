@@ -322,15 +322,6 @@ class _ToraGamePageState extends State<ToraGamePage> {
   @override void initState() { super.initState(); _activeTheme = widget.theme; _deal(first: true); }
   List<String> get _myHand => _hands[0];
   int _team(int seat) => (seat == 0 || seat == 2) ? 0 : 1;
-
-  // TORA play order: BOTTOM (Player 1) -> RIGHT (Player 2) -> TOP (Player 3) -> LEFT (Player 4).
-  // Fixed table positions: seat 0=bottom, seat 1=right, seat 2=top, seat 3=left.
-  static const List<int> _seatCycle = [0, 1, 2, 3];
-  int _seatAtOffset(int startSeat, int offset) {
-    final startIndex = _seatCycle.indexOf(startSeat);
-    return _seatCycle[(startIndex + offset) % 4];
-  }
-
   int get _playedCount => _trick.where((c) => c != null).length;
 
   void _deal({bool first = false}) {
@@ -365,11 +356,11 @@ class _ToraGamePageState extends State<ToraGamePage> {
   }
 
   Future<void> _animateDeal(List<String> deck, int startSeat) async {
-    // Deal clockwise from the first player; next rounds start with the Q♠ winner.
+    // Deal clockwise, beginning with the player who captured Q♠ in the previous round.
     for (int i = 0; i < deck.length; i++) {
       await Future.delayed(const Duration(milliseconds: 65));
       if (!mounted || !_dealing) return;
-      final seat = _seatAtOffset(startSeat, i);
+      final seat = (startSeat + i) % 4;
       setState(() {
         _hands[seat].add(deck[i]);
         _hands[seat].sort(_compareCards);
@@ -382,19 +373,10 @@ class _ToraGamePageState extends State<ToraGamePage> {
     setState(() {
       _dealing = false;
       _lastDealtSeat = -1;
-      // The Q♠ trick winner must both deal and lead the new round.
       _turn = startSeat;
       _leader = startSeat;
-      _status = 'CARDS DEALT — ${_names[startSeat]} DEALS AND PLAYS FIRST';
+      _status = 'CARDS DEALT — ${_names[startSeat]} STARTS';
     });
-    // If the Q♠ winner is an AI player, let that player make the first play
-    // automatically; otherwise the human player (seat 0) can play manually.
-    if (startSeat != 0 && mounted && !_gameOver) {
-      await Future.delayed(const Duration(milliseconds: 450));
-      if (mounted && !_gameOver && !_dealing && _turn == startSeat) {
-        _runAi();
-      }
-    }
   }
 
   int _compareCards(String a, String b) {
@@ -440,7 +422,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
         _resolvingTrick = true;
         _status = 'FOUR CARDS — TRICK COMPLETE';
       } else {
-        _turn = _seatAtOffset(_leader, _trickSeats.length); // Continue clockwise from the trick leader: BOTTOM -> RIGHT -> TOP -> LEFT.
+        _turn = (_leader + _trickSeats.length) % 4; // Player 1, 2, 3, then 4 from the trick leader.
       }
     });
     if (_resolvingTrick) {
@@ -594,6 +576,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
     );
 
     if (raw < 10) return 0;
+    if (hasQueen && raw >= 15 && raw <= 20) return 20;
     if (raw <= 15) return 10;
     if (raw <= 20) return 20;
     return 30;
@@ -783,9 +766,9 @@ class _ToraGamePageState extends State<ToraGamePage> {
 
   Widget _cardFace(String card, {Key? key, double width = 52, double height = 74, bool back = false}) {
     if (back) {
-      const backSymbols = ['♛', '♠', '♜', '❖', '♔'];
-      const backColors = [Color(0xFF17120A), Color(0xFF10233C), Color(0xFF123B2B), Color(0xFF32183F), Color(0xFF501827)];
-      final style = _cardBackStyle.clamp(0, 4).toInt();
+      const backSymbols = ['♛', '♠', '♜', '❖', '♔', '✥', '✦', '♕', '❋', '◈'];
+      const backColors = [Color(0xFF17120A), Color(0xFF10233C), Color(0xFF123B2B), Color(0xFF32183F), Color(0xFF501827), Color(0xFF063C50), Color(0xFF333B42), Color(0xFF56351F), Color(0xFF124A3C), Color(0xFF34535A)];
+      final style = _cardBackStyle.clamp(0, 9).toInt();
       return Container(key: key, width: width, height: height,
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(8),
           gradient: LinearGradient(colors: [Color.lerp(backColors[style], t.accent, .25)!, backColors[style]], begin: Alignment.topLeft, end: Alignment.bottomRight),
@@ -933,52 +916,51 @@ class _ToraGamePageState extends State<ToraGamePage> {
   Widget _centerCross() => LayoutBuilder(builder: (context, constraints) {
     final w = constraints.maxWidth;
     final h = constraints.maxHeight;
-    // Four played cards sit together in the actual centre of the table,
-    // each in the direction of the seat that played it.
-    final maxCardH = min((h - 34) / 2.15, (w - 34) / 2.05);
-    final cardH = maxCardH.clamp(58.0, 104.0).toDouble();
+    // Keep the four played cards visibly large while respecting the available table height.
+    final cardH = min(w * .19, max(66.0, h * .34)).clamp(66.0, 112.0).toDouble();
     final cardW = cardH / 1.43;
-    final gap = (w * .012).clamp(5.0, 10.0).toDouble();
-    final cx = w / 2;
-    final cy = h / 2;
-    final sideSeatW = (w * .14).clamp(88.0, 138.0).toDouble();
     final seatFont = (w * .009).clamp(10.0, 13.0).toDouble();
-
-    Widget playedCard(int seat) => _trick[seat] == null
-        ? SizedBox(width: cardW, height: cardH)
-        : _cardFace(_trick[seat]!, width: cardW, height: cardH);
-
+    final cardGap = (w * .012).clamp(7.0, 18.0).toDouble();
+    final sideSeatW = (w * .14).clamp(88.0, 138.0).toDouble();
+    final topCardY = 38.0;
+    final bottomCardY = h - cardH - 38.0;
+    final centerCardTop = (h - cardH) / 2;
     return Stack(clipBehavior: Clip.none, children: [
-      // Seat labels remain beside their own player positions.
+      // Partner: name at the top, card below it.
       Positioned(top: 2, left: 0, right: 0,
         child: Center(child: _tableSeat(2, 'PARTNER', fontSize: seatFont))),
+      Positioned(top: topCardY, left: 0, right: 0,
+        child: Center(child: (_trick[2] == null ? SizedBox(width: cardW, height: cardH) : _cardFace(_trick[2]!, width: cardW, height: cardH)))),
+
+      // Player: card above the player's own hand area, label below.
       Positioned(bottom: 2, left: 0, right: 0,
         child: Center(child: _tableSeat(0, 'YOU', fontSize: seatFont))),
+      Positioned(top: bottomCardY, left: 0, right: 0,
+        child: Center(child: (_trick[0] == null ? SizedBox(width: cardW, height: cardH) : _cardFace(_trick[0]!, width: cardW, height: cardH)))),
+
+      // Left opponent.
       Positioned(left: 2, top: 0, bottom: 0, width: sideSeatW,
         child: Center(child: _tableSeat(3, 'LEFT OPPONENT', fontSize: seatFont))),
+      Positioned(left: sideSeatW + cardGap, top: centerCardTop,
+        child: (_trick[3] == null ? SizedBox(width: cardW, height: cardH) : _cardFace(_trick[3]!, width: cardW, height: cardH))),
+
+      // Right opponent.
       Positioned(right: 2, top: 0, bottom: 0, width: sideSeatW,
         child: Center(child: _tableSeat(1, 'RIGHT OPPONENT', fontSize: seatFont))),
+      Positioned(right: sideSeatW + cardGap, top: centerCardTop,
+        child: (_trick[1] == null ? SizedBox(width: cardW, height: cardH) : _cardFace(_trick[1]!, width: cardW, height: cardH))),
 
-      // The four cards form a compact cross in the original centre area.
-      // Seat 2 = top, seat 0 = bottom, seat 3 = left, seat 1 = right.
-      Positioned(left: cx - cardW / 2, top: cy - cardH - gap,
-        child: playedCard(2)),
-      Positioned(left: cx - cardW / 2, top: cy + gap,
-        child: playedCard(0)),
-      Positioned(left: cx - cardW - gap, top: cy - cardH / 2,
-        child: playedCard(3)),
-      Positioned(left: cx + gap, top: cy - cardH / 2,
-        child: playedCard(1)),
-
+      // Keep the centre clear so the four cards remain the visual focus.
       if (_dealing)
         Center(child: _dealAnimationWidget())
       else
-        Positioned(top: 5, left: sideSeatW + 8, right: sideSeatW + 8,
-          child: Text(_ledSuit == null ? _status : 'LEAD: $_ledSuit  •  $_status',
-            textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: t.accent,
-              fontSize: (w * .007).clamp(9.0, 11.0).toDouble(),
-              fontWeight: FontWeight.w900))),
+        Positioned(top: 5, right: sideSeatW + 8,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: (w * .22).clamp(120.0, 260.0).toDouble()),
+            child: Text(_ledSuit == null ? _status : 'LEAD: $_ledSuit  •  $_status',
+              textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: t.accent, fontSize: (w * .007).clamp(9.0, 11.0).toDouble(), fontWeight: FontWeight.w900)),
+          )),
     ]);
   });
 
@@ -989,11 +971,11 @@ class _ToraGamePageState extends State<ToraGamePage> {
       builder: (ctx) => SafeArea(child: SizedBox(height: MediaQuery.of(ctx).size.height*.88, child: ListView(padding: const EdgeInsets.all(14), children: [
         Text('ROYAL TORA DESIGNS', textAlign: TextAlign.center, style: TextStyle(color:t.accent,fontWeight:FontWeight.w900,fontSize:16)),
         const SizedBox(height:8), const Text('۱۰ بېلابېل شاهي میدانونه',textAlign:TextAlign.center,style:TextStyle(color:Colors.white70)),
-        for (int i=0;i<_themes.length;i++) ListTile(leading:CircleAvatar(backgroundColor:_themes[i].table,child:Text(['♛','✦','❖','♜','♕','✧','◈','♔','❋','✥'][i],style:TextStyle(color:_themes[i].accent))),title:Text(_themes[i].name),trailing:_activeTheme.name==_themes[i].name?Icon(Icons.check_circle,color:t.accent):null,onTap:(){setState((){_activeTheme=_themes[i];});widget.onThemeChanged(i);}),
+        for (int i=0;i<_themes.length;i++) ListTile(leading:CircleAvatar(backgroundColor:_themes[i].table,child:Text(['♛','✦','❖','♜','♕','✧','◈','♔','❋','✥'][i],style:TextStyle(color:_themes[i].accent))),title:Text(_themes[i].name),trailing:_activeTheme.name==_themes[i].name?Icon(Icons.check_circle,color:t.accent):null,onTap:(){setState((){_activeTheme=_themes[i];_cardFaceStyle=i;_cardBackStyle=i;});widget.onThemeChanged(i);}),
         const Divider(), Text('CARD FRONT DESIGN — ۱۰ ډولونه',style:TextStyle(color:t.accent,fontWeight:FontWeight.bold)),
         Wrap(spacing:6,children:[for(int i=0;i<10;i++)ChoiceChip(label:Text('${i+1}'),selected:_cardFaceStyle==i,onSelected:(_){setState(()=>_cardFaceStyle=i);})]),
-        const SizedBox(height:8), Text('CARD BACK DESIGN — ۵ شاهي ډولونه',style:TextStyle(color:t.accent,fontWeight:FontWeight.bold)),
-        Wrap(spacing:6,children:[for(int i=0;i<5;i++)ChoiceChip(label:Text('${i+1}'),selected:_cardBackStyle==i,onSelected:(_){setState(()=>_cardBackStyle=i);})]),
+        const SizedBox(height:8), Text('CARD BACK DESIGN — ۱۰ ډولونه',style:TextStyle(color:t.accent,fontWeight:FontWeight.bold)),
+        Wrap(spacing:6,children:[for(int i=0;i<10;i++)ChoiceChip(label:Text('${i+1}'),selected:_cardBackStyle==i,onSelected:(_){setState(()=>_cardBackStyle=i);})]),
         const Divider(), ListTile(leading:Icon(Icons.people,color:t.accent),title:const Text('د لوبغاړو نومونه بدلول'),onTap:(){Navigator.pop(ctx);_editNames();})
       ]))));
   }
