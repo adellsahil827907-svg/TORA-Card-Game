@@ -946,12 +946,14 @@ class _ToraGamePageState extends State<ToraGamePage> {
     final cx = w / 2;
     final cy = h / 2;
 
-    final topCard = _trick[2] == null
-        ? SizedBox(width: cardW, height: cardH)
-        : _cardFace(_trick[2]!, width: cardW, height: cardH);
-    final bottomCard = _trick[0] == null
+    // Seat 0 is the human player at the bottom; seat 2 is the partner at the top.
+    // Keep each played card in front of the player who actually played it.
+    final topCard = _trick[0] == null
         ? SizedBox(width: cardW, height: cardH)
         : _cardFace(_trick[0]!, width: cardW, height: cardH);
+    final bottomCard = _trick[2] == null
+        ? SizedBox(width: cardW, height: cardH)
+        : _cardFace(_trick[2]!, width: cardW, height: cardH);
     final leftCard = _trick[3] == null
         ? SizedBox(width: cardW, height: cardH)
         : _cardFace(_trick[3]!, width: cardW, height: cardH);
