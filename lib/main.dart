@@ -743,6 +743,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
           child: Stack(alignment:Alignment.center,children:[CustomPaint(size:Size(width*.7,height*.76),painter:_BackPatternPainter(t.accent,style)),Text(backSymbols[style],style:TextStyle(color:t.accent,fontSize:width*.48,fontWeight:FontWeight.w900))]))));
     }
     final suit = _suit(card);
+    final rank = _rank(card); // Extract card rank (2–A) for the royal face design.
     final red = _isRed(suit);
     final ink = red ? const Color(0xFFC6283D) : const Color(0xFF17202A);
     final isFace = ['J', 'Q', 'K'].contains(rank);
