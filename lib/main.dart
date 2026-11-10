@@ -22,72 +22,20 @@ const List<String> _suits = ['♠','♥','♦','♣'];
 class ToraTheme {
   final String name;
   final Color background, panel, accent, table, cardTop, cardBottom, silver;
-  final int pattern;
-  const ToraTheme(this.name, this.background, this.panel, this.accent, this.table, this.cardTop, this.cardBottom, this.silver, this.pattern);
+  const ToraTheme(this.name, this.background, this.panel, this.accent, this.table, this.cardTop, this.cardBottom, this.silver);
 }
 const List<ToraTheme> _themes = [
-  ToraTheme('Black & Gold', Color(0xFF090B10), Color(0xFF17130B), Color(0xFFD6B15C), Color(0xFF123B2B), Color(0xFF27231B), Color(0xFF090909), Color(0xFFE7D4A2), 0),
-  ToraTheme('Midnight Blue', Color(0xFF071326), Color(0xFF12233D), Color(0xFFC6D2E3), Color(0xFF102B46), Color(0xFF273A55), Color(0xFF101D31), Color(0xFFE6EDF7), 1),
-  ToraTheme('Emerald Gold', Color(0xFF061D18), Color(0xFF10352B), Color(0xFFE0C16B), Color(0xFF0C4938), Color(0xFF234B3B), Color(0xFF10271F), Color(0xFFF0D98C), 2),
-  ToraTheme('Royal Purple', Color(0xFF170D25), Color(0xFF28183A), Color(0xFFE4C3FF), Color(0xFF39204F), Color(0xFF4A315F), Color(0xFF1C1028), Color(0xFFEADCF5), 3),
-  ToraTheme('Ruby Velvet', Color(0xFF210B12), Color(0xFF35121D), Color(0xFFFFC1C9), Color(0xFF521A2A), Color(0xFF612638), Color(0xFF260D16), Color(0xFFFFDCE0), 4),
-  ToraTheme('Ocean Blue', Color(0xFF061B2A), Color(0xFF0C2B40), Color(0xFF8DE1F5), Color(0xFF07506A), Color(0xFF17617A), Color(0xFF082638), Color(0xFFD1F5FF), 5),
-  ToraTheme('Silver Chrome', Color(0xFF171B20), Color(0xFF292F36), Color(0xFFE1E7ED), Color(0xFF35434A), Color(0xFF4B555D), Color(0xFF171D22), Color(0xFFF4F6F8), 6),
-  ToraTheme('Copper Luxe', Color(0xFF1D120C), Color(0xFF332016), Color(0xFFE6A66F), Color(0xFF563522), Color(0xFF70472D), Color(0xFF28180F), Color(0xFFFFD5B0), 7),
-  ToraTheme('Jade Table', Color(0xFF071A17), Color(0xFF102B25), Color(0xFF9DE0B9), Color(0xFF17634A), Color(0xFF28765B), Color(0xFF0B2B20), Color(0xFFD6F5E2), 8),
-  ToraTheme('Arctic White', Color(0xFF17212B), Color(0xFF263746), Color(0xFFFFD77A), Color(0xFF47717B), Color(0xFF607D86), Color(0xFF243E49), Color(0xFFEAF7FA), 9),
+  ToraTheme('Black & Gold', Color(0xFF090B10), Color(0xFF17130B), Color(0xFFD6B15C), Color(0xFF123B2B), Color(0xFF27231B), Color(0xFF090909), Color(0xFFE7D4A2)),
+  ToraTheme('Midnight Blue', Color(0xFF071326), Color(0xFF12233D), Color(0xFFC6D2E3), Color(0xFF102B46), Color(0xFF273A55), Color(0xFF101D31), Color(0xFFE6EDF7)),
+  ToraTheme('Emerald Gold', Color(0xFF061D18), Color(0xFF10352B), Color(0xFFE0C16B), Color(0xFF0C4938), Color(0xFF234B3B), Color(0xFF10271F), Color(0xFFF0D98C)),
+  ToraTheme('Royal Purple', Color(0xFF170D25), Color(0xFF28183A), Color(0xFFE4C3FF), Color(0xFF39204F), Color(0xFF4A315F), Color(0xFF1C1028), Color(0xFFEADCF5)),
+  ToraTheme('Ruby Velvet', Color(0xFF210B12), Color(0xFF35121D), Color(0xFFFFC1C9), Color(0xFF521A2A), Color(0xFF612638), Color(0xFF260D16), Color(0xFFFFDCE0)),
+  ToraTheme('Ocean Blue', Color(0xFF061B2A), Color(0xFF0C2B40), Color(0xFF8DE1F5), Color(0xFF07506A), Color(0xFF17617A), Color(0xFF082638), Color(0xFFD1F5FF)),
+  ToraTheme('Silver Chrome', Color(0xFF171B20), Color(0xFF292F36), Color(0xFFE1E7ED), Color(0xFF35434A), Color(0xFF4B555D), Color(0xFF171D22), Color(0xFFF4F6F8)),
+  ToraTheme('Copper Luxe', Color(0xFF1D120C), Color(0xFF332016), Color(0xFFE6A66F), Color(0xFF563522), Color(0xFF70472D), Color(0xFF28180F), Color(0xFFFFD5B0)),
+  ToraTheme('Jade Table', Color(0xFF071A17), Color(0xFF102B25), Color(0xFF9DE0B9), Color(0xFF17634A), Color(0xFF28765B), Color(0xFF0B2B20), Color(0xFFD6F5E2)),
+  ToraTheme('Arctic White', Color(0xFF17212B), Color(0xFF263746), Color(0xFFFFD77A), Color(0xFF47717B), Color(0xFF607D86), Color(0xFF243E49), Color(0xFFEAF7FA)),
 ];
-
-class _CardFacePatternPainter extends CustomPainter {
-  final Color color; final int style; const _CardFacePatternPainter(this.color,this.style);
-  @override void paint(Canvas c,Size s){
-    final p=Paint()..color=color.withOpacity(.17)..style=PaintingStyle.stroke..strokeWidth=1;
-    final r=Offset.zero&s;
-    if(style%4==0){c.drawRRect(RRect.fromRectAndRadius(r.deflate(3),const Radius.circular(5)),p);for(int i=0;i<4;i++){final x=i.isEven?5.0:s.width-5;final y=i<2?5.0:s.height-5;c.drawCircle(Offset(x,y),3,p);}}
-    else if(style%4==1){for(double y=7;y<s.height;y+=10){c.drawLine(Offset(4,y),Offset(s.width-4,y),p);}}
-    else if(style%4==2){for(double x=4;x<s.width;x+=10){c.drawLine(Offset(x,4),Offset(s.width-x,s.height-4),p);}}
-    else {c.drawRRect(RRect.fromRectAndRadius(r.deflate(5),Radius.circular(s.width*.18)),p);c.drawCircle(Offset(s.width/2,s.height/2),s.width*.27,p);}
-  }
-  @override bool shouldRepaint(covariant _CardFacePatternPainter o)=>o.color!=color||o.style!=style;
-}
-
-class _BackPatternPainter extends CustomPainter {
-  final Color color; final int style; const _BackPatternPainter(this.color,this.style);
-  @override void paint(Canvas c,Size s){final p=Paint()..color=color.withOpacity(.7)..style=PaintingStyle.stroke..strokeWidth=1.1; final r=Offset.zero&s;
-    if(style%3==0){for(int i=0;i<4;i++){final rr=r.deflate(4.0+i*5);c.drawRRect(RRect.fromRectAndRadius(rr,Radius.circular(4+i*2)),p);}}
-    else if(style%3==1){for(double x=0;x<s.width;x+=9){c.drawLine(Offset(x,0),Offset(s.width-x,s.height),p);}}
-    else {for(int i=0;i<8;i++){final a=i*pi/4;final path=Path()..moveTo(s.width/2,s.height/2)..lineTo(s.width/2+cos(a)*s.width*.46,s.height/2+sin(a)*s.height*.46);c.drawPath(path,p);}c.drawCircle(Offset(s.width/2,s.height/2),s.width*.25,p);}
-  }
-  @override bool shouldRepaint(covariant _BackPatternPainter o)=>o.style!=style||o.color!=color;
-}
-
-class _RoyalTablePainter extends CustomPainter {
-  final Color accent; final int pattern;
-  const _RoyalTablePainter(this.accent, this.pattern);
-  @override void paint(Canvas canvas, Size size) {
-    final stroke = Paint()..color = accent.withOpacity(.48)..style = PaintingStyle.stroke..strokeWidth = 1.2;
-    final soft = Paint()..color = accent.withOpacity(.13)..style = PaintingStyle.stroke..strokeWidth = 1;
-    final r = Offset.zero & size;
-    canvas.drawRRect(RRect.fromRectAndRadius(r.deflate(8), const Radius.circular(18)), stroke);
-    canvas.drawRRect(RRect.fromRectAndRadius(r.deflate(15), Radius.circular(pattern.isEven ? 14 : 28)), soft);
-    // Ten visibly different ornamental table motifs.
-    if (pattern == 0 || pattern == 5) {
-      for (int i=0;i<4;i++) { final x=i.isEven?18.0:size.width-18; final y=i<2?18.0:size.height-18; final path=Path()..moveTo(x,y+22)..quadraticBezierTo(x,y,x+(i.isEven?22:-22),y)..quadraticBezierTo(x,y,x,y+22); canvas.drawPath(path,stroke); }
-    } else if (pattern == 1 || pattern == 6) {
-      for(double x=24;x<size.width;x+=28){canvas.drawLine(Offset(x,18),Offset(x,size.height-18),soft);} for(double y=24;y<size.height;y+=28){canvas.drawLine(Offset(18,y),Offset(size.width-18,y),soft);}
-    } else if (pattern == 2 || pattern == 8) {
-      for(int i=0;i<8;i++){final a=i*pi/4; final c=Offset(size.width/2,size.height/2); final path=Path()..moveTo(c.dx+cos(a)*18,c.dy+sin(a)*18)..quadraticBezierTo(c.dx+cos(a+.25)*75,c.dy+sin(a+.25)*75,c.dx+cos(a)*105,c.dy+sin(a)*105);canvas.drawPath(path,soft);} canvas.drawCircle(Offset(size.width/2,size.height/2),46,stroke);
-    } else if (pattern == 3 || pattern == 7) {
-      for(int i=0;i<5;i++){final inset=28.0+i*13; canvas.drawRRect(RRect.fromRectAndRadius(r.deflate(inset),Radius.circular(8+i*2)),soft);} 
-    } else {
-      final c=Offset(size.width/2,size.height/2); for(int i=0;i<12;i++){final a=i*pi/6; final path=Path()..moveTo(c.dx+cos(a)*28,c.dy+sin(a)*28)..lineTo(c.dx+cos(a+.12)*90,c.dy+sin(a+.12)*90)..lineTo(c.dx+cos(a-.12)*90,c.dy+sin(a-.12)*90)..close();canvas.drawPath(path,soft);} canvas.drawCircle(c,30,stroke);
-    }
-    final symbol = ['♛','✦','❖','♜','♕','✧','◈','♔','❋','✥'][pattern];
-    final tp=TextPainter(text:TextSpan(text:symbol,style:TextStyle(color:accent.withOpacity(.20),fontSize:52,fontWeight:FontWeight.w900)),textDirection:TextDirection.ltr)..layout();
-    tp.paint(canvas,Offset((size.width-tp.width)/2,(size.height-tp.height)/2));
-  }
-  @override bool shouldRepaint(covariant _RoyalTablePainter old)=>old.pattern!=pattern||old.accent!=accent;
-}
 
 class ToraApp extends StatefulWidget {
   const ToraApp({super.key});
@@ -297,9 +245,7 @@ class ToraGamePage extends StatefulWidget {
 
 class _ToraGamePageState extends State<ToraGamePage> {
   final Random _random = Random();
-  final List<String> _names = ['Player 1', 'Player 2', 'Player 3', 'Player 4'];
-  int _cardFaceStyle = 0;
-  int _cardBackStyle = 0;
+  final List<String> _names = ['Sahil', 'Computer', 'Zabihullah', 'Mahmood Khan'];
   final List<List<String>> _hands = List.generate(4, (_) => <String>[]);
   final List<List<String>> _won = List.generate(4, (_) => <String>[]);
   final List<String?> _trick = List.filled(4, null);
@@ -307,12 +253,12 @@ class _ToraGamePageState extends State<ToraGamePage> {
   final List<int> _trickSeats = [];
   final List<String> _history = [];
   int _turn = 0, _leader = 0, _round = 0, _teamOne = 0, _teamTwo = 0;
-  // The player who captures Q♠ deals the next 52-card round and leads its first trick.
-  int _nextDealerAndLeader = 0;
-  bool _aiBusy = false, _gameOver = false, _matchFinished = false, _checkingClaim = false, _resolvingTrick = false, _auditShown = false, _dealing = false;
+  bool _aiBusy = false, _gameOver = false, _checkingClaim = false, _resolvingTrick = false, _auditShown = false, _dealing = false, _queenExchangeChecked = false;
   int _dealProgress = 0, _lastDealtSeat = -1;
   List<String> _dealDeck = [];
   late ToraTheme _activeTheme;
+  int _cardFaceStyle = 0;
+  int _cardBackStyle = 0;
   String? _ledSuit;
   String _status = 'Your turn: drag a card to the centre.';
   int _lastWinner = -1;
@@ -325,7 +271,6 @@ class _ToraGamePageState extends State<ToraGamePage> {
   int get _playedCount => _trick.where((c) => c != null).length;
 
   void _deal({bool first = false}) {
-    final startSeat = first ? 0 : _nextDealerAndLeader;
     final deck = [for (final suit in _suits) for (final rank in _ranks) '$rank$suit']..shuffle(_random);
     setState(() {
       for (int i = 0; i < 4; i++) {
@@ -340,27 +285,28 @@ class _ToraGamePageState extends State<ToraGamePage> {
       _trickOrder.clear();
       _trickSeats.clear();
       _history.clear();
-      _turn = startSeat;
-      _leader = startSeat;
+      _turn = 0;
+      _leader = 0;
       _ledSuit = null;
       _aiBusy = false;
       _gameOver = false;
       _checkingClaim = false;
       _resolvingTrick = false;
       _auditShown = false;
+      _queenExchangeChecked = false;
       _lastWinner = -1;
       _round++;
       _status = 'SHUFFLING & DEALING CARDS...';
     });
-    _animateDeal(deck, startSeat);
+    _animateDeal(deck);
   }
 
-  Future<void> _animateDeal(List<String> deck, int startSeat) async {
-    // Deal clockwise, beginning with the player who captured Q♠ in the previous round.
+  Future<void> _animateDeal(List<String> deck) async {
+    // Cards are dealt one by one clockwise: Sahil, right, teammate, left.
     for (int i = 0; i < deck.length; i++) {
       await Future.delayed(const Duration(milliseconds: 65));
       if (!mounted || !_dealing) return;
-      final seat = (startSeat + i) % 4;
+      final seat = i % 4;
       setState(() {
         _hands[seat].add(deck[i]);
         _hands[seat].sort(_compareCards);
@@ -373,10 +319,84 @@ class _ToraGamePageState extends State<ToraGamePage> {
     setState(() {
       _dealing = false;
       _lastDealtSeat = -1;
-      _turn = startSeat;
-      _leader = startSeat;
-      _status = 'CARDS DEALT — ${_names[startSeat]} STARTS';
+      _turn = 0;
+      _leader = 0;
+      _status = 'CARDS DEALT — SAHIL STARTS';
     });
+    // The optional Q-spade exchange is offered immediately after all 52 cards
+    // have been dealt and before the first trick begins.
+    await Future.delayed(const Duration(milliseconds: 250));
+    if (mounted) await _offerQueenExchange();
+  }
+
+  Future<void> _offerQueenExchange() async {
+    if (!mounted || _queenExchangeChecked) return;
+    _queenExchangeChecked = true;
+    final hasOnlyQueenSpade = _hands[0].contains('Q♠') &&
+        !_hands[0].any((card) => _suit(card) == '♠' && card != 'Q♠');
+    if (!hasOnlyQueenSpade) return;
+
+    final partnerSpades = _hands[2].where((card) => _suit(card) == '♠').toList();
+    final usePartner = partnerSpades.length >= 3;
+    final targetSeats = usePartner ? <int>[2] : <int>[1, 3];
+    final hasExchangeCard = targetSeats.any((seat) => _hands[seat].any((card) {
+      if (_suit(card) != '♠') return false;
+      // Opponents may return any spade except the ace or king.
+      return usePartner || (card != 'A♠' && card != 'K♠');
+    }));
+
+    if (!hasExchangeCard) {
+      setState(() => _status = 'Q♠ HELD — NO LEGAL EXCHANGE CARD');
+      return;
+    }
+
+    final shouldExchange = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: t.panel,
+        title: Text('Q♠ EXCHANGE', style: TextStyle(color: t.accent, fontWeight: FontWeight.w900)),
+        content: Text(
+          usePartner
+              ? 'You have Q♠ and no other spade. Your partner has three or more spades. Exchange Q♠ for one of your partner’s spades?'
+              : 'You have Q♠ and no other spade. Your partner has fewer than three spades. You may exchange Q♠ with an opponent. The opponent cannot return A♠ or K♠.',
+          style: const TextStyle(color: Colors.white, height: 1.4),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('KEEP Q♠')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('EXCHANGE')),
+        ],
+      ),
+    );
+    if (!mounted || shouldExchange != true) return;
+
+    final eligibleSeats = targetSeats.where((seat) => _hands[seat].any((card) {
+      if (_suit(card) != '♠') return false;
+      return usePartner || (card != 'A♠' && card != 'K♠');
+    })).toList();
+    if (eligibleSeats.isEmpty) return;
+    final targetSeat = eligibleSeats[_random.nextInt(eligibleSeats.length)];
+    final eligibleCards = _hands[targetSeat].where((card) {
+      if (_suit(card) != '♠') return false;
+      return usePartner || (card != 'A♠' && card != 'K♠');
+    }).toList();
+    final returnedCard = eligibleCards[_random.nextInt(eligibleCards.length)];
+
+    setState(() {
+      _hands[0].remove('Q♠');
+      _hands[targetSeat].remove(returnedCard);
+      _hands[0].add(returnedCard);
+      _hands[targetSeat].add('Q♠');
+      _hands[0].sort(_compareCards);
+      _hands[targetSeat].sort(_compareCards);
+      _status = 'Q♠ EXCHANGED WITH ${_names[targetSeat]}';
+    });
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Q♠ exchanged for $returnedCard with ${_names[targetSeat]}'),
+        duration: const Duration(seconds: 3),
+      ));
+    }
   }
 
   int _compareCards(String a, String b) {
@@ -440,102 +460,6 @@ class _ToraGamePageState extends State<ToraGamePage> {
     }
   }
 
-
-  // Team-aware TORA AI:
-  // seats 1+3 (indexes 0+2) are one team; seats 2+4 (indexes 1+3) are the other.
-  // The AI tries to make the opposing team capture penalty cards and protects its partner.
-  String _chooseStrategicAiCard(int seat, List<String> legal) {
-    final myTeam = _team(seat);
-    double bestScore = double.negativeInfinity;
-    String best = legal.first;
-
-    for (final candidate in legal) {
-      final cards = List<String?>.from(_trick);
-      cards[seat] = candidate;
-      final seats = [..._trickSeats, seat];
-      final led = _ledSuit ?? _suit(candidate);
-
-      int winner = seats.first;
-      String high = cards[winner]!;
-      for (final s in seats.skip(1)) {
-        final played = cards[s]!;
-        if (_suit(played) == led &&
-            (_suit(high) != led || _rankValue(played) > _rankValue(high))) {
-          winner = s;
-          high = played;
-        }
-      }
-
-      final winningTeam = _team(winner);
-      final trickCards = cards.whereType<String>().toList();
-      final penalty = trickCards.fold<int>(
-        0,
-        (sum, card) => sum + _cardPenalty(card),
-      );
-      final candidatePenalty = _cardPenalty(candidate);
-      final winnerIsOurTeam = winningTeam == myTeam;
-
-      double score = 0;
-
-      if (penalty > 0) {
-        // Strongly prefer an opponent to collect the penalty cards.
-        score += winnerIsOurTeam ? -penalty * 8.0 : penalty * 7.0;
-      }
-
-      // If our partner is currently winning, do not overtake them with a high card.
-      final partnerSeat = (seat + 2) % 4;
-      final partnerIsInTrick = _trick[partnerSeat] != null;
-      if (partnerIsInTrick && winner == seat && _team(partnerSeat) == myTeam) {
-        score -= penalty > 0 ? 18.0 : 2.0;
-      }
-
-      // When an opponent is already winning a penalty-heavy trick, avoid taking it away.
-      final opponentAlreadyWinning = _trickSeats.any((s) =>
-          _team(s) != myTeam &&
-          _trick[s] != null &&
-          _suit(_trick[s]!) == led &&
-          (winner == seat || _team(winner) != myTeam));
-      if (opponentAlreadyWinning && penalty > 0 && winnerIsOurTeam) {
-        score -= 12.0 + penalty * 2.0;
-      }
-
-      // Prefer to discard penalty cards only when the opponent is likely to win them.
-      if (candidatePenalty > 0) {
-        score += winnerIsOurTeam
-            ? -candidatePenalty * 5.0
-            : candidatePenalty * 4.0;
-      }
-
-      // Opponent AI (teams 2+4) actively tries to draw Q♠ out when it is
-      // known to be in the human team's hands (Player 1 or Player 3).
-      final queenInHumanTeam = _hands[0].contains('Q♠') || _hands[2].contains('Q♠');
-      if (myTeam == 1 && queenInHumanTeam && _suit(candidate) == '♠') {
-        // Prefer leading/following with a high spade to force the queen into play.
-        score += 18.0 + _rankValue(candidate) * 1.8;
-      }
-      // Do not deliberately lead Q♠ from our own team if we hold it.
-      if (candidate == 'Q♠' && myTeam == 1) score -= 35.0;
-
-      // When no penalty is at stake, preserve high cards and use low cards first.
-      score -= _rankValue(candidate) * (_ledSuit == null ? 0.55 : 0.18);
-
-      // If following suit, avoid taking a clean trick from the opponents unless useful.
-      if (_ledSuit != null && _suit(candidate) == led &&
-          winnerIsOurTeam && penalty == 0) {
-        score -= 1.2;
-      }
-
-      // Small deterministic tie-break keeps the AI's play consistent.
-      score += (_ranks.length - _rankValue(candidate)) * 0.001;
-
-      if (score > bestScore) {
-        bestScore = score;
-        best = candidate;
-      }
-    }
-    return best;
-  }
-
   void _transferThirty(int winningTeam) {
     if (winningTeam == 0) { _teamOne += 30; _teamTwo -= 30; }
     else { _teamTwo += 30; _teamOne -= 30; }
@@ -553,7 +477,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
   }
 
   int _cardPenalty(String card) {
-    final suit = _suit(card);
+    final suit = _suit(card), rank = _rank(card);
     if (suit == '♥') return 1;
     if (card == 'Q♠') return 9;
     if (card == 'J♣') return 5;
@@ -563,18 +487,11 @@ class _ToraGamePageState extends State<ToraGamePage> {
 
   int _roundPenalty(List<String> cards) {
     final hasQueen = cards.contains('Q♠');
-    final otherPenaltyCards = cards.any(
-      (c) => _suit(c) == '♥' || c == 'J♣' || c == '10♦',
-    );
-
-    // The spade queen alone carries no penalty.
+    final otherPenaltyCards = cards.any((c) => _suit(c) == '♥' || c == 'J♣' || c == '10♦');
+    // Q♠ by itself carries no penalty. Otherwise apply the fixed TORA bands:
+    // below 10 = 0, 10–15 = 10, 16–20 = 20, above 20 = 30.
     if (hasQueen && !otherPenaltyCards) return 0;
-
-    final raw = cards.fold<int>(
-      0,
-      (sum, card) => sum + _cardPenalty(card),
-    );
-
+    final raw = cards.fold<int>(0, (sum, card) => sum + _cardPenalty(card));
     if (raw < 10) return 0;
     if (raw <= 15) return 10;
     if (raw <= 20) return 20;
@@ -584,10 +501,6 @@ class _ToraGamePageState extends State<ToraGamePage> {
   void _resolveTrick() {
     final winner = _trickWinner();
     final captured = _trick.whereType<String>().toList();
-    if (captured.contains('Q♠')) {
-      _nextDealerAndLeader = winner;
-      _history.add('${_names[winner]} captured Q♠ and will deal and lead the next round.');
-    }
     for (final c in captured) {
       _won[winner].add(c);
     }
@@ -605,11 +518,10 @@ class _ToraGamePageState extends State<ToraGamePage> {
       final teamTwoCards = [..._won[1], ..._won[3]];
       _teamOne += _roundPenalty(teamOneCards);
       _teamTwo += _roundPenalty(teamTwoCards);
-      _gameOver = true;
-      _matchFinished = _teamOne >= 200 || _teamTwo >= 200;
+      _gameOver = true; // Round is complete; NEW ROUND continues the match until 200 points.
       final loser = _teamOne >= 200
-          ? 'Team 1 (Player 1 + Player 3)'
-          : (_teamTwo >= 200 ? 'Team 2 (Player 2 + Player 4)' : 'No team');
+          ? 'Team Sahil'
+          : (_teamTwo >= 200 ? 'Opponents' : 'No team');
       _status = loser == 'No team'
           ? 'Round complete. Scores: $_teamOne / $_teamTwo'
           : '$loser reached 200 penalty points and loses.';
@@ -640,9 +552,9 @@ class _ToraGamePageState extends State<ToraGamePage> {
                   IconButton(onPressed: () => Navigator.pop(ctx), icon: const Icon(Icons.close)),
                 ]),
                 Expanded(child: Row(children: [
-                  Expanded(child: _auditTeam('TEAM 1 (PLAYER 1 + 3)', teamA, _teamOne)),
+                  Expanded(child: _auditTeam('TEAM SAHIL', teamA, _teamOne)),
                   const SizedBox(width: 12),
-                  Expanded(child: _auditTeam('TEAM 2 (PLAYER 2 + 4)', teamB, _teamTwo)),
+                  Expanded(child: _auditTeam('OPPONENTS', teamB, _teamTwo)),
                 ])),
                 const SizedBox(height: 8),
                 Text('Cards captured: ${teamA.length + teamB.length}/52',
@@ -696,7 +608,14 @@ class _ToraGamePageState extends State<ToraGamePage> {
     }
     final legal = _legalCards(seat);
     if (legal.isNotEmpty) {
-      final chosen = _chooseStrategicAiCard(seat, legal);
+      // Simple legal AI for this first complete rules build. Strategy can be improved after testing.
+      String chosen;
+      if (_ledSuit == null) {
+        chosen = legal[_random.nextInt(legal.length)];
+      } else {
+        final following = legal.where((c) => _suit(c) == _ledSuit).toList();
+        chosen = following.isNotEmpty ? following[_random.nextInt(following.length)] : legal[_random.nextInt(legal.length)];
+      }
       _aiBusy = false;
       _playCard(seat, chosen);
     } else {
@@ -719,13 +638,13 @@ class _ToraGamePageState extends State<ToraGamePage> {
       final penalty = count * 30;
       if (_team(seat) == 0) { _teamOne += penalty; } else { _teamTwo += penalty; }
       _history.add('${_names[seat]} claimed no more $suit but $count remained: +$penalty penalty.');
-      if (_teamOne >= 200 || _teamTwo >= 200) { _gameOver = true; _matchFinished = true; }
+      if (_teamOne >= 200 || _teamTwo >= 200) _gameOver = true;
     } else {
       _history.add('${_names[seat]} correctly claimed no more $suit.');
     }
     await showDialog<void>(context: context, barrierDismissible: false, builder: (ctx) => AlertDialog(backgroundColor: t.panel, title: Text(correct ? 'CORRECT — NO TAKKOL' : 'TAKKOL! WRONG COUNT', style: TextStyle(color: correct ? t.accent : Colors.redAccent, fontWeight: FontWeight.w900)), content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [Text(correct ? 'No $suit cards were in the other three hands. No penalty.' : '$count $suit card(s) were still in the other players’ hands. ${count * 30} penalty points.'), const SizedBox(height: 10), for (final e in remaining.entries) Text('${_names[e.key]}: ${e.value.isEmpty ? 'none' : e.value.join('  ')}', style: const TextStyle(fontSize: 12, color: Colors.white70))]), actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: Text('CONTINUE', style: TextStyle(color: t.accent)))]));
     if (!mounted) return;
-    setState(() { _checkingClaim = false; _status = _matchFinished ? '200 points reached — match over.' : (correct ? '${_names[seat]} counted correctly: no $suit remains.' : '${_names[seat]} was wrong: ${count * 30} penalty points.'); });
+    setState(() { _checkingClaim = false; _status = _gameOver ? '200 points reached — game lost.' : (correct ? '${_names[seat]} counted correctly: no $suit remains.' : '${_names[seat]} was wrong: ${count * 30} penalty points.'); });
     if (seat != 0 && !_gameOver) _runAi();
   }
 
@@ -738,25 +657,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
   }
 
   void _showRules() {
-    const rules = '''• 52 cards: 13 cards per player.
-• Two teams: Player 1 + Player 3 versus Player 2 + Player 4.
-• Follow the suit led if you have that suit.
-• If you do not have it, any suit may be played; it cannot win the trick.
-• Highest card of the led suit wins. Winner collects all four cards and leads next.
-• Whoever captures Q♠ deals the next round and plays its first card.
-• Spade Takkol: if nobody else holds a spade when a spade is led, 30 points transfer.
-• “No more” checks a chosen suit in the other three hands; each remaining card causes 30 penalty points.
-• Card penalties: each heart 1, Q♠ 9, J♣ 5, 10♦ 3.
-• Match ends when either team reaches 200 penalty points.''';
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: t.panel,
-        title: Text('TORA RULES', style: TextStyle(color: t.accent)),
-        content: const SingleChildScrollView(child: Text(rules)),
-        actions: [],
-      ),
-    );
+    showDialog<void>(context: context, builder: (ctx) => AlertDialog(backgroundColor: t.panel, title: Text('TORA RULES', style: TextStyle(color: t.accent)), content: const SingleChildScrollView(child: Text('• 52 cards: 13 cards per player.\n• Two teams: seats 1+3 and seats 2+4.\n• Follow the suit led if you have that suit.\n• If you do not have it, any suit may be played; it cannot win the trick.\n• Highest card of the led suit wins. Winner collects all four cards and leads next.\n• Spade Takkol: if nobody else holds a spade when a spade is led, 30 points transfer.\n• “No more” checks a chosen suit in the other three hands; each remaining card causes 30 penalty points.\n• Card penalties: each heart 1, Q♠ 9, J♣ 5, 10♦ 3.')), actions: []));
   }
 
   void _toast(String text) { if (!mounted) return; ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text), duration: const Duration(seconds: 2))); }
@@ -764,94 +665,77 @@ class _ToraGamePageState extends State<ToraGamePage> {
   Color _suitColor(String suit) => _isRed(suit) ? const Color(0xFFE14B5A) : const Color(0xFFE9E2D1);
 
   Widget _cardFace(String card, {Key? key, double width = 52, double height = 74, bool back = false}) {
+    const faceNames = ['Classic Ivory', 'Black & Gold', 'Red Royal', 'Emerald Gold', 'Silver', 'Midnight Blue'];
+    const faceTop = [Color(0xFFFFFEFA), Color(0xFF24201A), Color(0xFF351018), Color(0xFF102D24), Color(0xFFE9EDF1), Color(0xFF10233B)];
+    const faceBottom = [Color(0xFFECE5D7), Color(0xFF080808), Color(0xFF12070B), Color(0xFF06140F), Color(0xFFBFC8D1), Color(0xFF050D1A)];
+    const faceGold = [Color(0xFFB58A3A), Color(0xFFE2BD62), Color(0xFFE6B8A0), Color(0xFFD8BB69), Color(0xFF9CA8B4), Color(0xFF9EBDEB)];
+    const backNames = ['TORA Gold', 'Royal Spade', 'Golden Lion', 'Diamond Grid', 'Emerald Crest', 'Purple Galaxy'];
+    const backSymbols = ['T', '♠', '♛', '◇', '♜', '✦'];
+    const backTop = [Color(0xFF29231A), Color(0xFF171717), Color(0xFF30200D), Color(0xFF101010), Color(0xFF0B3025), Color(0xFF21113C)];
+    const backBottom = [Color(0xFF080808), Color(0xFF050505), Color(0xFF090909), Color(0xFF171717), Color(0xFF04150F), Color(0xFF08051A)];
+    final fi = _cardFaceStyle.clamp(0, 5).toInt();
+    final bi = _cardBackStyle.clamp(0, 5).toInt();
     if (back) {
-      const backSymbols = ['♛', '♠', '♜', '❖', '♔', '✥', '✦', '♕', '❋', '◈'];
-      const backColors = [Color(0xFF17120A), Color(0xFF10233C), Color(0xFF123B2B), Color(0xFF32183F), Color(0xFF501827), Color(0xFF063C50), Color(0xFF333B42), Color(0xFF56351F), Color(0xFF124A3C), Color(0xFF34535A)];
-      final style = _cardBackStyle.clamp(0, 9).toInt();
-      return Container(key: key, width: width, height: height,
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(8),
-          gradient: LinearGradient(colors: [Color.lerp(backColors[style], t.accent, .25)!, backColors[style]], begin: Alignment.topLeft, end: Alignment.bottomRight),
-          border: Border.all(color: t.accent, width: style.isEven ? 1.8 : 1),
-          boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 5, offset: Offset(1, 2))]),
-        child: Center(child: Container(width: width*.76,height:height*.82,
-          decoration: BoxDecoration(border: Border.all(color:t.accent.withOpacity(.85),width:style%3==0?2:1),borderRadius:BorderRadius.circular(style%2==0?5:18)),
-          child: Stack(alignment:Alignment.center,children:[CustomPaint(size:Size(width*.7,height*.76),painter:_BackPatternPainter(t.accent,style)),Text(backSymbols[style],style:TextStyle(color:t.accent,fontSize:width*.48,fontWeight:FontWeight.w900))]))));
+      return Container(
+        key: key, width: width, height: height,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          gradient: LinearGradient(colors: [backTop[bi], backBottom[bi]], begin: Alignment.topLeft, end: Alignment.bottomRight),
+          border: Border.all(color: const Color(0xFFE0B85C), width: 1.5),
+          boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 5, offset: Offset(1, 2))],
+        ),
+        child: Center(child: Container(
+          width: width * .76, height: height * .80,
+          decoration: BoxDecoration(border: Border.all(color: const Color(0xFFDDB75F).withOpacity(.9), width: 1), borderRadius: BorderRadius.circular(5)),
+          child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Text(backSymbols[bi], style: TextStyle(color: const Color(0xFFE5BF67), fontSize: width * .42, height: 1)),
+            if (bi == 0 || bi == 2 || bi == 4) Text('TORA', style: TextStyle(color: const Color(0xFFE5BF67), fontSize: width * .13, fontWeight: FontWeight.w900, letterSpacing: .7)),
+          ])),
+        )),
+      );
     }
-    final suit = _suit(card);
-    final rank = _rank(card); // Extract card rank (2–A) for the royal face design.
+    final suit = _suit(card), rank = _rank(card);
     final red = _isRed(suit);
-    final ink = red ? const Color(0xFFC6283D) : const Color(0xFF17202A);
+    final ink = red ? const Color(0xFFC6283D) : (fi == 0 ? const Color(0xFF17202A) : faceGold[fi]);
     final isFace = ['J', 'Q', 'K'].contains(rank);
     final isAce = rank == 'A';
-    final faceStyle = _cardFaceStyle.clamp(0, 9).toInt();
-    final faceBorders = [const Color(0xFFB58A3A), const Color(0xFF315A86), const Color(0xFF28765B), const Color(0xFF794A91), const Color(0xFF9B3148), const Color(0xFF24758A), const Color(0xFF707B84), const Color(0xFF9A6037), const Color(0xFF34836A), const Color(0xFF4E8A9B)];
     return Container(
       width: width, height: height,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(7),
-        gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
-          colors: [Color(0xFFFFFEFA), Color(0xFFECE5D7)]),
-        border: Border.all(color: faceBorders[faceStyle], width: faceStyle.isEven ? 2 : 1),
+        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [faceTop[fi], faceBottom[fi]]),
+        border: Border.all(color: faceGold[fi], width: 1.35),
         boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 5, offset: Offset(1, 2))],
       ),
       child: Stack(children: [
-        Positioned.fill(child: IgnorePointer(child: CustomPaint(painter: _CardFacePatternPainter(faceBorders[faceStyle], faceStyle)))),
-        Positioned.fill(child: Padding(
-          padding: EdgeInsets.all(width * .075),
-          child: DecoratedBox(decoration: BoxDecoration(
-            border: Border.all(color: faceBorders[faceStyle].withOpacity(.85), width: faceStyle % 3 == 0 ? 1.4 : .65),
-            borderRadius: BorderRadius.circular(faceStyle % 2 == 0 ? 4 : 10),
-          )),
-        )),
-        Positioned(left: 4, top: 3, child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(rank, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: width * .22, height: 1)),
-          Text(suit, style: TextStyle(color: ink, fontSize: width * .19, height: 1)),
-        ])),
+        Positioned.fill(child: Padding(padding: EdgeInsets.all(width * .075), child: DecoratedBox(decoration: BoxDecoration(border: Border.all(color: faceGold[fi].withOpacity(.75), width: .65), borderRadius: BorderRadius.circular(4))))),
+        Positioned(left: 4, top: 3, child: Column(mainAxisSize: MainAxisSize.min, children: [Text(rank, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: width * .22, height: 1)), Text(suit, style: TextStyle(color: ink, fontSize: width * .19, height: 1))])),
         if (isFace)
           Center(child: Container(
             width: width * .68, height: height * .64,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(5),
-              gradient: LinearGradient(colors: [const Color(0xFFF8E8BE), const Color(0xFFD8B66B).withOpacity(.55)]),
-              border: Border.all(color: const Color(0xFF9A7131), width: .9),
-            ),
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(5), gradient: LinearGradient(colors: [faceTop[fi].withOpacity(.92), faceBottom[fi].withOpacity(.88)]), border: Border.all(color: faceGold[fi], width: .9)),
             child: Stack(alignment: Alignment.center, children: [
               Positioned(top: 2, child: Text(suit, style: TextStyle(color: ink, fontSize: width * .2))),
-              Positioned.fill(child: CustomPaint(
-                painter: _FacePortraitPainter(
-                  rank,
-                  rank == 'Q' ? [const Color(0xFF8D3152),const Color(0xFF315A86),const Color(0xFF28765B),const Color(0xFF794A91),const Color(0xFF9B3148),const Color(0xFF24758A),const Color(0xFF707B84),const Color(0xFF9A6037),const Color(0xFF34836A),const Color(0xFF4E8A9B)][faceStyle] : (rank == 'K' ? const Color(0xFF24527A) : const Color(0xFF3E7058)),
-                ),
-              )),
-              Positioned(bottom: 1, child: Text(rank == 'J' ? 'KNIGHT' : rank == 'Q' ? 'QUEEN' : 'KING',
-                style: TextStyle(color: const Color(0xFF5B3C1D), fontSize: width * .075, fontWeight: FontWeight.w900, letterSpacing: .3))),
-              Positioned.fill(child: IgnorePointer(child: CustomPaint(painter: _FaceOrnamentPainter(const Color(0xFF9A7131))))),
+              Positioned.fill(child: CustomPaint(painter: _FacePortraitPainter(rank, rank == 'Q' ? const Color(0xFF8D3152) : (rank == 'K' ? const Color(0xFF24527A) : const Color(0xFF3E7058))))),
+              Positioned(bottom: 1, child: Text(rank == 'J' ? 'KNIGHT' : rank == 'Q' ? 'QUEEN' : 'KING', style: TextStyle(color: fi == 0 ? const Color(0xFF5B3C1D) : faceGold[fi], fontSize: width * .075, fontWeight: FontWeight.w900, letterSpacing: .3))),
+              Positioned.fill(child: IgnorePointer(child: CustomPaint(painter: _FaceOrnamentPainter(faceGold[fi])))),
             ]),
           ))
         else if (isAce)
-          Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Text(suit, style: TextStyle(color: ink, fontSize: width * .66, height: 1)),
-            Text('A', style: TextStyle(color: ink, fontSize: width * .28, fontWeight: FontWeight.w900)),
-          ]))
+          Center(child: Column(mainAxisSize: MainAxisSize.min, children: [Text(suit, style: TextStyle(color: ink, fontSize: width * .66, height: 1)), Text('A', style: TextStyle(color: ink, fontSize: width * .28, fontWeight: FontWeight.w900))]))
         else
-          Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Text(suit, style: TextStyle(color: ink, fontSize: width * .43, fontWeight: FontWeight.w900, height: 1)),
-            Text(rank, style: TextStyle(color: ink, fontSize: width * .22, fontWeight: FontWeight.w900, height: 1)),
-          ])),
-        Positioned(right: 4, bottom: 3, child: RotatedBox(quarterTurns: 2, child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(rank, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: width * .22, height: 1)),
-          Text(suit, style: TextStyle(color: ink, fontSize: width * .19, height: 1)),
-        ]))),
+          Center(child: Column(mainAxisSize: MainAxisSize.min, children: [Text(suit, style: TextStyle(color: ink, fontSize: width * .43, fontWeight: FontWeight.w900, height: 1)), Text(rank, style: TextStyle(color: ink, fontSize: width * .22, fontWeight: FontWeight.w900, height: 1))])),
+        Positioned(right: 4, bottom: 3, child: RotatedBox(quarterTurns: 2, child: Column(mainAxisSize: MainAxisSize.min, children: [Text(rank, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: width * .22, height: 1)), Text(suit, style: TextStyle(color: ink, fontSize: width * .19, height: 1))]))),
       ]),
     );
   }
 
   Widget _seat(int seat, String position) => Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5), decoration: BoxDecoration(color: t.background.withOpacity(.94), borderRadius: BorderRadius.circular(10), border: Border.all(color: _turn == seat ? t.accent : t.accent.withOpacity(.35), width: _turn == seat ? 2 : 1)), child: Column(mainAxisSize: MainAxisSize.min, children: [Text(_names[seat], maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: _turn == seat ? t.accent : Colors.white, fontWeight: FontWeight.bold, fontSize: 10)), Text(position, style: const TextStyle(color: Colors.white60, fontSize: 8)), Text('${_hands[seat].length} cards', style: const TextStyle(color: Colors.white70, fontSize: 8))]));
 
-  Widget _playedCard(int seat) {
+  Widget _playedCard(int seat, {double width = 58, double height = 82}) {
     final card = _trick[seat];
-    if (card == null) return const SizedBox(width: 48, height: 68);
-    return _cardFace(card, width: 48, height: 68);
+    if (card == null) return SizedBox(width: width, height: height);
+    return _cardFace(card, width: width, height: height);
   }
 
   Widget _dealAnimationWidget() => Container(
@@ -890,100 +774,128 @@ class _ToraGamePageState extends State<ToraGamePage> {
     ]),
   );
 
-  Widget _tableSeat(int seat, String position, {double fontSize = 12}) =>
-      Container(
-        constraints: const BoxConstraints(maxWidth: 170),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: const Color(0xD9101118),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: _turn == seat ? t.accent : t.accent.withOpacity(.55),
-            width: _turn == seat ? 2 : 1,
-          ),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(.25), blurRadius: 8)],
-        ),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(_names[seat], maxLines: 1, overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: _turn == seat ? t.accent : Colors.white,
-              fontWeight: FontWeight.w900, fontSize: fontSize)),
-          Text('$position  •  ${_hands[seat].length}/13',
-            style: TextStyle(color: Colors.white70, fontSize: fontSize * .72)),
-        ]),
-      );
-
   Widget _centerCross() => LayoutBuilder(builder: (context, constraints) {
-    final w = constraints.maxWidth;
-    final h = constraints.maxHeight;
-    // Keep the four played cards visibly large while respecting the available table height.
-    final cardH = min(w * .105 * 1.43, max(54.0, h * .40)).clamp(54.0, 150.0).toDouble();
-    final cardW = cardH / 1.43;
-    final seatFont = (w * .009).clamp(10.0, 13.0).toDouble();
-    final cardGap = (w * .012).clamp(7.0, 18.0).toDouble();
-    final sideSeatW = (w * .16).clamp(105.0, 165.0).toDouble();
-    final topCardY = 38.0;
-    final bottomCardY = h - cardH - 38.0;
-    final centerCardTop = (h - cardH) / 2;
-    return Stack(clipBehavior: Clip.none, children: [
-      // Partner: name at the top, card below it.
-      Positioned(top: 2, left: 0, right: 0,
-        child: Center(child: _tableSeat(2, 'PARTNER', fontSize: seatFont))),
-      Positioned(top: topCardY, left: 0, right: 0,
-        child: Center(child: (_trick[2] == null ? SizedBox(width: cardW, height: cardH) : _cardFace(_trick[2]!, width: cardW, height: cardH)))),
+    final w = constraints.maxWidth.isFinite ? constraints.maxWidth : 600.0;
+    final h = constraints.maxHeight.isFinite ? constraints.maxHeight : 190.0;
 
-      // Player: card above the player's own hand area, label below.
-      Positioned(bottom: 2, left: 0, right: 0,
-        child: Center(child: _tableSeat(0, 'YOU', fontSize: seatFont))),
-      Positioned(top: bottomCardY, left: 0, right: 0,
-        child: Center(child: (_trick[0] == null ? SizedBox(width: cardW, height: cardH) : _cardFace(_trick[0]!, width: cardW, height: cardH)))),
+    // The table follows the reference screenshot:
+    // teammate at top, opponents at left/right, Sahil at bottom.
+    // Give the table and played cards substantially more visual space.
+    // The sizing is responsive: card height follows the available table
+    // height, while width is limited so the left/right cards stay on-screen.
+    final cardH = (h * .62).clamp(104.0, 142.0).toDouble();
+    final cardW = (cardH / 1.42).clamp(73.0, 100.0).toDouble();
+    final cx = w / 2;
+    final cy = h / 2;
+    // Slightly tighter cross spacing keeps all four large cards in the field.
+    final verticalGap = cardH * .32;
+    final sideGap = cardW * .76;
 
-      // Left opponent.
-      Positioned(left: 2, top: 0, bottom: 0, width: sideSeatW,
-        child: Center(child: _tableSeat(3, 'LEFT OPPONENT', fontSize: seatFont))),
-      Positioned(left: sideSeatW + cardGap, top: centerCardTop,
-        child: (_trick[3] == null ? SizedBox(width: cardW, height: cardH) : _cardFace(_trick[3]!, width: cardW, height: cardH))),
+    return Stack(clipBehavior: Clip.hardEdge, children: [
+      // Keep the scores on the table corners so the playing field can use
+      // more of the phone's landscape height.
+      Positioned(top: 3, left: 4, child: SizedBox(width: w * .25,
+        child: _scoreBox('${_names[0]} + ${_names[2]}', _teamOne))),
+      Positioned(top: 3, right: 4, child: SizedBox(width: w * .25,
+        child: _scoreBox('${_names[1]} + ${_names[3]}', _teamTwo))),
+      // Player positions match the supplied reference image.
+      Positioned(top: 3, left: 0, right: 0,
+        child: Center(child: _seat(2, 'PARTNER'))),
+      Positioned(left: 3, top: 0, bottom: 0,
+        child: Center(child: _seat(3, 'OPPONENT 2'))),
+      Positioned(right: 3, top: 0, bottom: 0,
+        child: Center(child: _seat(1, 'OPPONENT'))),
+      Positioned(bottom: 3, left: 0, right: 0,
+        child: Center(child: _seat(0, 'PLAYER'))),
 
-      // Right opponent.
-      Positioned(right: 2, top: 0, bottom: 0, width: sideSeatW,
-        child: Center(child: _tableSeat(1, 'RIGHT OPPONENT', fontSize: seatFont))),
-      Positioned(right: sideSeatW + cardGap, top: centerCardTop,
-        child: (_trick[1] == null ? SizedBox(width: cardW, height: cardH) : _cardFace(_trick[1]!, width: cardW, height: cardH))),
+      // Four played cards form a compact cross in the exact middle.
+      Positioned(
+        left: cx - cardW / 2,
+        top: cy - verticalGap - cardH / 2,
+        child: _playedCard(2, width: cardW, height: cardH),
+      ),
+      Positioned(
+        left: cx - cardW / 2,
+        top: cy + verticalGap - cardH / 2,
+        child: _playedCard(0, width: cardW, height: cardH),
+      ),
+      Positioned(
+        left: cx - sideGap - cardW / 2,
+        top: cy - cardH / 2,
+        child: _playedCard(3, width: cardW, height: cardH),
+      ),
+      Positioned(
+        left: cx + sideGap - cardW / 2,
+        top: cy - cardH / 2,
+        child: _playedCard(1, width: cardW, height: cardH),
+      ),
 
-      // Keep the centre clear so the four cards remain the visual focus.
       if (_dealing)
         Center(child: _dealAnimationWidget())
       else
-        Positioned(top: 5, right: sideSeatW + 8,
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: (w * .22).clamp(120.0, 260.0).toDouble()),
-            child: Text(_ledSuit == null ? _status : 'LEAD: $_ledSuit  •  $_status',
-              textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: t.accent, fontSize: (w * .007).clamp(9.0, 11.0).toDouble(), fontWeight: FontWeight.w900)),
+        Positioned(
+          top: 3,
+          left: 8,
+          right: w * .70,
+          child: IgnorePointer(child: Text(
+            _status,
+            textAlign: TextAlign.left,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: t.accent,
+              fontSize: 9,
+              fontWeight: FontWeight.w900,
+              shadows: const [Shadow(color: Colors.black, blurRadius: 3)],
+            ),
           )),
+        ),
     ]);
   });
 
   Widget _scoreBox(String label, int score) => Container(padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8), decoration: BoxDecoration(color: t.panel, borderRadius: BorderRadius.circular(10), border: Border.all(color: t.accent.withOpacity(.7))), child: Column(children: [Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70, fontSize: 9)), Text('$score', style: TextStyle(color: t.accent, fontSize: 19, fontWeight: FontWeight.w900))]));
 
   Future<void> _settings() async {
-    await showModalBottomSheet<void>(context: context, backgroundColor: t.panel, isScrollControlled: true,
-      builder: (ctx) => SafeArea(child: SizedBox(height: MediaQuery.of(ctx).size.height*.88, child: ListView(padding: const EdgeInsets.all(14), children: [
-        Text('ROYAL TORA DESIGNS', textAlign: TextAlign.center, style: TextStyle(color:t.accent,fontWeight:FontWeight.w900,fontSize:16)),
-        const SizedBox(height:8), const Text('۱۰ بېلابېل شاهي میدانونه',textAlign:TextAlign.center,style:TextStyle(color:Colors.white70)),
-        for (int i=0;i<_themes.length;i++) ListTile(leading:CircleAvatar(backgroundColor:_themes[i].table,child:Text(['♛','✦','❖','♜','♕','✧','◈','♔','❋','✥'][i],style:TextStyle(color:_themes[i].accent))),title:Text(_themes[i].name),trailing:_activeTheme.name==_themes[i].name?Icon(Icons.check_circle,color:t.accent):null,onTap:(){setState((){_activeTheme=_themes[i];_cardFaceStyle=i;_cardBackStyle=i;});widget.onThemeChanged(i);}),
-        const Divider(), Text('CARD FRONT DESIGN — ۱۰ ډولونه',style:TextStyle(color:t.accent,fontWeight:FontWeight.bold)),
-        Wrap(spacing:6,children:[for(int i=0;i<10;i++)ChoiceChip(label:Text('${i+1}'),selected:_cardFaceStyle==i,onSelected:(_){setState(()=>_cardFaceStyle=i);})]),
-        const SizedBox(height:8), Text('CARD BACK DESIGN — ۱۰ ډولونه',style:TextStyle(color:t.accent,fontWeight:FontWeight.bold)),
-        Wrap(spacing:6,children:[for(int i=0;i<10;i++)ChoiceChip(label:Text('${i+1}'),selected:_cardBackStyle==i,onSelected:(_){setState(()=>_cardBackStyle=i);})]),
-        const Divider(), ListTile(leading:Icon(Icons.people,color:t.accent),title:const Text('د لوبغاړو نومونه بدلول'),onTap:(){Navigator.pop(ctx);_editNames();})
-      ]))));
+    const faceNames = ['Classic Ivory', 'Black & Gold', 'Red Royal', 'Emerald Gold', 'Silver', 'Midnight Blue'];
+    const backNames = ['TORA Gold', 'Royal Spade', 'Golden Lion', 'Diamond Grid', 'Emerald Crest', 'Purple Galaxy'];
+    await showModalBottomSheet<void>(
+      context: context, isScrollControlled: true, backgroundColor: t.panel,
+      builder: (ctx) => StatefulBuilder(builder: (ctx, sheetSetState) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 18),
+          child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Center(child: Text('TORA APPEARANCE', style: TextStyle(color: t.accent, fontWeight: FontWeight.w900, letterSpacing: 1.2))),
+            const SizedBox(height: 12),
+            Text('TABLE / د میدان ډیزاین', style: TextStyle(color: t.accent, fontWeight: FontWeight.w900)),
+            SizedBox(height: 112, child: ListView(scrollDirection: Axis.horizontal, children: [
+              for (int i = 0; i < _themes.length; i++) Padding(padding: const EdgeInsets.only(right: 8), child: InkWell(
+                onTap: () { setState(() => _activeTheme = _themes[i]); widget.onThemeChanged(i); sheetSetState(() {}); },
+                child: Container(width: 112, padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: _themes[i].table, borderRadius: BorderRadius.circular(12), border: Border.all(color: _activeTheme.name == _themes[i].name ? _themes[i].accent : Colors.white24, width: _activeTheme.name == _themes[i].name ? 2 : 1)), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.table_restaurant, color: _themes[i].accent, size: 30), const SizedBox(height: 5), Text(_themes[i].name, textAlign: TextAlign.center, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold))])),
+              )),
+            ])),
+            const SizedBox(height: 12),
+            Text('CARD FRONT / د ورقو مخ', style: TextStyle(color: t.accent, fontWeight: FontWeight.w900)),
+            Wrap(spacing: 8, runSpacing: 8, children: [for (int i = 0; i < faceNames.length; i++) ChoiceChip(label: Text(faceNames[i]), selected: _cardFaceStyle == i, onSelected: (_) { setState(() => _cardFaceStyle = i); sheetSetState(() {}); })]),
+            const SizedBox(height: 8),
+            Center(child: _cardFace('A♠', width: 66, height: 94)),
+            const SizedBox(height: 14),
+            Text('CARD BACK / د ورقو شا', style: TextStyle(color: t.accent, fontWeight: FontWeight.w900)),
+            Wrap(spacing: 8, runSpacing: 8, children: [for (int i = 0; i < backNames.length; i++) ChoiceChip(label: Text(backNames[i]), selected: _cardBackStyle == i, onSelected: (_) { setState(() => _cardBackStyle = i); sheetSetState(() {}); })]),
+            const SizedBox(height: 8),
+            Center(child: _cardFace('A♠', back: true, width: 66, height: 94)),
+            const SizedBox(height: 10),
+            SizedBox(width: double.infinity, child: FilledButton(onPressed: () => Navigator.pop(ctx), style: FilledButton.styleFrom(backgroundColor: t.accent, foregroundColor: Colors.black), child: const Text('DONE / بشپړ'))),
+          ])),
+        ),
+      )),
+    );
   }
 
   @override Widget build(BuildContext context) {
     final legal = _legalCards(0);
     return Scaffold(backgroundColor: t.background,
       body: SafeArea(child: Column(children: [
-        SizedBox(height: 34, child: Row(children: [
+        SizedBox(height: 29, child: Row(children: [
           const SizedBox(width: 10),
           Text('♛ TORA', style: TextStyle(color: t.accent, fontWeight: FontWeight.w900, letterSpacing: 3, fontSize: 16)),
           const Spacer(),
@@ -992,17 +904,16 @@ class _ToraGamePageState extends State<ToraGamePage> {
           IconButton(onPressed: _showRules, tooltip: 'Rules', icon: const Icon(Icons.info_outline, size: 19), visualDensity: VisualDensity.compact, padding: EdgeInsets.zero, constraints: const BoxConstraints.tightFor(width: 34, height: 32)),
           const SizedBox(width: 6),
         ])),
-        Padding(padding: const EdgeInsets.fromLTRB(10, 3, 10, 5), child: Row(children: [Expanded(child: _scoreBox('${_names[0]} + ${_names[2]}', _teamOne)), const SizedBox(width: 8), Expanded(child: _scoreBox('${_names[1]} + ${_names[3]}', _teamTwo))])),
-        Expanded(child: Container(margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 2), padding: const EdgeInsets.all(4), decoration: BoxDecoration(
+        Expanded(child: Container(margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 1), padding: const EdgeInsets.all(3), decoration: BoxDecoration(
           gradient: RadialGradient(center: Alignment.center, radius: 1.15,
             colors: [Color.lerp(t.table, t.accent, .12)!, t.table, t.background]),
           borderRadius: BorderRadius.circular(22),
           border: Border.all(color: t.accent, width: 2),
           boxShadow: [BoxShadow(color: t.accent.withOpacity(.18), blurRadius: 18)],
-        ), child: DragTarget<String>(onWillAcceptWithDetails: (d) => _turn == 0 && !_dealing && !_aiBusy && !_gameOver && !_resolvingTrick && legal.contains(d.data), onAcceptWithDetails: (d) => _playCard(0, d.data), builder: (ctx, candidates, rejected) => Stack(children: [Positioned.fill(child: IgnorePointer(child: CustomPaint(painter: _RoyalTablePainter(t.accent, t.pattern)))), _centerCross(), if (candidates.isNotEmpty) Positioned.fill(child: IgnorePointer(child: Container(decoration: BoxDecoration(border: Border.all(color: Colors.white, width: 3), borderRadius: BorderRadius.circular(18)))))])))),
-        Padding(padding: const EdgeInsets.fromLTRB(10, 4, 10, 0), child: Row(children: [Expanded(child: Text('${_names[0].toUpperCase()} — YOUR CARDS', style: TextStyle(color: t.accent, fontWeight: FontWeight.w900, fontSize: 10, letterSpacing: 1))), Text('${_myHand.length}/13', style: const TextStyle(color: Colors.white70, fontSize: 10))])),
-        SizedBox(height: 116, child: ListView.separated(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7), itemCount: _myHand.length, separatorBuilder: (_, __) => const SizedBox(width: 4), itemBuilder: (ctx, i) { final card = _myHand[i]; final allowed = legal.contains(card) && _turn == 0 && !_dealing && !_aiBusy && !_gameOver && !_resolvingTrick; return Draggable<String>(data: card, maxSimultaneousDrags: allowed ? 1 : 0, feedback: Material(color: Colors.transparent, child: _cardFace(card, width: 66, height: 94)), childWhenDragging: Opacity(opacity: .25, child: _cardFace(card, width: 62, height: 88)), child: Opacity(opacity: allowed ? 1 : .48, child: _cardFace(card, width: 62, height: 88))); })),
-        Padding(padding: const EdgeInsets.fromLTRB(9, 0, 9, 8), child: Row(children: [Expanded(child: OutlinedButton(onPressed: _turn == 0 && !_dealing && !_aiBusy && !_gameOver && !_resolvingTrick ? () => _claimNoMore(0) : null, style: OutlinedButton.styleFrom(foregroundColor: t.accent, side: BorderSide(color: t.accent)), child: const Text('NO MORE / نورې نشته', style: TextStyle(fontSize: 10)))), const SizedBox(width: 7), Expanded(child: OutlinedButton(onPressed: _editNames, style: OutlinedButton.styleFrom(foregroundColor: t.accent, side: BorderSide(color: t.accent)), child: const Text('PLAYERS', style: TextStyle(fontSize: 10)))), const SizedBox(width: 7), Expanded(child: FilledButton(onPressed: _gameOver && !_dealing && !_matchFinished ? _deal : null, style: FilledButton.styleFrom(backgroundColor: t.accent, foregroundColor: Colors.black), child: Text(_matchFinished ? 'MATCH OVER' : (_gameOver ? 'NEW ROUND' : (_dealing ? 'DEALING...' : 'PLAYING')), style: const TextStyle(fontSize: 10))))])),
+        ), child: DragTarget<String>(onWillAcceptWithDetails: (d) => _turn == 0 && !_dealing && !_aiBusy && !_gameOver && !_resolvingTrick && legal.contains(d.data), onAcceptWithDetails: (d) => _playCard(0, d.data), builder: (ctx, candidates, rejected) => Stack(children: [_centerCross(), if (candidates.isNotEmpty) Positioned.fill(child: IgnorePointer(child: Container(decoration: BoxDecoration(border: Border.all(color: Colors.white, width: 3), borderRadius: BorderRadius.circular(18)))))])))),
+        Padding(padding: const EdgeInsets.fromLTRB(8, 2, 8, 0), child: Row(children: [Expanded(child: Text('${_names[0].toUpperCase()} — YOUR CARDS', style: TextStyle(color: t.accent, fontWeight: FontWeight.w900, fontSize: 10, letterSpacing: 1))), Text('${_myHand.length}/13', style: const TextStyle(color: Colors.white70, fontSize: 10))])),
+        SizedBox(height: 88, child: ListView.separated(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), itemCount: _myHand.length, separatorBuilder: (_, __) => const SizedBox(width: 4), itemBuilder: (ctx, i) { final card = _myHand[i]; final allowed = legal.contains(card) && _turn == 0 && !_dealing && !_aiBusy && !_gameOver && !_resolvingTrick; return Draggable<String>(data: card, maxSimultaneousDrags: allowed ? 1 : 0, feedback: Material(color: Colors.transparent, child: _cardFace(card, width: 53, height: 76)), childWhenDragging: Opacity(opacity: .25, child: _cardFace(card, width: 48, height: 69)), child: Opacity(opacity: allowed ? 1 : .48, child: _cardFace(card, width: 48, height: 69))); })),
+        Padding(padding: const EdgeInsets.fromLTRB(8, 0, 8, 4), child: Row(children: [Expanded(child: OutlinedButton(onPressed: _turn == 0 && !_dealing && !_aiBusy && !_gameOver && !_resolvingTrick ? () => _claimNoMore(0) : null, style: OutlinedButton.styleFrom(foregroundColor: t.accent, side: BorderSide(color: t.accent)), child: const Text('NO MORE / نورې نشته', style: TextStyle(fontSize: 10)))), const SizedBox(width: 7), Expanded(child: OutlinedButton(onPressed: _editNames, style: OutlinedButton.styleFrom(foregroundColor: t.accent, side: BorderSide(color: t.accent)), child: const Text('PLAYERS', style: TextStyle(fontSize: 10)))), const SizedBox(width: 7), Expanded(child: FilledButton(onPressed: _gameOver && !_dealing ? _deal : null, style: FilledButton.styleFrom(backgroundColor: t.accent, foregroundColor: Colors.black), child: Text(_gameOver ? 'NEW ROUND' : (_dealing ? 'DEALING...' : 'PLAYING'), style: const TextStyle(fontSize: 10))))])),
       ])));
   }
 }
