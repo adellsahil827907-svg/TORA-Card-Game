@@ -933,51 +933,52 @@ class _ToraGamePageState extends State<ToraGamePage> {
   Widget _centerCross() => LayoutBuilder(builder: (context, constraints) {
     final w = constraints.maxWidth;
     final h = constraints.maxHeight;
-    // Keep the four played cards visibly large while respecting the available table height.
-    final cardH = min(w * .19, max(66.0, h * .34)).clamp(66.0, 112.0).toDouble();
+    // Four played cards sit together in the actual centre of the table,
+    // each in the direction of the seat that played it.
+    final maxCardH = min((h - 34) / 2.15, (w - 34) / 2.05);
+    final cardH = maxCardH.clamp(58.0, 104.0).toDouble();
     final cardW = cardH / 1.43;
-    final seatFont = (w * .009).clamp(10.0, 13.0).toDouble();
-    final cardGap = (w * .012).clamp(7.0, 18.0).toDouble();
+    final gap = (w * .012).clamp(5.0, 10.0).toDouble();
+    final cx = w / 2;
+    final cy = h / 2;
     final sideSeatW = (w * .14).clamp(88.0, 138.0).toDouble();
-    final topCardY = 38.0;
-    final bottomCardY = h - cardH - 38.0;
-    final centerCardTop = (h - cardH) / 2;
+    final seatFont = (w * .009).clamp(10.0, 13.0).toDouble();
+
+    Widget playedCard(int seat) => _trick[seat] == null
+        ? SizedBox(width: cardW, height: cardH)
+        : _cardFace(_trick[seat]!, width: cardW, height: cardH);
+
     return Stack(clipBehavior: Clip.none, children: [
-      // Partner: name at the top, card below it.
+      // Seat labels remain beside their own player positions.
       Positioned(top: 2, left: 0, right: 0,
         child: Center(child: _tableSeat(2, 'PARTNER', fontSize: seatFont))),
-      Positioned(top: topCardY, left: 0, right: 0,
-        child: Center(child: (_trick[2] == null ? SizedBox(width: cardW, height: cardH) : _cardFace(_trick[2]!, width: cardW, height: cardH)))),
-
-      // Player: card above the player's own hand area, label below.
       Positioned(bottom: 2, left: 0, right: 0,
         child: Center(child: _tableSeat(0, 'YOU', fontSize: seatFont))),
-      Positioned(top: bottomCardY, left: 0, right: 0,
-        child: Center(child: (_trick[0] == null ? SizedBox(width: cardW, height: cardH) : _cardFace(_trick[0]!, width: cardW, height: cardH)))),
-
-      // Left opponent.
       Positioned(left: 2, top: 0, bottom: 0, width: sideSeatW,
         child: Center(child: _tableSeat(3, 'LEFT OPPONENT', fontSize: seatFont))),
-      Positioned(left: sideSeatW + cardGap, top: centerCardTop,
-        child: (_trick[3] == null ? SizedBox(width: cardW, height: cardH) : _cardFace(_trick[3]!, width: cardW, height: cardH))),
-
-      // Right opponent.
       Positioned(right: 2, top: 0, bottom: 0, width: sideSeatW,
         child: Center(child: _tableSeat(1, 'RIGHT OPPONENT', fontSize: seatFont))),
-      Positioned(right: sideSeatW + cardGap, top: centerCardTop,
-        child: (_trick[1] == null ? SizedBox(width: cardW, height: cardH) : _cardFace(_trick[1]!, width: cardW, height: cardH))),
 
-      // Keep the centre clear so the four cards remain the visual focus.
+      // The four cards form a compact cross in the original centre area.
+      // Seat 2 = top, seat 0 = bottom, seat 3 = left, seat 1 = right.
+      Positioned(left: cx - cardW / 2, top: cy - cardH - gap,
+        child: playedCard(2)),
+      Positioned(left: cx - cardW / 2, top: cy + gap,
+        child: playedCard(0)),
+      Positioned(left: cx - cardW - gap, top: cy - cardH / 2,
+        child: playedCard(3)),
+      Positioned(left: cx + gap, top: cy - cardH / 2,
+        child: playedCard(1)),
+
       if (_dealing)
         Center(child: _dealAnimationWidget())
       else
-        Positioned(top: 5, right: sideSeatW + 8,
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: (w * .22).clamp(120.0, 260.0).toDouble()),
-            child: Text(_ledSuit == null ? _status : 'LEAD: $_ledSuit  •  $_status',
-              textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: t.accent, fontSize: (w * .007).clamp(9.0, 11.0).toDouble(), fontWeight: FontWeight.w900)),
-          )),
+        Positioned(top: 5, left: sideSeatW + 8, right: sideSeatW + 8,
+          child: Text(_ledSuit == null ? _status : 'LEAD: $_ledSuit  •  $_status',
+            textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis,
+            style: TextStyle(color: t.accent,
+              fontSize: (w * .007).clamp(9.0, 11.0).toDouble(),
+              fontWeight: FontWeight.w900))),
     ]);
   });
 
