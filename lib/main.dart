@@ -937,12 +937,15 @@ class _ToraGamePageState extends State<ToraGamePage> {
   Widget _centerCross() => LayoutBuilder(builder: (context, constraints) {
     final w = constraints.maxWidth;
     final h = constraints.maxHeight;
-    // Responsive card sizing: reserve clear vertical lanes for the top and bottom cards.
-    final cardH = (h * .39).clamp(50.0, 76.0).toDouble();
+    // Keep all four played cards together in the center in a clear plus layout.
+    final cardH = (h * .235).clamp(44.0, 64.0).toDouble();
     final cardW = cardH / 1.43;
-    final sideSeatW = (w * .15).clamp(78.0, 124.0).toDouble();
+    final gap = (h * .025).clamp(5.0, 9.0).toDouble();
+    final sideSeatW = (w * .17).clamp(76.0, 118.0).toDouble();
     final seatFont = (w * .009).clamp(9.0, 12.0).toDouble();
-    final middleY = (h - cardH) / 2;
+    final cx = w / 2;
+    final cy = h / 2;
+
     final topCard = _trick[2] == null
         ? SizedBox(width: cardW, height: cardH)
         : _cardFace(_trick[2]!, width: cardW, height: cardH);
@@ -957,25 +960,21 @@ class _ToraGamePageState extends State<ToraGamePage> {
         : _cardFace(_trick[1]!, width: cardW, height: cardH);
 
     return Stack(clipBehavior: Clip.hardEdge, children: [
-      // TOP: partner (seat 2). The label stays in the top-left corner.
+      // Player information remains visible around the table edges.
       Positioned(top: 3, left: 4,
-        child: _tableSeat(2, 'TOP / PARTNER', fontSize: seatFont)),
-      Positioned(top: 7, left: (w - cardW) / 2, child: topCard),
-
-      // BOTTOM: the human player (seat 0).
+        child: _tableSeat(2, 'TOP', fontSize: seatFont)),
       Positioned(bottom: 3, left: 4,
-        child: _tableSeat(0, 'BOTTOM / YOU', fontSize: seatFont)),
-      Positioned(bottom: 7, left: (w - cardW) / 2, child: bottomCard),
-
-      // LEFT: seat 3; its played card sits inward from the seat label.
+        child: _tableSeat(0, 'YOU', fontSize: seatFont)),
       Positioned(left: 3, top: 0, bottom: 0, width: sideSeatW,
         child: Center(child: _tableSeat(3, 'LEFT', fontSize: seatFont))),
-      Positioned(left: sideSeatW + 8, top: middleY, child: leftCard),
-
-      // RIGHT: seat 1; its played card sits inward from the seat label.
       Positioned(right: 3, top: 0, bottom: 0, width: sideSeatW,
         child: Center(child: _tableSeat(1, 'RIGHT', fontSize: seatFont))),
-      Positioned(right: sideSeatW + 8, top: middleY, child: rightCard),
+
+      // Four played cards: top, bottom, left and right of the center point.
+      Positioned(left: cx - cardW / 2, top: cy - cardH - gap, child: topCard),
+      Positioned(left: cx - cardW / 2, top: cy + gap, child: bottomCard),
+      Positioned(left: cx - cardW - gap, top: cy - cardH / 2, child: leftCard),
+      Positioned(left: cx + gap, top: cy - cardH / 2, child: rightCard),
 
       if (_dealing)
         Center(child: _dealAnimationWidget())
@@ -1016,7 +1015,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
         child: Column(
           children: [
             SizedBox(
-              height: 28,
+              height: 24,
               child: Row(children: [
                 const SizedBox(width: 8),
                 Text('♛ TORA', style: TextStyle(
@@ -1028,7 +1027,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
                   icon: const Icon(Icons.palette_outlined, size: 18),
                   visualDensity: VisualDensity.compact,
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints.tightFor(width: 32, height: 28)),
+                  constraints: const BoxConstraints.tightFor(width: 32, height: 24)),
                 IconButton(
                   onPressed: _editNames, tooltip: 'Player names',
                   icon: const Icon(Icons.people_alt_outlined, size: 18),
@@ -1054,8 +1053,8 @@ class _ToraGamePageState extends State<ToraGamePage> {
             ),
             Expanded(
               child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
-                padding: const EdgeInsets.all(2),
+                margin: const EdgeInsets.symmetric(horizontal: 1, vertical: 0),
+                padding: const EdgeInsets.all(1),
                 decoration: BoxDecoration(
                   gradient: RadialGradient(center: Alignment.center, radius: 1.15,
                     colors: [Color.lerp(t.table, t.accent, .12)!, t.table, t.background]),
@@ -1098,7 +1097,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
               ]),
             ),
             SizedBox(
-              height: 82,
+              height: 70,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
