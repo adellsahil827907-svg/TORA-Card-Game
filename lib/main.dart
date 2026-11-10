@@ -26,11 +26,11 @@ class ToraTheme {
   const ToraTheme(this.name, this.background, this.panel, this.accent, this.table, this.cardTop, this.cardBottom, this.silver, this.pattern);
 }
 const List<ToraTheme> _themes = [
-  ToraTheme('Black & Gold', Color(0xFF090B10), Color(0xFF17130B), Color(0xFFD6B15C), Color(0xFF123B2B), Color(0xFF27231B), Color(0xFF090909), Color(0xFFE7D4A2), 0),
-  ToraTheme('Midnight Blue', Color(0xFF071326), Color(0xFF12233D), Color(0xFFC6D2E3), Color(0xFF102B46), Color(0xFF273A55), Color(0xFF101D31), Color(0xFFE6EDF7), 1),
-  ToraTheme('Emerald Gold', Color(0xFF061D18), Color(0xFF10352B), Color(0xFFE0C16B), Color(0xFF0C4938), Color(0xFF234B3B), Color(0xFF10271F), Color(0xFFF0D98C), 2),
-  ToraTheme('Royal Purple', Color(0xFF170D25), Color(0xFF28183A), Color(0xFFE4C3FF), Color(0xFF39204F), Color(0xFF4A315F), Color(0xFF1C1028), Color(0xFFEADCF5), 3),
-  ToraTheme('Ruby Velvet', Color(0xFF210B12), Color(0xFF35121D), Color(0xFFFFC1C9), Color(0xFF521A2A), Color(0xFF612638), Color(0xFF260D16), Color(0xFFFFDCE0), 4),
+  ToraTheme('Royal Black Gold', Color(0xFF090B10), Color(0xFF17130B), Color(0xFFD6B15C), Color(0xFF101114), Color(0xFF27231B), Color(0xFF090909), Color(0xFFE7D4A2), 0),
+  ToraTheme('Royal Green Gold', Color(0xFF071A14), Color(0xFF102B20), Color(0xFFD6B15C), Color(0xFF14513B), Color(0xFF234B3B), Color(0xFF10271F), Color(0xFFF0D98C), 1),
+  ToraTheme('Royal Red Gold', Color(0xFF1D090E), Color(0xFF35121D), Color(0xFFD6B15C), Color(0xFF741D2B), Color(0xFF612638), Color(0xFF260D16), Color(0xFFFFDCE0), 2),
+  ToraTheme('Royal Blue Gold', Color(0xFF071326), Color(0xFF12233D), Color(0xFFD6B15C), Color(0xFF123D70), Color(0xFF273A55), Color(0xFF101D31), Color(0xFFE6EDF7), 3),
+  ToraTheme('Royal White Gold', Color(0xFF17212B), Color(0xFF263746), Color(0xFFD6B15C), Color(0xFFF2EBDD), Color(0xFFE8DFC9), Color(0xFFCFC5B1), Color(0xFF806B43), 4),
   ToraTheme('Ocean Blue', Color(0xFF061B2A), Color(0xFF0C2B40), Color(0xFF8DE1F5), Color(0xFF07506A), Color(0xFF17617A), Color(0xFF082638), Color(0xFFD1F5FF), 5),
   ToraTheme('Silver Chrome', Color(0xFF171B20), Color(0xFF292F36), Color(0xFFE1E7ED), Color(0xFF35434A), Color(0xFF4B555D), Color(0xFF171D22), Color(0xFFF4F6F8), 6),
   ToraTheme('Copper Luxe', Color(0xFF1D120C), Color(0xFF332016), Color(0xFFE6A66F), Color(0xFF563522), Color(0xFF70472D), Color(0xFF28180F), Color(0xFFFFD5B0), 7),
@@ -988,7 +988,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
       builder: (ctx) => SafeArea(child: SizedBox(height: MediaQuery.of(ctx).size.height*.88, child: ListView(padding: const EdgeInsets.all(14), children: [
         Text('ROYAL TORA DESIGNS', textAlign: TextAlign.center, style: TextStyle(color:t.accent,fontWeight:FontWeight.w900,fontSize:16)),
         const SizedBox(height:8), const Text('۱۰ بېلابېل شاهي میدانونه',textAlign:TextAlign.center,style:TextStyle(color:Colors.white70)),
-        for (int i=0;i<_themes.length;i++) ListTile(leading:CircleAvatar(backgroundColor:_themes[i].table,child:Text(['♛','✦','❖','♜','♕','✧','◈','♔','❋','✥'][i],style:TextStyle(color:_themes[i].accent))),title:Text(_themes[i].name),trailing:_activeTheme.name==_themes[i].name?Icon(Icons.check_circle,color:t.accent):null,onTap:(){setState((){_activeTheme=_themes[i];_cardFaceStyle=i;_cardBackStyle=i;});widget.onThemeChanged(i);}),
+        for (int i=0;i<_themes.length;i++) ListTile(leading:CircleAvatar(backgroundColor:_themes[i].table,child:Text(['♛','✦','❖','♜','♕','✧','◈','♔','❋','✥'][i],style:TextStyle(color:_themes[i].accent))),title:Text(_themes[i].name),trailing:_activeTheme.name==_themes[i].name?Icon(Icons.check_circle,color:t.accent):null,onTap:(){setState((){_activeTheme=_themes[i];});widget.onThemeChanged(i);}),
         const Divider(), Text('CARD FRONT DESIGN — ۱۰ ډولونه',style:TextStyle(color:t.accent,fontWeight:FontWeight.bold)),
         Wrap(spacing:6,children:[for(int i=0;i<10;i++)ChoiceChip(label:Text('${i+1}'),selected:_cardFaceStyle==i,onSelected:(_){setState(()=>_cardFaceStyle=i);})]),
         const SizedBox(height:8), Text('CARD BACK DESIGN — ۱۰ ډولونه',style:TextStyle(color:t.accent,fontWeight:FontWeight.bold)),
