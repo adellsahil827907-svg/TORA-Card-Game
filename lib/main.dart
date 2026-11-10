@@ -322,6 +322,15 @@ class _ToraGamePageState extends State<ToraGamePage> {
   @override void initState() { super.initState(); _activeTheme = widget.theme; _deal(first: true); }
   List<String> get _myHand => _hands[0];
   int _team(int seat) => (seat == 0 || seat == 2) ? 0 : 1;
+
+  // TORA play order: BOTTOM (Player 1) -> RIGHT (Player 2) -> TOP (Player 3) -> LEFT (Player 4).
+  // Fixed table positions: seat 0=bottom, seat 1=right, seat 2=top, seat 3=left.
+  static const List<int> _seatCycle = [0, 1, 2, 3];
+  int _seatAtOffset(int startSeat, int offset) {
+    final startIndex = _seatCycle.indexOf(startSeat);
+    return _seatCycle[(startIndex + offset) % 4];
+  }
+
   int get _playedCount => _trick.where((c) => c != null).length;
 
   void _deal({bool first = false}) {
@@ -356,11 +365,11 @@ class _ToraGamePageState extends State<ToraGamePage> {
   }
 
   Future<void> _animateDeal(List<String> deck, int startSeat) async {
-    // Deal clockwise, beginning with the player who captured Q♠ in the previous round.
+    // Deal clockwise from the first player; next rounds start with the Q♠ winner.
     for (int i = 0; i < deck.length; i++) {
       await Future.delayed(const Duration(milliseconds: 65));
       if (!mounted || !_dealing) return;
-      final seat = (startSeat + i) % 4;
+      final seat = _seatAtOffset(startSeat, i);
       setState(() {
         _hands[seat].add(deck[i]);
         _hands[seat].sort(_compareCards);
@@ -373,10 +382,19 @@ class _ToraGamePageState extends State<ToraGamePage> {
     setState(() {
       _dealing = false;
       _lastDealtSeat = -1;
+      // The Q♠ trick winner must both deal and lead the new round.
       _turn = startSeat;
       _leader = startSeat;
-      _status = 'CARDS DEALT — ${_names[startSeat]} STARTS';
+      _status = 'CARDS DEALT — ${_names[startSeat]} DEALS AND PLAYS FIRST';
     });
+    // If the Q♠ winner is an AI player, let that player make the first play
+    // automatically; otherwise the human player (seat 0) can play manually.
+    if (startSeat != 0 && mounted && !_gameOver) {
+      await Future.delayed(const Duration(milliseconds: 450));
+      if (mounted && !_gameOver && !_dealing && _turn == startSeat) {
+        _runAi();
+      }
+    }
   }
 
   int _compareCards(String a, String b) {
@@ -422,7 +440,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
         _resolvingTrick = true;
         _status = 'FOUR CARDS — TRICK COMPLETE';
       } else {
-        _turn = (_leader + _trickSeats.length) % 4; // Player 1, 2, 3, then 4 from the trick leader.
+        _turn = _seatAtOffset(_leader, _trickSeats.length); // Continue clockwise from the trick leader: BOTTOM -> RIGHT -> TOP -> LEFT.
       }
     });
     if (_resolvingTrick) {
@@ -576,7 +594,6 @@ class _ToraGamePageState extends State<ToraGamePage> {
     );
 
     if (raw < 10) return 0;
-    if (hasQueen && raw >= 15 && raw <= 20) return 20;
     if (raw <= 15) return 10;
     if (raw <= 20) return 20;
     return 30;
