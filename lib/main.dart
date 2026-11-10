@@ -1073,10 +1073,16 @@ class _ToraGamePageState extends State<ToraGamePage> {
                       child: CustomPaint(painter: _RoyalTablePainter(t.accent, t.pattern)))),
                     _centerCross(),
                     if (candidates.isNotEmpty)
-                      Positioned.fill(child: IgnorePointer(child: Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.white, width: 3),
-                          borderRadius: BorderRadius.circular(16)))),
+                      Positioned.fill(
+                        child: IgnorePointer(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.white, width: 3),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                        ),
+                      ),
                   ]),
                 ),
               ),
