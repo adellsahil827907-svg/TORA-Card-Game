@@ -738,8 +738,25 @@ class _ToraGamePageState extends State<ToraGamePage> {
   }
 
   void _showRules() {
-    showDialog<void>(context: context, builder: (ctx) => AlertDialog(backgroundColor: t.panel, title: Text('TORA RULES', style: TextStyle(color: t.accent)), content: const SingleChildScrollView(child: Text('• 52 cards: 13 cards per player.\n• Two teams: Player 1 + Player 3 versus Player 2 + Player 4.\n• Follow the suit led if you have that suit.\n• If you do not have it, any suit may be played; it cannot win the trick.\n• Highest card of the led suit wins. Winner collects all four cards and leads next.
-• Whoever captures Q♠ deals the next round and plays its first card.\n• Spade Takkol: if nobody else holds a spade when a spade is led, 30 points transfer.\n• “No more” checks a chosen suit in the other three hands; each remaining card causes 30 penalty points.\n• Card penalties: each heart 1, Q♠ 9, J♣ 5, 10♦ 3.\n• Match ends when either team reaches 200 penalty points.')), actions: []));
+    const rules = '''• 52 cards: 13 cards per player.
+• Two teams: Player 1 + Player 3 versus Player 2 + Player 4.
+• Follow the suit led if you have that suit.
+• If you do not have it, any suit may be played; it cannot win the trick.
+• Highest card of the led suit wins. Winner collects all four cards and leads next.
+• Whoever captures Q♠ deals the next round and plays its first card.
+• Spade Takkol: if nobody else holds a spade when a spade is led, 30 points transfer.
+• “No more” checks a chosen suit in the other three hands; each remaining card causes 30 penalty points.
+• Card penalties: each heart 1, Q♠ 9, J♣ 5, 10♦ 3.
+• Match ends when either team reaches 200 penalty points.''';
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: t.panel,
+        title: Text('TORA RULES', style: TextStyle(color: t.accent)),
+        content: const SingleChildScrollView(child: Text(rules)),
+        actions: [],
+      ),
+    );
   }
 
   void _toast(String text) { if (!mounted) return; ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text), duration: const Duration(seconds: 2))); }
