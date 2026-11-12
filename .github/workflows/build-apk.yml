@@ -36,7 +36,7 @@ jobs:
         run: |
           test -f TORA_Sahil_Fixed.zip
           test -f lib/main.dart
-      test -f google-services.json
+          test -f google-services.json
 
       - name: Extract TORA project
         run: |
@@ -75,15 +75,15 @@ jobs:
           from pathlib import Path
           settings = Path("project/android/settings.gradle.kts")
           settings_text = settings.read_text()
-          plugin_line = '    id("com.google.gms.google-services") version "4.6.0" apply false\\n'
+          plugin_line = '    id("com.google.gms.google-services") version "4.6.0" apply false\n'
           if 'com.google.gms.google-services' not in settings_text:
-              settings_text = settings_text.replace("plugins {\\n", "plugins {\\n" + plugin_line, 1)
+              settings_text = settings_text.replace("plugins {\n", "plugins {\n" + plugin_line, 1)
               settings.write_text(settings_text)
           app_gradle = Path("project/android/app/build.gradle.kts")
           app_text = app_gradle.read_text()
-          app_plugin = '    id("com.google.gms.google-services")\\n'
+          app_plugin = '    id("com.google.gms.google-services")\n'
           if 'id("com.google.gms.google-services")' not in app_text:
-              app_text = app_text.replace("plugins {\\n", "plugins {\\n" + app_plugin, 1)
+              app_text = app_text.replace("plugins {\n", "plugins {\n" + app_plugin, 1)
               app_gradle.write_text(app_text)
           PY
 
