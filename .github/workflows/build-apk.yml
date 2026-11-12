@@ -56,11 +56,11 @@ jobs:
           pubspec = Path("project/pubspec.yaml")
           content = pubspec.read_text()
           marker = "  uses-material-design: true"
-          asset_line = "  assets:\\n    - assets/adell_sahil.png"
+          asset_line = "  assets:\n    - assets/adell_sahil.png"
           if "assets/adell_sahil.png" not in content:
               if marker not in content:
                   raise SystemExit("Could not find Flutter assets section in pubspec.yaml")
-              content = content.replace(marker, marker + "\\n\\n" + asset_line, 1)
+              content = content.replace(marker, marker + "\n\n" + asset_line, 1)
               pubspec.write_text(content)
           PY
 
