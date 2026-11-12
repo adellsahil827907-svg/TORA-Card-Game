@@ -1653,6 +1653,161 @@ class _ToraGamePageState extends State<ToraGamePage> {
     ]),
   );
 
+  Future<void> _royalStore() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (ctx) => Container(
+        height: MediaQuery.of(ctx).size.height * .92,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color.lerp(t.panel, t.accent, .16)!, t.background, const Color(0xFF050506)],
+          ),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          border: Border.all(color: t.accent.withOpacity(.85), width: 1.5),
+          boxShadow: [BoxShadow(color: t.accent.withOpacity(.18), blurRadius: 26)],
+        ),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(27)),
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 26),
+            children: [
+              Center(child: Container(
+                width: 46, height: 5,
+                decoration: BoxDecoration(color: t.accent, borderRadius: BorderRadius.circular(8)),
+              )),
+              const SizedBox(height: 16),
+              Icon(Icons.workspace_premium_rounded, color: t.accent, size: 34),
+              const SizedBox(height: 5),
+              Text('TORA ROYAL STORE', textAlign: TextAlign.center,
+                style: TextStyle(color: t.accent, fontSize: 22, fontWeight: FontWeight.w900, letterSpacing: 2.2)),
+              const SizedBox(height: 5),
+              const Text('شاهي ډیزاینونه او ځانګړي اختیارات',
+                textAlign: TextAlign.center, style: TextStyle(color: Colors.white70, fontSize: 12)),
+              const SizedBox(height: 18),
+              _settingsHeading('PREMIUM COLLECTION  •  راتلونکې ټولګه'),
+              const SizedBox(height: 9),
+              _storeOffer(
+                icon: Icons.style_rounded,
+                title: 'Royal Card Collection',
+                subtitle: 'ځانګړي د ورقو مخونه او شاګانې',
+                status: 'COMING SOON',
+              ),
+              const SizedBox(height: 9),
+              _storeOffer(
+                icon: Icons.auto_awesome_rounded,
+                title: 'Golden Effects',
+                subtitle: 'طلایي ځلاوې او ځانګړي بصري افکتونه',
+                status: 'COMING SOON',
+              ),
+              const SizedBox(height: 9),
+              _storeOffer(
+                icon: Icons.workspace_premium_outlined,
+                title: 'Royal Profile Frames',
+                subtitle: 'د لوبغاړي لپاره ځانګړي شاهي چوکاټونه',
+                status: 'COMING SOON',
+              ),
+              const SizedBox(height: 9),
+              _storeOffer(
+                icon: Icons.block_rounded,
+                title: 'Ad-Free TORA',
+                subtitle: 'د اعلانونو لرې کولو اختیاري نسخه',
+                status: 'COMING SOON',
+              ),
+              const SizedBox(height: 18),
+              _settingsHeading('ADVERTISING  •  د اعلانونو سیستم'),
+              const SizedBox(height: 9),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: t.panel,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: t.accent.withOpacity(.48)),
+                ),
+                child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Icon(Icons.campaign_rounded, color: t.accent, size: 25),
+                  const SizedBox(width: 11),
+                  const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text('اعلانونه اوس غیرفعال دي',
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 13)),
+                    SizedBox(height: 5),
+                    Text('اعلانونه به یوازې د مناسب اعلان‌ورکوونکي او د عاید د ترلاسه کولو د ملاتړ تر تایید وروسته فعال شي. د لوبې د ورقو اچولو او نمرې حسابولو پر مهال به اعلان نه ښکاري.',
+                      style: TextStyle(color: Colors.white70, fontSize: 11, height: 1.45)),
+                  ])),
+                ]),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: t.accent.withOpacity(.08),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: t.accent.withOpacity(.28)),
+                ),
+                child: Row(children: [
+                  Icon(Icons.shield_outlined, color: t.accent, size: 20),
+                  const SizedBox(width: 9),
+                  const Expanded(child: Text(
+                    'د TORA لوبې قوانین، نمرې، تکول او ۲۰۰ نمرو حد د ټولو لپاره یو شان پاتې کېږي.',
+                    style: TextStyle(color: Colors.white70, fontSize: 11, height: 1.35),
+                  )),
+                ]),
+              ),
+              const SizedBox(height: 12),
+              Center(child: Text('PAYMENTS NOT ENABLED • NO CHARGES',
+                style: TextStyle(color: t.accent.withOpacity(.72), fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 1))),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _storeOffer({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required String status,
+  }) => Container(
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      gradient: LinearGradient(colors: [t.panel, t.background]),
+      borderRadius: BorderRadius.circular(15),
+      border: Border.all(color: t.accent.withOpacity(.42)),
+    ),
+    child: Row(children: [
+      Container(
+        width: 42, height: 42,
+        decoration: BoxDecoration(
+          color: t.accent.withOpacity(.11),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: t.accent.withOpacity(.48)),
+        ),
+        child: Icon(icon, color: t.accent, size: 22),
+      ),
+      const SizedBox(width: 11),
+      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(title, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w900)),
+        const SizedBox(height: 3),
+        Text(subtitle, style: const TextStyle(color: Colors.white60, fontSize: 10)),
+      ])),
+      const SizedBox(width: 6),
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        decoration: BoxDecoration(
+          color: t.accent.withOpacity(.10),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: t.accent.withOpacity(.38)),
+        ),
+        child: Text(status, style: TextStyle(color: t.accent, fontSize: 8, fontWeight: FontWeight.w900)),
+      ),
+    ]),
+  );
+
   Future<void> _settings() async {
     await showModalBottomSheet<void>(
       context: context,
@@ -1936,6 +2091,12 @@ class _ToraGamePageState extends State<ToraGamePage> {
                   color: t.accent, fontWeight: FontWeight.w900,
                   letterSpacing: 3, fontSize: 16)),
                 const Spacer(),
+                IconButton(
+                  onPressed: _royalStore, tooltip: 'Royal Store',
+                  icon: const Icon(Icons.storefront_outlined, size: 18),
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints.tightFor(width: 32, height: 28)),
                 IconButton(
                   onPressed: _settings, tooltip: 'Themes',
                   icon: const Icon(Icons.palette_outlined, size: 18),
