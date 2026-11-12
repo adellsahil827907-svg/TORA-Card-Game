@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
@@ -10,6 +12,15 @@ Future<void> main() async {
     DeviceOrientation.portraitUp,
   ]);
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  await Firebase.initializeApp(
+    options: const FirebaseOptions(
+      apiKey: 'AIzaSyAn0lTS0y_seDTOQv89Ni5AE2VKFVqmFdI',
+      appId: '1:861957149630:android:83cd8aa742e117c9971fef',
+      messagingSenderId: '861957149630',
+      projectId: 'tora-card-game',
+      storageBucket: 'tora-card-game.firebasestorage.app',
+    ),
+  );
   runApp(const ToraApp());
 }
 
@@ -795,10 +806,14 @@ class _ToraGamePageState extends State<ToraGamePage> {
 
   Future<void> _loadRoyalProfile() async {
     final prefs = await SharedPreferences.getInstance();
+    final user = FirebaseAuth.instance.currentUser;
     if (!mounted) return;
     setState(() {
-      _profileName = prefs.getString('tora_profile_name') ?? 'TORA Player';
-      _profileEmail = prefs.getString('tora_profile_email') ?? '';
+      _profileName = user?.displayName?.isNotEmpty == true
+          ? user!.displayName!
+          : (prefs.getString('tora_profile_name') ?? 'TORA Player');
+      _profileEmail = user?.email ?? user?.phoneNumber ??
+          (prefs.getString('tora_profile_email') ?? '');
       // VIP stays inactive until a verified purchase system is integrated.
       _vipActive = false;
       _profileLoaded = true;
@@ -863,6 +878,235 @@ class _ToraGamePageState extends State<ToraGamePage> {
     emailController.dispose();
   }
 
+  Future<void> _finishRoyalSignIn(UserCredential credential) async {
+    final user = credential.user;
+    if (user == null) return;
+    final prefs = await SharedPreferences.getInstance();
+    if (user.displayName?.isNotEmpty == true) {
+      await prefs.setString('tora_profile_name', user.displayName!);
+    }
+    await prefs.setString('tora_profile_email', user.email ?? user.phoneNumber ?? '');
+    await _loadRoyalProfile();
+    if (mounted) _toast('TORA account connected successfully.');
+  }
+
+  Future<void> _openRoyalLogin() async {
+    final emailController = TextEditingController();
+    final passwordController = TextEditingController();
+    final phoneController = TextEditingController();
+    final smsController = TextEditingController();
+    String? verificationId;
+    bool createAccount = false;
+    bool codeSent = false;
+    bool busy = false;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, updateDialog) => AlertDialog(
+          backgroundColor: t.panel,
+          title: Text('TORA ACCOUNT LOGIN',
+            style: TextStyle(color: t.accent, fontWeight: FontWeight.w900)),
+          content: SingleChildScrollView(
+            child: SizedBox(
+              width: 360,
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                Text('Email, phone number, or Facebook',
+                  style: const TextStyle(color: Colors.white60, fontSize: 11)),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: const InputDecoration(
+                    labelText: 'Email address',
+                    prefixIcon: Icon(Icons.email_outlined),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: passwordController,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Password',
+                    prefixIcon: Icon(Icons.lock_outline),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                SizedBox(width: double.infinity, child: OutlinedButton(
+                  onPressed: busy ? null : () async {
+                    final email = emailController.text.trim();
+                    final password = passwordController.text;
+                    if (email.isEmpty || password.length < 6) {
+                      _toast('Enter an email and a password of at least 6 characters.');
+                      return;
+                    }
+                    updateDialog(() => busy = true);
+                    try {
+                      final auth = FirebaseAuth.instance;
+                      final result = createAccount
+                          ? await auth.createUserWithEmailAndPassword(email: email, password: password)
+                          : await auth.signInWithEmailAndPassword(email: email, password: password);
+                      await _finishRoyalSignIn(result);
+                      if (dialogContext.mounted) Navigator.pop(dialogContext);
+                    } on FirebaseAuthException catch (e) {
+                      _toast(e.message ?? e.code);
+                    } catch (e) {
+                      _toast('Login failed: $e');
+                    } finally {
+                      if (dialogContext.mounted) updateDialog(() => busy = false);
+                    }
+                  },
+                  child: Text(createAccount ? 'CREATE EMAIL ACCOUNT' : 'SIGN IN WITH EMAIL'),
+                )),
+                TextButton(
+                  onPressed: busy ? null : () => updateDialog(() => createAccount = !createAccount),
+                  child: Text(createAccount ? 'Already registered? Sign in' : 'New player? Create account'),
+                ),
+                const Divider(color: Colors.white24, height: 22),
+                TextField(
+                  controller: phoneController,
+                  keyboardType: TextInputType.phone,
+                  decoration: const InputDecoration(
+                    labelText: 'Phone number with country code',
+                    hintText: '+93...',
+                    prefixIcon: Icon(Icons.phone_android),
+                  ),
+                ),
+                if (codeSent) ...[
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: smsController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'SMS verification code',
+                      prefixIcon: Icon(Icons.sms_outlined),
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 8),
+                SizedBox(width: double.infinity, child: OutlinedButton.icon(
+                  onPressed: busy ? null : () async {
+                    if (!codeSent) {
+                      final phone = phoneController.text.trim();
+                      if (!phone.startsWith('+') || phone.length < 8) {
+                        _toast('Enter your phone number with country code, e.g. +93...');
+                        return;
+                      }
+                      updateDialog(() => busy = true);
+                      try {
+                        await FirebaseAuth.instance.verifyPhoneNumber(
+                          phoneNumber: phone,
+                          verificationCompleted: (credential) async {
+                            try {
+                              final result = await FirebaseAuth.instance.signInWithCredential(credential);
+                              await _finishRoyalSignIn(result);
+                              if (dialogContext.mounted) Navigator.pop(dialogContext);
+                            } on FirebaseAuthException catch (e) {
+                              _toast(e.message ?? e.code);
+                            }
+                          },
+                          verificationFailed: (e) {
+                            _toast(e.message ?? e.code);
+                            if (dialogContext.mounted) updateDialog(() => busy = false);
+                          },
+                          codeSent: (id, resendToken) {
+                            verificationId = id;
+                            if (dialogContext.mounted) {
+                              updateDialog(() {
+                                codeSent = true;
+                                busy = false;
+                              });
+                            }
+                            _toast('SMS code sent. Enter the code to continue.');
+                          },
+                          codeAutoRetrievalTimeout: (id) {
+                            verificationId = id;
+                            if (dialogContext.mounted) updateDialog(() => busy = false);
+                          },
+                        );
+                      } catch (e) {
+                        _toast('Could not send SMS: $e');
+                        if (dialogContext.mounted) updateDialog(() => busy = false);
+                      }
+                    } else {
+                      if (verificationId == null || smsController.text.trim().isEmpty) {
+                        _toast('Enter the SMS verification code.');
+                        return;
+                      }
+                      updateDialog(() => busy = true);
+                      try {
+                        final credential = PhoneAuthProvider.credential(
+                          verificationId: verificationId!,
+                          smsCode: smsController.text.trim(),
+                        );
+                        final result = await FirebaseAuth.instance.signInWithCredential(credential);
+                        await _finishRoyalSignIn(result);
+                        if (dialogContext.mounted) Navigator.pop(dialogContext);
+                      } on FirebaseAuthException catch (e) {
+                        _toast(e.message ?? e.code);
+                      } catch (e) {
+                        _toast('Phone sign-in failed: $e');
+                      } finally {
+                        if (dialogContext.mounted) updateDialog(() => busy = false);
+                      }
+                    }
+                  },
+                  icon: const Icon(Icons.sms_outlined),
+                  label: Text(codeSent ? 'VERIFY SMS CODE' : 'SEND SMS CODE'),
+                )),
+                const Divider(color: Colors.white24, height: 22),
+                SizedBox(width: double.infinity, child: OutlinedButton.icon(
+                  onPressed: busy ? null : () async {
+                    updateDialog(() => busy = true);
+                    try {
+                      final result = await FirebaseAuth.instance.signInWithProvider(FacebookAuthProvider());
+                      await _finishRoyalSignIn(result);
+                      if (dialogContext.mounted) Navigator.pop(dialogContext);
+                    } on FirebaseAuthException catch (e) {
+                      _toast(e.message ?? e.code);
+                    } catch (e) {
+                      _toast('Facebook login is not configured yet: $e');
+                    } finally {
+                      if (dialogContext.mounted) updateDialog(() => busy = false);
+                    }
+                  },
+                  icon: const Icon(Icons.facebook),
+                  label: const Text('CONTINUE WITH FACEBOOK'),
+                )),
+                if (busy) const Padding(
+                  padding: EdgeInsets.only(top: 10),
+                  child: CircularProgressIndicator(),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Phone SMS depends on Firebase availability and regional delivery. Facebook requires Meta app credentials and Firebase provider setup.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.white38, fontSize: 9),
+                ),
+              ]),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: busy ? null : () => Navigator.pop(dialogContext),
+              child: const Text('CLOSE'),
+            ),
+          ],
+        ),
+      ),
+    );
+    emailController.dispose();
+    passwordController.dispose();
+    phoneController.dispose();
+    smsController.dispose();
+  }
+
+  Future<void> _signOutRoyal() async {
+    await FirebaseAuth.instance.signOut();
+    await _loadRoyalProfile();
+    if (mounted) _toast('Signed out of TORA account.');
+  }
+
   Future<void> _royalAccount() async {
     if (!_profileLoaded) await _loadRoyalProfile();
     if (!mounted) return;
@@ -902,6 +1146,16 @@ class _ToraGamePageState extends State<ToraGamePage> {
                 icon: Icon(Icons.edit_rounded, color: t.accent), tooltip: 'Edit profile'),
             ]),
           ),
+          const SizedBox(height: 10),
+          SizedBox(width: double.infinity, child: OutlinedButton.icon(
+            onPressed: FirebaseAuth.instance.currentUser == null ? _openRoyalLogin : _signOutRoyal,
+            icon: Icon(FirebaseAuth.instance.currentUser == null ? Icons.login_rounded : Icons.logout_rounded),
+            label: Text(FirebaseAuth.instance.currentUser == null ? 'SIGN IN / CREATE ACCOUNT' : 'SIGN OUT'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: t.accent,
+              side: BorderSide(color: t.accent.withOpacity(.65)),
+            ),
+          )),
           const SizedBox(height: 12),
           Container(
             width: double.infinity,
@@ -942,7 +1196,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
               Expanded(child: Text(benefit, style: const TextStyle(color: Colors.white70, fontSize: 11))),
             ])),
           const SizedBox(height: 12),
-          Text('پروفایل اوس یوازې په دې موبایل کې ساتل کېږي. آنلاین حساب، د وسیلو ترمنځ همغږي او تادیات فعال نه دي. VIP به یوازې د راتلونکي تایید شوي پېرود له لارې فعالېږي.',
+          Text('د TORA حساب د Firebase له لارې ننوځي. د لوبې امتیازات او تادیات جلا دي؛ VIP یوازې د راتلونکي تایید شوي پېرود له لارې فعالېږي.',
             textAlign: TextAlign.center,
             style: const TextStyle(color: Colors.white54, fontSize: 10, height: 1.4)),
           const SizedBox(height: 12),
