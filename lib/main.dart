@@ -638,6 +638,8 @@ class _ToraGamePageState extends State<ToraGamePage> {
   final List<int> _trickOrder = [];
   final List<int> _trickSeats = [];
   final List<String> _history = [];
+  // These are the only two team score accounts. Ordinary card penalties and
+  // every Takkol transfer both update these same shared team totals.
   int _turn = 0, _leader = 0, _round = 0, _teamOne = 0, _teamTwo = 0;
   // Successful Takkol events by team during the current 13-card hand.
   final List<int> _takkolCount = [0, 0];
@@ -896,16 +898,25 @@ class _ToraGamePageState extends State<ToraGamePage> {
     return best;
   }
 
-  void _transferThirty(int winningTeam, {int times = 1}) {
+  // Takkol is a transfer inside the existing team score accounts; it never
+  // creates or updates a separate Takkol score. The caller's team receives
+  // 30 points per counted card and the opposing team's same account loses 30.
+  void _transferToSharedTeamScore(int winningTeam, {int times = 1}) {
+    if (times <= 0) return;
     final points = 30 * times;
-    if (winningTeam == 0) { _teamOne += points; _teamTwo -= points; }
-    else { _teamTwo += points; _teamOne -= points; }
+    if (winningTeam == 0) {
+      _teamOne += points;
+      _teamTwo -= points;
+    } else {
+      _teamTwo += points;
+      _teamOne -= points;
+    }
   }
 
   void _recordTakkol(int seat, String reason, {int transferredCards = 1}) {
     if (transferredCards <= 0 || _gameOver) return;
     final team = _team(seat);
-    _transferThirty(team, times: transferredCards);
+    _transferToSharedTeamScore(team, times: transferredCards);
     _takkolCount[team]++;
     _history.add('${_names[seat]} made Takkol ($reason): ${30 * transferredCards} points transferred. Team Takkol count: ${_takkolCount[team]}/4.');
     if (_takkolCount[team] >= 4) {
@@ -1161,9 +1172,10 @@ class _ToraGamePageState extends State<ToraGamePage> {
 • If you do not have it, any suit may be played; it cannot win the trick.
 • Highest card of the led suit wins. Winner collects all four cards and leads next.
 • Whoever captures Q♠ deals the next round and plays its first card.
-• Takkol: any suit can trigger it when the other three players hold none of that suit; transfer 30 points to the caller's team.
-• NO MORE: the caller's own hand is ignored. Count the chosen-suit cards in the other three hands, including the caller's partner.
-• Each remaining card adds 30 penalty points to the caller's team and subtracts 30 from the opposing team's penalty account. Four or more remaining cards make the caller's team lose immediately.
+• Takkol and ordinary card penalties use the SAME two team score accounts; there is no separate Takkol score.
+• Ordinary Takkol: any suit can trigger it when the other three players hold none of that suit; transfer 30 points from the opposing team's account to the caller's team account.
+• NO MORE: ignore the caller's own hand. Count the chosen-suit cards in the other three hands, including the caller's partner.
+• For each counted card, add 30 to the caller's team's shared score and subtract 30 from the opposing team's shared score. Four or more remaining cards make the caller's team lose immediately.
 • The fourth scoring Takkol by the same team in one hand makes that team lose the hand immediately.
 • Card penalties: each heart 1, Q♠ 9, J♣ 5, 10♦ 3.
 • Match ends when either team reaches 200 penalty points.''';
