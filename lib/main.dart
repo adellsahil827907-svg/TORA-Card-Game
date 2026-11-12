@@ -893,9 +893,6 @@ class _ToraGamePageState extends State<ToraGamePage> {
   Future<void> _openRoyalLogin() async {
     final emailController = TextEditingController();
     final passwordController = TextEditingController();
-    final phoneController = TextEditingController();
-    final smsController = TextEditingController();
-    String? verificationId;
     bool createAccount = false;
     bool codeSent = false;
     bool busy = false;
@@ -963,118 +960,20 @@ class _ToraGamePageState extends State<ToraGamePage> {
                   child: Text(createAccount ? 'Already registered? Sign in' : 'New player? Create account'),
                 ),
                 const Divider(color: Colors.white24, height: 22),
-                TextField(
-                  controller: phoneController,
-                  keyboardType: TextInputType.phone,
-                  decoration: const InputDecoration(
-                    labelText: 'Phone number with country code',
-                    hintText: '+93...',
-                    prefixIcon: Icon(Icons.phone_android),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: null,
+                    icon: const Icon(Icons.chat_bubble_outline),
+                    label: const Text('WHATSAPP LOGIN — COMING SOON'),
                   ),
                 ),
-                if (codeSent) ...[
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: smsController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'SMS verification code',
-                      prefixIcon: Icon(Icons.sms_outlined),
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 8),
-                SizedBox(width: double.infinity, child: OutlinedButton.icon(
-                  onPressed: busy ? null : () async {
-                    if (!codeSent) {
-                      final phone = phoneController.text.trim();
-                      if (!phone.startsWith('+') || phone.length < 8) {
-                        _toast('Enter your phone number with country code, e.g. +93...');
-                        return;
-                      }
-                      updateDialog(() => busy = true);
-                      final phoneCallback = Completer<void>();
-                      void finishPhoneRequest() {
-                        if (!phoneCallback.isCompleted) phoneCallback.complete();
-                      }
-                      try {
-                        await FirebaseAuth.instance.verifyPhoneNumber(
-                          phoneNumber: phone,
-                          timeout: const Duration(seconds: 60),
-                          verificationCompleted: (credential) async {
-                            try {
-                              final result = await FirebaseAuth.instance.signInWithCredential(credential);
-                              await _finishRoyalSignIn(result);
-                              if (dialogContext.mounted) Navigator.pop(dialogContext);
-                            } on FirebaseAuthException catch (e) {
-                              _toast('Phone sign-in failed (${e.code}): ${e.message ?? 'Please try again.'}');
-                            } catch (e) {
-                              _toast('Phone sign-in failed: $e');
-                            } finally {
-                              if (dialogContext.mounted) updateDialog(() => busy = false);
-                              finishPhoneRequest();
-                            }
-                          },
-                          verificationFailed: (e) {
-                            _toast('Phone verification failed (${e.code}): ${e.message ?? 'Check the number and try again.'}');
-                            if (dialogContext.mounted) updateDialog(() => busy = false);
-                            finishPhoneRequest();
-                          },
-                          codeSent: (id, resendToken) {
-                            verificationId = id;
-                            if (dialogContext.mounted) {
-                              updateDialog(() {
-                                codeSent = true;
-                                busy = false;
-                              });
-                            }
-                            _toast('SMS code sent. Enter the code to continue.');
-                            finishPhoneRequest();
-                          },
-                          codeAutoRetrievalTimeout: (id) {
-                            verificationId = id;
-                            if (dialogContext.mounted) updateDialog(() => busy = false);
-                            finishPhoneRequest();
-                          },
-                        );
-                        await phoneCallback.future.timeout(
-                          const Duration(seconds: 65),
-                          onTimeout: () {
-                            if (dialogContext.mounted) updateDialog(() => busy = false);
-                            _toast('Phone verification timed out. Check your internet and try again.');
-                          },
-                        );
-                      } catch (e) {
-                        _toast('Could not start phone verification: $e');
-                        if (dialogContext.mounted) updateDialog(() => busy = false);
-                        finishPhoneRequest();
-                      }
-                    } else {
-                      if (verificationId == null || smsController.text.trim().isEmpty) {
-                        _toast('Enter the SMS verification code.');
-                        return;
-                      }
-                      updateDialog(() => busy = true);
-                      try {
-                        final credential = PhoneAuthProvider.credential(
-                          verificationId: verificationId!,
-                          smsCode: smsController.text.trim(),
-                        );
-                        final result = await FirebaseAuth.instance.signInWithCredential(credential);
-                        await _finishRoyalSignIn(result);
-                        if (dialogContext.mounted) Navigator.pop(dialogContext);
-                      } on FirebaseAuthException catch (e) {
-                        _toast(e.message ?? e.code);
-                      } catch (e) {
-                        _toast('Phone sign-in failed: $e');
-                      } finally {
-                        if (dialogContext.mounted) updateDialog(() => busy = false);
-                      }
-                    }
-                  },
-                  icon: const Icon(Icons.sms_outlined),
-                  label: Text(codeSent ? 'VERIFY SMS CODE' : 'SEND SMS CODE'),
-                )),
+                const SizedBox(height: 6),
+                const Text(
+                  'WhatsApp login is not available yet. It will be added when a reliable free option is available.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.white38, fontSize: 9),
+                ),
                 const Divider(color: Colors.white24, height: 22),
                 SizedBox(width: double.infinity, child: OutlinedButton.icon(
                   onPressed: busy ? null : () async {
@@ -1118,8 +1017,6 @@ class _ToraGamePageState extends State<ToraGamePage> {
     );
     emailController.dispose();
     passwordController.dispose();
-    phoneController.dispose();
-    smsController.dispose();
   }
 
   Future<void> _signOutRoyal() async {
