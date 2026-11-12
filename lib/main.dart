@@ -120,36 +120,25 @@ class _CardPipsPainter extends CustomPainter {
       final rows = switch (count) {
         2 => [.30, .70],
         3 => [.22, .50, .78],
-        4 => [.28, .72],
+        4 => [.30, .70],
         5 => [.22, .50, .78],
         6 => [.22, .50, .78],
-        7 => [.18, .38, .62, .82],
-        8 => [.16, .37, .63, .84],
-        9 => [.15, .33, .50, .67, .85],
+        7 => [.22, .50, .78],
+        8 => [.16, .39, .61, .84],
+        9 => [.16, .39, .61, .84],
         10 => [.13, .31, .50, .69, .87],
-        _ => [.5],
+        _ => [.50],
       };
-      for (int i = 0; i < rows.length; i++) {
-        final y = rows[i];
+      for (final y in rows) {
         if (count == 2 || count == 3) {
           positions.add(Offset(.5, y));
-        } else if (count == 4 || count == 5) {
-          positions.add(Offset(.34, y));
-          positions.add(Offset(.66, y));
-          if (count == 5 && i == 1) positions.add(Offset(.5, y));
-        } else if (count == 6) {
-          positions.add(Offset(.32, y)); positions.add(Offset(.68, y));
-        } else if (count == 7 || count == 8) {
-          positions.add(Offset(.32, y)); positions.add(Offset(.68, y));
-          if (count == 7 && i == 1) positions.add(Offset(.5, y));
-        } else if (count == 9 || count == 10) {
-          positions.add(Offset(.32, y)); positions.add(Offset(.68, y));
-          if (i == 2) positions.add(Offset(.5, y));
+        } else {
+          positions.add(Offset(.32, y));
+          positions.add(Offset(.68, y));
         }
       }
-      if (count == 10) {
-        positions.add(const Offset(.5, .24));
-        positions.add(const Offset(.5, .76));
+      if (count == 5 || count == 7 || count == 9) {
+        positions.add(const Offset(.5, .5));
       }
     }
     final pipSize = isAce ? w * .48 : (count >= 9 ? w * .18 : w * .22);
