@@ -783,7 +783,9 @@ class _ToraGamePageState extends State<ToraGamePage> {
         _turn = _seatAtOffset(_leader, _trickSeats.length); // Continue clockwise from the trick leader: BOTTOM -> RIGHT -> TOP -> LEFT.
       }
     });
-    if (_resolvingTrick) {
+    if (_gameOver) {
+      _showFinalAudit();
+    } else if (_resolvingTrick) {
       Future.delayed(const Duration(milliseconds: 1500), () {
         if (!mounted) return;
         setState(() {
@@ -793,7 +795,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
         if (_gameOver) _showFinalAudit();
         else if (_turn != 0) _runAi();
       });
-    } else if (mounted && !_gameOver && _turn != 0) {
+    } else if (mounted && _turn != 0) {
       _runAi();
     }
   }
