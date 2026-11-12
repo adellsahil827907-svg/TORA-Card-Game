@@ -894,7 +894,6 @@ class _ToraGamePageState extends State<ToraGamePage> {
     final emailController = TextEditingController();
     final passwordController = TextEditingController();
     bool createAccount = false;
-    bool codeSent = false;
     bool busy = false;
 
     await showDialog<void>(
@@ -908,7 +907,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
             child: SizedBox(
               width: 360,
               child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Text('Email, phone number, or Facebook',
+                Text('Email or Facebook',
                   style: const TextStyle(color: Colors.white60, fontSize: 11)),
                 const SizedBox(height: 12),
                 TextField(
@@ -999,7 +998,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
                 ),
                 const SizedBox(height: 4),
                 const Text(
-                  'Phone SMS depends on Firebase availability and regional delivery. Facebook requires Meta app credentials and Firebase provider setup.',
+                  'Email login is available. Facebook requires Meta app credentials and Firebase provider setup.',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.white38, fontSize: 9),
                 ),
