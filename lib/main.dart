@@ -1440,10 +1440,10 @@ class _ToraGamePageState extends State<ToraGamePage> {
     final w = constraints.maxWidth;
     final h = constraints.maxHeight;
     // Keep all four played cards together in the center in a clear plus layout.
-    final cardH = (h * .25).clamp(48.0, 74.0).toDouble();
+    final cardH = (h * .29).clamp(56.0, 84.0).toDouble();
     final cardW = cardH / 1.43;
     final gap = (h * .02).clamp(5.0, 8.0).toDouble();
-    final sideSeatW = (w * .17).clamp(76.0, 118.0).toDouble();
+    final sideSeatW = (w * .18).clamp(86.0, 138.0).toDouble();
     final seatFont = (w * .009).clamp(9.0, 12.0).toDouble();
     final cx = w / 2;
     final cy = h / 2;
@@ -1495,7 +1495,25 @@ class _ToraGamePageState extends State<ToraGamePage> {
     ]);
   });
 
-  Widget _scoreBox(String label, int score) => Container(padding: const EdgeInsets.symmetric(vertical: 3, horizontal: 7), decoration: BoxDecoration(color: t.panel, borderRadius: BorderRadius.circular(10), border: Border.all(color: t.accent.withOpacity(.7))), child: Column(children: [Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70, fontSize: 9)), Text('$score', style: TextStyle(color: t.accent, fontSize: 16, fontWeight: FontWeight.w900))]));
+  Widget _scoreBox(String label, int score) => Container(
+    padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topLeft, end: Alignment.bottomRight,
+        colors: [Color.lerp(t.panel, t.accent, .15)!, t.panel, t.background],
+      ),
+      borderRadius: BorderRadius.circular(13),
+      border: Border.all(color: t.accent.withOpacity(.82), width: 1.25),
+      boxShadow: [BoxShadow(color: t.accent.withOpacity(.12), blurRadius: 9, offset: const Offset(0, 2))],
+    ),
+    child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+      Expanded(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis,
+        style: const TextStyle(color: Colors.white70, fontSize: 9, fontWeight: FontWeight.w700))),
+      const SizedBox(width: 8),
+      Text('$score', style: TextStyle(color: t.accent, fontSize: 19, height: 1,
+        fontWeight: FontWeight.w900, shadows: [Shadow(color: t.accent.withOpacity(.28), blurRadius: 8)])),
+    ]),
+  );
 
   Future<void> _settings() async {
     await showModalBottomSheet<void>(context: context, backgroundColor: t.panel, isScrollControlled: true,
@@ -1518,13 +1536,19 @@ class _ToraGamePageState extends State<ToraGamePage> {
       body: SafeArea(
         child: Column(
           children: [
-            SizedBox(
-              height: 24,
+            Container(
+              height: 34,
+              margin: const EdgeInsets.fromLTRB(6, 2, 6, 2),
+              padding: const EdgeInsets.symmetric(horizontal: 9),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(colors: [t.panel, t.background]),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: t.accent.withOpacity(.42)),
+              ),
               child: Row(children: [
-                const SizedBox(width: 8),
                 Text('♛ TORA', style: TextStyle(
                   color: t.accent, fontWeight: FontWeight.w900,
-                  letterSpacing: 3, fontSize: 15)),
+                  letterSpacing: 3, fontSize: 16)),
                 const Spacer(),
                 IconButton(
                   onPressed: _settings, tooltip: 'Themes',
@@ -1601,7 +1625,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
               ]),
             ),
             SizedBox(
-              height: 70,
+              height: 82,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -1615,19 +1639,19 @@ class _ToraGamePageState extends State<ToraGamePage> {
                     data: card,
                     maxSimultaneousDrags: allowed ? 1 : 0,
                     feedback: Material(color: Colors.transparent,
-                      child: _cardFace(card, width: 54, height: 76)),
+                      child: _cardFace(card, width: 60, height: 84)),
                     childWhenDragging: Opacity(opacity: .25,
-                      child: _cardFace(card, width: 50, height: 72)),
-                    child: Opacity(opacity: allowed ? 1 : .48,
-                      child: _cardFace(card, width: 50, height: 72)),
+                      child: _cardFace(card, width: 56, height: 78)),
+                    child: Opacity(opacity: allowed ? 1 : .52,
+                      child: _cardFace(card, width: 56, height: 78)),
                   );
                 },
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(7, 0, 7, 5),
+              padding: const EdgeInsets.fromLTRB(7, 1, 7, 6),
               child: SizedBox(
-                height: 34,
+                height: 40,
                 child: Row(children: [
                   Expanded(child: OutlinedButton(
                     onPressed: _turn == 0 && !_dealing && !_aiBusy &&
