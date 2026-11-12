@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "861957149630",
+    "project_id": "tora-card-game",
+    "storage_bucket": "tora-card-game.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:861957149630:android:83cd8aa742e117c9971fef",
+        "android_client_info": {
+          "package_name": "com.example.tora_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAn0lTS0y_seDTOQv89Ni5AE2VKFVqmFdI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
