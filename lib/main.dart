@@ -760,8 +760,8 @@ class _ToraGamePageState extends State<ToraGamePage> {
       _trickSeats.add(seat);
       if (_ledSuit == null) {
         _ledSuit = _suit(card);
-        // Takkol: no other player has any spade when a spade is led.
-        if (_ledSuit == '♠' && List.generate(4, (i) => i).where((i) => i != seat).every((i) => !_hands[i].any((c) => _suit(c) == '♠'))) {
+        // Takkol: no other player has any card of the led suit.
+        if (List.generate(4, (i) => i).where((i) => i != seat).every((i) => !_hands[i].any((c) => _suit(c) == _ledSuit))) {
           _transferThirty(_team(seat));
           _history.add('${_names[seat]} made Takkol: 30 points transferred.');
           takkolNow = true;
@@ -1098,7 +1098,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
 • If you do not have it, any suit may be played; it cannot win the trick.
 • Highest card of the led suit wins. Winner collects all four cards and leads next.
 • Whoever captures Q♠ deals the next round and plays its first card.
-• Spade Takkol: if nobody else holds a spade when a spade is led, 30 points transfer.
+• Takkol: when any suit is led, if nobody else holds a card of that suit, 30 points transfer.
 • “No more” checks a chosen suit in the other three hands; each remaining card causes 30 penalty points.
 • Card penalties: each heart 1, Q♠ 9, J♣ 5, 10♦ 3.
 • Match ends when either team reaches 200 penalty points.''';
