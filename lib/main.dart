@@ -381,7 +381,7 @@ class ToraSplashPage extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
-                      width: 238 * scale,
+                      width: 250 * scale,
                       padding: EdgeInsets.all(7 * scale),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(26),
@@ -392,7 +392,7 @@ class ToraSplashPage extends StatelessWidget {
                         boxShadow: [BoxShadow(color: gold.withOpacity(.28), blurRadius: 28, spreadRadius: 2)],
                       ),
                       child: Container(
-                        height: 290 * scale,
+                        height: 440 * scale,
                         decoration: BoxDecoration(
                           color: const Color(0xFF080705),
                           borderRadius: BorderRadius.circular(20),
@@ -405,6 +405,28 @@ class ToraSplashPage extends StatelessWidget {
                             Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
+                                Container(
+                                  width: 142 * scale,
+                                  height: 164 * scale,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(15 * scale),
+                                    border: Border.all(color: gold, width: 3 * scale),
+                                    boxShadow: [BoxShadow(color: gold.withOpacity(.25), blurRadius: 16)],
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(12 * scale),
+                                    child: Image.asset(
+                                      'assets/adell_sahil.png',
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) => Container(
+                                        color: const Color(0xFF17110A),
+                                        alignment: Alignment.center,
+                                        child: Icon(Icons.person, color: gold, size: 58 * scale),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: 12 * scale),
                                 Container(
                                   width: 172 * scale, height: 172 * scale,
                                   decoration: BoxDecoration(
