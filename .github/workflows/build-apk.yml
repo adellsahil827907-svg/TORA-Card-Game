@@ -49,6 +49,20 @@ jobs:
       - name: Apply new TORA code
         run: |
           cp lib/main.dart project/lib/main.dart
+          mkdir -p project/assets
+          cp assets/adell_sahil.png project/assets/adell_sahil.png
+          python3 - <<'PY'
+          from pathlib import Path
+          pubspec = Path("project/pubspec.yaml")
+          content = pubspec.read_text()
+          marker = "  uses-material-design: true"
+          asset_line = "  assets:\\n    - assets/adell_sahil.png"
+          if "assets/adell_sahil.png" not in content:
+              if marker not in content:
+                  raise SystemExit("Could not find Flutter assets section in pubspec.yaml")
+              content = content.replace(marker, marker + "\\n\\n" + asset_line, 1)
+              pubspec.write_text(content)
+          PY
 
       - name: Install dependencies
         working-directory: project
