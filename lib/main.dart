@@ -1039,7 +1039,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
     }
     final suit = _suit(card);
     final rank = _rank(card); // Extract card rank (2–A) for the royal face design.
-    final ink = const Color(0xFFFFD76A);
+    final ink = suit == '♣' ? const Color(0xFF39D98A) : const Color(0xFFFFD76A);
     final isFace = ['J', 'Q', 'K'].contains(rank);
     final isAce = rank == 'A';
     final faceStyle = _cardFaceStyle.clamp(0, 4).toInt();
