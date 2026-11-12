@@ -1416,23 +1416,39 @@ class _ToraGamePageState extends State<ToraGamePage> {
 
   Widget _tableSeat(int seat, String position, {double fontSize = 12}) =>
       Container(
-        constraints: const BoxConstraints(maxWidth: 170),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        constraints: const BoxConstraints(maxWidth: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: const Color(0xD9101118),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: _turn == seat ? t.accent : t.accent.withOpacity(.55),
-            width: _turn == seat ? 2 : 1,
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: _turn == seat
+                ? [t.panel, Color.lerp(t.panel, t.accent, .20)!]
+                : [const Color(0xF51A1B20), const Color(0xE8090A0E)],
           ),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(.25), blurRadius: 8)],
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: _turn == seat ? t.accent : t.accent.withOpacity(.48),
+            width: _turn == seat ? 2.2 : 1.1,
+          ),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withOpacity(.38), blurRadius: 10, offset: const Offset(0, 3)),
+            if (_turn == seat) BoxShadow(color: t.accent.withOpacity(.22), blurRadius: 12),
+          ],
         ),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(_names[seat], maxLines: 1, overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: _turn == seat ? t.accent : Colors.white,
-              fontWeight: FontWeight.w900, fontSize: fontSize)),
+          Row(mainAxisSize: MainAxisSize.min, children: [
+            if (_turn == seat) Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: Icon(Icons.circle, size: fontSize * .55, color: t.accent),
+            ),
+            Flexible(child: Text(_names[seat], maxLines: 1, overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: _turn == seat ? t.accent : Colors.white,
+                fontWeight: FontWeight.w900, fontSize: fontSize))),
+          ]),
+          const SizedBox(height: 2),
           Text('$position  •  ${_hands[seat].length}/13',
-            style: TextStyle(color: Colors.white70, fontSize: fontSize * .72)),
+            style: TextStyle(color: Colors.white70, fontSize: fontSize * .72, fontWeight: FontWeight.w600)),
         ]),
       );
 
@@ -1516,18 +1532,123 @@ class _ToraGamePageState extends State<ToraGamePage> {
   );
 
   Future<void> _settings() async {
-    await showModalBottomSheet<void>(context: context, backgroundColor: t.panel, isScrollControlled: true,
-      builder: (ctx) => SafeArea(child: SizedBox(height: MediaQuery.of(ctx).size.height*.88, child: ListView(padding: const EdgeInsets.all(14), children: [
-        Text('ROYAL TORA DESIGNS', textAlign: TextAlign.center, style: TextStyle(color:t.accent,fontWeight:FontWeight.w900,fontSize:16)),
-        const SizedBox(height:8), const Text('۵ عصري لوکس شاهي میدانونه',textAlign:TextAlign.center,style:TextStyle(color:Colors.white70)),
-        for (int i=0;i<_themes.length;i++) ListTile(leading:CircleAvatar(backgroundColor:_themes[i].table,child:Text(['♛','✦','❖','♜','♕'][i],style:TextStyle(color:_themes[i].accent))),title:Text(_themes[i].name),trailing:_activeTheme.name==_themes[i].name?Icon(Icons.check_circle,color:t.accent):null,onTap:(){setState((){_activeTheme=_themes[i];});widget.onThemeChanged(i);}),
-        const Divider(), Text('CARD FRONT — ۵ LUXURY DESIGNS',style:TextStyle(color:t.accent,fontWeight:FontWeight.bold)),
-        Wrap(spacing:6,children:[for(int i=0;i<5;i++)ChoiceChip(label:Text('${i+1}'),selected:_cardFaceStyle==i,onSelected:(_){setState(()=>_cardFaceStyle=i);})]),
-        const SizedBox(height:8), Text('CARD BACK — ۵ LUXURY DESIGNS',style:TextStyle(color:t.accent,fontWeight:FontWeight.bold)),
-        Wrap(spacing:6,children:[for(int i=0;i<5;i++)ChoiceChip(label:Text('${i+1}'),selected:_cardBackStyle==i,onSelected:(_){setState(()=>_cardBackStyle=i);})]),
-        const Divider(), ListTile(leading:Icon(Icons.people,color:t.accent),title:const Text('د لوبغاړو نومونه بدلول'),onTap:(){Navigator.pop(ctx);_editNames();})
-      ]))));
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => SafeArea(
+        child: Container(
+          height: MediaQuery.of(ctx).size.height * .90,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [t.panel, t.background],
+            ),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
+            border: Border.all(color: t.accent.withOpacity(.72), width: 1.4),
+          ),
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 18, 16, 24),
+            children: [
+              Center(child: Container(
+                width: 42, height: 4,
+                decoration: BoxDecoration(color: t.accent.withOpacity(.75), borderRadius: BorderRadius.circular(8)),
+              )),
+              const SizedBox(height: 14),
+              Text('♛  ROYAL TORA  ♛', textAlign: TextAlign.center,
+                style: TextStyle(color: t.accent, fontWeight: FontWeight.w900, fontSize: 19, letterSpacing: 2)),
+              const SizedBox(height: 4),
+              const Text('د شاهي ډیزاینونو او لوبې تنظیمات',
+                textAlign: TextAlign.center, style: TextStyle(color: Colors.white70, fontSize: 11)),
+              const SizedBox(height: 18),
+              _settingsHeading('TABLE THEMES  •  د میدان رنګ'),
+              const SizedBox(height: 8),
+              for (int i = 0; i < _themes.length; i++)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 7),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(colors: [_themes[i].table, _themes[i].background]),
+                    borderRadius: BorderRadius.circular(13),
+                    border: Border.all(
+                      color: _activeTheme.name == _themes[i].name ? _themes[i].accent : _themes[i].accent.withOpacity(.35),
+                      width: _activeTheme.name == _themes[i].name ? 2 : 1,
+                    ),
+                  ),
+                  child: ListTile(
+                    dense: true,
+                    leading: CircleAvatar(
+                      backgroundColor: _themes[i].table,
+                      child: Text(['♛','✦','❖','♜','♕'][i],
+                        style: TextStyle(color: _themes[i].accent, fontSize: 19)),
+                    ),
+                    title: Text(_themes[i].name,
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 12)),
+                    trailing: _activeTheme.name == _themes[i].name
+                        ? Icon(Icons.verified, color: _themes[i].accent)
+                        : Icon(Icons.circle_outlined, color: _themes[i].accent.withOpacity(.6), size: 18),
+                    onTap: () {
+                      setState(() => _activeTheme = _themes[i]);
+                      widget.onThemeChanged(i);
+                    },
+                  ),
+                ),
+              const SizedBox(height: 12),
+              _settingsHeading('CARD FRONT  •  د ورقو مخ'),
+              const SizedBox(height: 7),
+              Wrap(spacing: 7, runSpacing: 7, children: [
+                for (int i = 0; i < 5; i++)
+                  ChoiceChip(
+                    label: Text('ROYAL ${i + 1}'),
+                    selected: _cardFaceStyle == i,
+                    selectedColor: t.accent.withOpacity(.28),
+                    side: BorderSide(color: _cardFaceStyle == i ? t.accent : t.accent.withOpacity(.35)),
+                    labelStyle: TextStyle(color: _cardFaceStyle == i ? t.accent : Colors.white70, fontWeight: FontWeight.w800),
+                    onSelected: (_) => setState(() => _cardFaceStyle = i),
+                  ),
+              ]),
+              const SizedBox(height: 14),
+              _settingsHeading('CARD BACK  •  د ورقو شا'),
+              const SizedBox(height: 7),
+              Wrap(spacing: 7, runSpacing: 7, children: [
+                for (int i = 0; i < 5; i++)
+                  ChoiceChip(
+                    label: Text('ROYAL ${i + 1}'),
+                    selected: _cardBackStyle == i,
+                    selectedColor: t.accent.withOpacity(.28),
+                    side: BorderSide(color: _cardBackStyle == i ? t.accent : t.accent.withOpacity(.35)),
+                    labelStyle: TextStyle(color: _cardBackStyle == i ? t.accent : Colors.white70, fontWeight: FontWeight.w800),
+                    onSelected: (_) => setState(() => _cardBackStyle = i),
+                  ),
+              ]),
+              const SizedBox(height: 14),
+              Container(
+                decoration: BoxDecoration(
+                  color: t.panel,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: t.accent.withOpacity(.4)),
+                ),
+                child: ListTile(
+                  leading: Icon(Icons.people_alt_outlined, color: t.accent),
+                  title: const Text('د لوبغاړو نومونه بدلول', style: TextStyle(fontWeight: FontWeight.w700)),
+                  trailing: Icon(Icons.chevron_right, color: t.accent),
+                  onTap: () { Navigator.pop(ctx); _editNames(); },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
+
+  Widget _settingsHeading(String title) => Padding(
+    padding: const EdgeInsets.only(left: 2, bottom: 2),
+    child: Text(title, style: TextStyle(
+      color: t.accent, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1.1,
+    )),
+  );
+
 
   @override Widget build(BuildContext context) {
     final legal = _legalCards(0);
