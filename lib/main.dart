@@ -1040,7 +1040,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
     final suit = _suit(card);
     final rank = _rank(card); // Extract card rank (2–A) for the royal face design.
     final red = _isRed(suit);
-    final ink = red ? const Color(0xFFC6283D) : const Color(0xFF17202A);
+    final ink = const Color(0xFFFFD76A);
     final isFace = ['J', 'Q', 'K'].contains(rank);
     final isAce = rank == 'A';
     final faceStyle = _cardFaceStyle.clamp(0, 4).toInt();
@@ -1050,8 +1050,8 @@ class _ToraGamePageState extends State<ToraGamePage> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(7),
         gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
-          colors: [Color(0xFFFFFEFA), Color(0xFFECE5D7)]),
-        border: Border.all(color: faceBorders[faceStyle], width: faceStyle.isEven ? 2 : 1),
+          colors: [Color(0xFF17130C), Color(0xFF020202), Color(0xFF100C07)]),
+        border: Border.all(color: const Color(0xFFFFC94A), width: 2),
         boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 5, offset: Offset(1, 2))],
       ),
       child: Stack(children: [
@@ -1059,7 +1059,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
         Positioned.fill(child: Padding(
           padding: EdgeInsets.all(width * .075),
           child: DecoratedBox(decoration: BoxDecoration(
-            border: Border.all(color: faceBorders[faceStyle].withOpacity(.85), width: faceStyle % 3 == 0 ? 1.4 : .65),
+            border: Border.all(color: const Color(0xFFFFD66B).withOpacity(.95), width: faceStyle % 3 == 0 ? 1.4 : .85),
             borderRadius: BorderRadius.circular(faceStyle % 2 == 0 ? 4 : 10),
           )),
         )),
@@ -1072,8 +1072,8 @@ class _ToraGamePageState extends State<ToraGamePage> {
             width: width * .68, height: height * .64,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(5),
-              gradient: LinearGradient(colors: [const Color(0xFFF8E8BE), const Color(0xFFD8B66B).withOpacity(.55)]),
-              border: Border.all(color: const Color(0xFF9A7131), width: .9),
+              gradient: const LinearGradient(colors: [Color(0xFF17120A), Color(0xFF030303), Color(0xFF1C150A)]),
+              border: Border.all(color: const Color(0xFFFFC94A), width: 1.25),
             ),
             child: Stack(alignment: Alignment.center, children: [
               Positioned(top: 2, child: Text(suit, style: TextStyle(color: ink, fontSize: width * .2))),
@@ -1085,7 +1085,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
               )),
               Positioned(bottom: 1, child: Text(rank == 'J' ? 'KNIGHT' : rank == 'Q' ? 'QUEEN' : 'KING',
                 style: TextStyle(color: const Color(0xFF5B3C1D), fontSize: width * .075, fontWeight: FontWeight.w900, letterSpacing: .3))),
-              Positioned.fill(child: IgnorePointer(child: CustomPaint(painter: _FaceOrnamentPainter(const Color(0xFF9A7131))))),
+              Positioned.fill(child: IgnorePointer(child: CustomPaint(painter: _FaceOrnamentPainter(const Color(0xFFFFD15C))))),
             ]),
           ))
         else
