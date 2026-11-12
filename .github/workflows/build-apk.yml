@@ -116,6 +116,16 @@ jobs:
       - name: Generate Android signing fingerprints
         working-directory: project/android
         run: |
+          mkdir -p "$HOME/.android"
+          if [ ! -f "$HOME/.android/debug.keystore" ]; then
+            keytool -genkeypair -v \
+              -keystore "$HOME/.android/debug.keystore" \
+              -storepass android \
+              -alias androiddebugkey \
+              -keypass android \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+          fi
           ./gradlew signingReport | tee signing-report.txt
           {
             echo "### Android signing fingerprints"
