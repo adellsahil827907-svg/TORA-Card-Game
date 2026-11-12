@@ -1039,12 +1039,11 @@ class _ToraGamePageState extends State<ToraGamePage> {
     }
     final suit = _suit(card);
     final rank = _rank(card); // Extract card rank (2–A) for the royal face design.
-    final red = _isRed(suit);
     final ink = const Color(0xFFFFD76A);
     final isFace = ['J', 'Q', 'K'].contains(rank);
     final isAce = rank == 'A';
     final faceStyle = _cardFaceStyle.clamp(0, 4).toInt();
-    final faceBorders = [const Color(0xFFB58A3A), const Color(0xFF28765B), const Color(0xFF9B3148), const Color(0xFF315A86), const Color(0xFF9A7137)];
+    final faceBorders = List<Color>.filled(5, const Color(0xFFFFC94A));
     return Container(
       width: width, height: height,
       decoration: BoxDecoration(
