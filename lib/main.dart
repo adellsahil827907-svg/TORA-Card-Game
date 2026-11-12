@@ -100,6 +100,93 @@ class _CardFacePatternPainter extends CustomPainter {
   bool shouldRepaint(covariant _CardFacePatternPainter old) => old.color != color || old.style != style;
 }
 
+class _CardPipsPainter extends CustomPainter {
+  final String rank;
+  final String suit;
+  final Color ink;
+  final Color gold;
+  const _CardPipsPainter(this.rank, this.suit, this.ink, this.gold);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width, h = size.height;
+    final count = int.tryParse(rank) ?? 0;
+    final symbol = suit;
+    final isAce = rank == 'A';
+    final positions = <Offset>[];
+    if (isAce) {
+      positions.add(const Offset(.5, .5));
+    } else {
+      final rows = switch (count) {
+        2 => [.30, .70],
+        3 => [.22, .50, .78],
+        4 => [.28, .72],
+        5 => [.22, .50, .78],
+        6 => [.22, .50, .78],
+        7 => [.18, .38, .62, .82],
+        8 => [.16, .37, .63, .84],
+        9 => [.15, .33, .50, .67, .85],
+        10 => [.13, .31, .50, .69, .87],
+        _ => [.5],
+      };
+      for (int i = 0; i < rows.length; i++) {
+        final y = rows[i];
+        if (count == 2 || count == 3) {
+          positions.add(Offset(.5, y));
+        } else if (count == 4 || count == 5) {
+          positions.add(Offset(.34, y));
+          positions.add(Offset(.66, y));
+          if (count == 5 && i == 1) positions.add(Offset(.5, y));
+        } else if (count == 6) {
+          positions.add(Offset(.32, y)); positions.add(Offset(.68, y));
+        } else if (count == 7 || count == 8) {
+          positions.add(Offset(.32, y)); positions.add(Offset(.68, y));
+          if (count == 7 && i == 1) positions.add(Offset(.5, y));
+        } else if (count == 9 || count == 10) {
+          positions.add(Offset(.32, y)); positions.add(Offset(.68, y));
+          if (i == 2) positions.add(Offset(.5, y));
+        }
+      }
+      if (count == 10) {
+        positions.add(const Offset(.5, .24));
+        positions.add(const Offset(.5, .76));
+      }
+    }
+    final pipSize = isAce ? w * .48 : (count >= 9 ? w * .18 : w * .22);
+    for (int i = 0; i < positions.length; i++) {
+      final p = positions[i];
+      final y = p.dy * h;
+      final x = p.dx * w;
+      final flip = i.isOdd && !isAce;
+      canvas.save();
+      if (flip) {
+        canvas.translate(x, y);
+        canvas.rotate(pi);
+        canvas.translate(-x, -y);
+      }
+      final tp = TextPainter(
+        text: TextSpan(text: symbol, style: TextStyle(
+          color: ink, fontSize: pipSize, fontWeight: FontWeight.w900,
+          height: 1, shadows: [Shadow(color: gold.withOpacity(.32), blurRadius: 2)],
+        )),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      tp.paint(canvas, Offset(x - tp.width / 2, y - tp.height / 2));
+      canvas.restore();
+    }
+    if (isAce) {
+      final center = Offset(w / 2, h / 2);
+      final ring = Paint()..color = gold.withOpacity(.8)..style = PaintingStyle.stroke..strokeWidth = 1.2;
+      canvas.drawCircle(center, w * .31, ring);
+      canvas.drawCircle(center, w * .36, ring..color = gold.withOpacity(.35)..strokeWidth = .7);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _CardPipsPainter old) =>
+      old.rank != rank || old.suit != suit || old.ink != ink || old.gold != gold;
+}
+
 class _BackPatternPainter extends CustomPainter {
   final Color color;
   final int style;
@@ -1012,16 +1099,11 @@ class _ToraGamePageState extends State<ToraGamePage> {
               Positioned.fill(child: IgnorePointer(child: CustomPaint(painter: _FaceOrnamentPainter(const Color(0xFF9A7131))))),
             ]),
           ))
-        else if (isAce)
-          Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Text(suit, style: TextStyle(color: ink, fontSize: width * .66, height: 1)),
-            Text('A', style: TextStyle(color: ink, fontSize: width * .28, fontWeight: FontWeight.w900)),
-          ]))
         else
-          Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Text(suit, style: TextStyle(color: ink, fontSize: width * .43, fontWeight: FontWeight.w900, height: 1)),
-            Text(rank, style: TextStyle(color: ink, fontSize: width * .22, fontWeight: FontWeight.w900, height: 1)),
-          ])),
+          Positioned.fill(child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: width * .16, vertical: height * .12),
+            child: CustomPaint(painter: _CardPipsPainter(rank, suit, ink, faceBorders[faceStyle])),
+          )),
         Positioned(right: 4, bottom: 3, child: RotatedBox(quarterTurns: 2, child: Column(mainAxisSize: MainAxisSize.min, children: [
           Text(rank, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: width * .22, height: 1)),
           Text(suit, style: TextStyle(color: ink, fontSize: width * .19, height: 1)),
