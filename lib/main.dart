@@ -79,7 +79,7 @@ class _CardFacePatternPainter extends CustomPainter {
     } else if (style == 3) {
       for (int i = 0; i < 5; i++) {
         final rr = frame.deflate(i * 4.0);
-        canvas.drawRRect(RRect.fromRectAndRadius(rr, Radius.circular(3 + i)), i.isEven ? gold : glow);
+        canvas.drawRRect(RRect.fromRectAndRadius(rr, Radius.circular(3.0 + i)), i.isEven ? gold : glow);
       }
       canvas.drawLine(Offset(8, center.dy), Offset(size.width - 8, center.dy), glow);
     } else {
@@ -116,7 +116,7 @@ class _BackPatternPainter extends CustomPainter {
 
     if (style == 0) {
       for (int i = 0; i < 5; i++) {
-        canvas.drawRRect(RRect.fromRectAndRadius(rect.deflate(5 + i * 4), Radius.circular(4 + i)), i.isEven ? line : highlight);
+        canvas.drawRRect(RRect.fromRectAndRadius(rect.deflate(5 + i * 4), Radius.circular(4.0 + i)), i.isEven ? line : highlight);
       }
       canvas.drawCircle(center, size.width * .23, line);
       canvas.drawCircle(center, size.width * .17, highlight);
@@ -198,7 +198,7 @@ class _RoyalTablePainter extends CustomPainter {
     if (pattern == 0) {
       for (int i = 0; i < 4; i++) {
         final inset = 30.0 + i * 8;
-        canvas.drawRRect(RRect.fromRectAndRadius(rect.deflate(inset), Radius.circular(10 + i)), soft);
+        canvas.drawRRect(RRect.fromRectAndRadius(rect.deflate(inset), Radius.circular(10.0 + i)), soft);
       }
       canvas.drawCircle(center, 42, gold);
       canvas.drawCircle(center, 34, shine);
