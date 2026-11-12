@@ -911,6 +911,17 @@ class _ToraGamePageState extends State<ToraGamePage> {
       _teamTwo += points;
       _teamOne -= points;
     }
+
+    // The 200-point losing limit applies immediately to every shared-score
+    // update, including Takkol transfers (not only at the end of a hand).
+    if (_teamOne >= 200 || _teamTwo >= 200) {
+      _gameOver = true;
+      _matchFinished = true;
+      final loser = _teamOne >= 200
+          ? 'Team 1 (Player 1 + Player 3)'
+          : 'Team 2 (Player 2 + Player 4)';
+      _status = '$loser reached 200 penalty points and loses the match.';
+    }
   }
 
   void _recordTakkol(int seat, String reason, {int transferredCards = 1}) {
