@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -775,9 +776,186 @@ class _ToraGamePageState extends State<ToraGamePage> {
   String _status = 'Your turn: drag a card to the centre.';
   int _lastWinner = -1;
 
+  // Device-local player profile and VIP entitlement placeholder.
+  // Real authentication, cloud sync and purchase verification remain disabled.
+  String _profileName = 'TORA Player';
+  String _profileEmail = '';
+  bool _profileLoaded = false;
+  bool _vipActive = false;
+  bool get _hasVipAccess => _profileLoaded && _vipActive;
+
   ToraTheme get t => _activeTheme;
 
-  @override void initState() { super.initState(); _activeTheme = widget.theme; _deal(first: true); }
+  @override void initState() {
+    super.initState();
+    _activeTheme = widget.theme;
+    _deal(first: true);
+    _loadRoyalProfile();
+  }
+
+  Future<void> _loadRoyalProfile() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    setState(() {
+      _profileName = prefs.getString('tora_profile_name') ?? 'TORA Player';
+      _profileEmail = prefs.getString('tora_profile_email') ?? '';
+      // VIP stays inactive until a verified purchase system is integrated.
+      _vipActive = false;
+      _profileLoaded = true;
+    });
+  }
+
+  Future<void> _saveRoyalProfile(String name, String email) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('tora_profile_name', name);
+    await prefs.setString('tora_profile_email', email);
+    if (!mounted) return;
+    setState(() {
+      _profileName = name;
+      _profileEmail = email;
+    });
+  }
+
+  Future<void> _editRoyalProfile() async {
+    final nameController = TextEditingController(text: _profileName);
+    final emailController = TextEditingController(text: _profileEmail);
+    final formKey = GlobalKey<FormState>();
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: t.panel,
+        title: Text('TORA PLAYER PROFILE', style: TextStyle(color: t.accent, fontWeight: FontWeight.w900)),
+        content: Form(
+          key: formKey,
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            TextFormField(
+              controller: nameController,
+              maxLength: 24,
+              decoration: const InputDecoration(labelText: 'Player name'),
+              validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter a player name' : null,
+            ),
+            TextFormField(
+              controller: emailController,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(labelText: 'Email (optional)'),
+            ),
+            const SizedBox(height: 6),
+            const Text('دا پروفایل یوازې په همدې موبایل کې ساتل کېږي؛ آنلاین ننوتل لا فعال نه دي.',
+              style: TextStyle(color: Colors.white60, fontSize: 11)),
+          ]),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('CANCEL')),
+          FilledButton(
+            onPressed: () {
+              if (formKey.currentState?.validate() ?? false) Navigator.pop(ctx, true);
+            },
+            child: const Text('SAVE PROFILE'),
+          ),
+        ],
+      ),
+    );
+    if (result == true) {
+      await _saveRoyalProfile(nameController.text.trim(), emailController.text.trim());
+      if (mounted) _toast('Player profile saved on this device.');
+    }
+    nameController.dispose();
+    emailController.dispose();
+  }
+
+  Future<void> _royalAccount() async {
+    if (!_profileLoaded) await _loadRoyalProfile();
+    if (!mounted) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.fromLTRB(18, 18, 18, 24),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
+            colors: [Color.lerp(t.panel, t.accent, .16)!, t.background, const Color(0xFF050506)]),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
+          border: Border.all(color: t.accent.withOpacity(.8), width: 1.4),
+        ),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Icon(Icons.account_circle_rounded, color: t.accent, size: 38),
+          const SizedBox(height: 6),
+          Text('ROYAL PLAYER ACCOUNT', style: TextStyle(color: t.accent, fontWeight: FontWeight.w900, letterSpacing: 1.5, fontSize: 17)),
+          const SizedBox(height: 14),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(color: t.panel, borderRadius: BorderRadius.circular(15),
+              border: Border.all(color: t.accent.withOpacity(.4))),
+            child: Row(children: [
+              CircleAvatar(backgroundColor: t.accent.withOpacity(.15),
+                child: Icon(Icons.person_rounded, color: t.accent)),
+              const SizedBox(width: 11),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(_profileName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
+                Text(_profileEmail.isEmpty ? 'No email added' : _profileEmail,
+                  style: const TextStyle(color: Colors.white60, fontSize: 10)),
+              ])),
+              IconButton(onPressed: () { Navigator.pop(ctx); _editRoyalProfile(); },
+                icon: Icon(Icons.edit_rounded, color: t.accent), tooltip: 'Edit profile'),
+            ]),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(13),
+            decoration: BoxDecoration(
+              color: _hasVipAccess ? t.accent.withOpacity(.12) : t.panel,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: t.accent.withOpacity(.55)),
+            ),
+            child: Row(children: [
+              Icon(Icons.diamond_rounded, color: t.accent, size: 28),
+              const SizedBox(width: 10),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(_hasVipAccess ? 'ROYAL VIP • ACTIVE' : 'ROYAL VIP • NOT ACTIVE',
+                  style: TextStyle(color: t.accent, fontWeight: FontWeight.w900, fontSize: 12)),
+                const SizedBox(height: 3),
+                const Text('Lifetime membership entitlement',
+                  style: TextStyle(color: Colors.white60, fontSize: 10)),
+              ])),
+              Icon(_hasVipAccess ? Icons.verified_rounded : Icons.lock_outline_rounded,
+                color: t.accent),
+            ]),
+          ),
+          const SizedBox(height: 12),
+          Align(alignment: Alignment.centerLeft,
+            child: Text('VIP BENEFITS', style: TextStyle(color: t.accent, fontWeight: FontWeight.w900, letterSpacing: 1))),
+          const SizedBox(height: 7),
+          for (final benefit in [
+            'All Premium card faces and backs',
+            'Golden visual effects and animations',
+            'Exclusive Royal profile frames',
+            'Ad-Free experience when ads are enabled',
+          ])
+            Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Row(children: [
+              Icon(_hasVipAccess ? Icons.check_circle_rounded : Icons.lock_rounded,
+                color: t.accent, size: 16),
+              const SizedBox(width: 9),
+              Expanded(child: Text(benefit, style: const TextStyle(color: Colors.white70, fontSize: 11))),
+            ])),
+          const SizedBox(height: 12),
+          Text('پروفایل اوس یوازې په دې موبایل کې ساتل کېږي. آنلاین حساب، د وسیلو ترمنځ همغږي او تادیات فعال نه دي. VIP به یوازې د راتلونکي تایید شوي پېرود له لارې فعالېږي.',
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white54, fontSize: 10, height: 1.4)),
+          const SizedBox(height: 12),
+          SizedBox(width: double.infinity, child: OutlinedButton.icon(
+            onPressed: () { Navigator.pop(ctx); _editRoyalProfile(); },
+            icon: const Icon(Icons.manage_accounts_rounded),
+            label: const Text('EDIT PLAYER PROFILE'),
+            style: OutlinedButton.styleFrom(foregroundColor: t.accent, side: BorderSide(color: t.accent.withOpacity(.6))),
+          )),
+        ]),
+      ),
+    );
+  }
   List<String> get _myHand => _hands[0];
   int _team(int seat) => (seat == 0 || seat == 2) ? 0 : 1;
 
@@ -1653,6 +1831,100 @@ class _ToraGamePageState extends State<ToraGamePage> {
     ]),
   );
 
+  Future<void> _royalAccount() async {
+    if (!_profileLoaded) await _loadRoyalProfile();
+    if (!mounted) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.fromLTRB(18, 18, 18, 24),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
+            colors: [Color.lerp(t.panel, t.accent, .16)!, t.background, const Color(0xFF050506)]),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
+          border: Border.all(color: t.accent.withOpacity(.8), width: 1.4),
+        ),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Icon(Icons.account_circle_rounded, color: t.accent, size: 38),
+          const SizedBox(height: 6),
+          Text('ROYAL PLAYER ACCOUNT', style: TextStyle(color: t.accent, fontWeight: FontWeight.w900, letterSpacing: 1.5, fontSize: 17)),
+          const SizedBox(height: 14),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(color: t.panel, borderRadius: BorderRadius.circular(15),
+              border: Border.all(color: t.accent.withOpacity(.4))),
+            child: Row(children: [
+              CircleAvatar(backgroundColor: t.accent.withOpacity(.15),
+                child: Icon(Icons.person_rounded, color: t.accent)),
+              const SizedBox(width: 11),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(_profileName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
+                Text(_profileEmail.isEmpty ? 'No email added' : _profileEmail,
+                  style: const TextStyle(color: Colors.white60, fontSize: 10)),
+              ])),
+              IconButton(onPressed: () { Navigator.pop(ctx); _editRoyalProfile(); },
+                icon: Icon(Icons.edit_rounded, color: t.accent), tooltip: 'Edit profile'),
+            ]),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(13),
+            decoration: BoxDecoration(
+              color: _hasVipAccess ? t.accent.withOpacity(.12) : t.panel,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: t.accent.withOpacity(.55)),
+            ),
+            child: Row(children: [
+              Icon(Icons.diamond_rounded, color: t.accent, size: 28),
+              const SizedBox(width: 10),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(_hasVipAccess ? 'ROYAL VIP • ACTIVE' : 'ROYAL VIP • NOT ACTIVE',
+                  style: TextStyle(color: t.accent, fontWeight: FontWeight.w900, fontSize: 12)),
+                const SizedBox(height: 3),
+                const Text('Lifetime membership entitlement',
+                  style: TextStyle(color: Colors.white60, fontSize: 10)),
+              ])),
+              Icon(_hasVipAccess ? Icons.verified_rounded : Icons.lock_outline_rounded,
+                color: t.accent),
+            ]),
+          ),
+          const SizedBox(height: 12),
+          Align(alignment: Alignment.centerLeft,
+            child: Text('VIP BENEFITS', style: TextStyle(color: t.accent, fontWeight: FontWeight.w900, letterSpacing: 1))),
+          const SizedBox(height: 7),
+          for (final benefit in [
+            'All Premium card faces and backs',
+            'Golden visual effects and animations',
+            'Exclusive Royal profile frames',
+            'Ad-Free experience when ads are enabled',
+          ])
+            Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Row(children: [
+              Icon(_hasVipAccess ? Icons.check_circle_rounded : Icons.lock_rounded,
+                color: t.accent, size: 16),
+              const SizedBox(width: 9),
+              Expanded(child: Text(benefit, style: const TextStyle(color: Colors.white70, fontSize: 11))),
+            ])),
+          const SizedBox(height: 12),
+          Text('پروفایل اوس یوازې په دې موبایل کې ساتل کېږي. آنلاین حساب، د وسیلو ترمنځ همغږي او تادیات فعال نه دي. VIP به یوازې د راتلونکي تایید شوي پېرود له لارې فعالېږي.',
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white54, fontSize: 10, height: 1.4)),
+          const SizedBox(height: 12),
+          SizedBox(width: double.infinity, child: OutlinedButton.icon(
+            onPressed: () { Navigator.pop(ctx); _editRoyalProfile(); },
+            icon: const Icon(Icons.manage_accounts_rounded),
+            label: const Text('EDIT PLAYER PROFILE'),
+            style: OutlinedButton.styleFrom(foregroundColor: t.accent, side: BorderSide(color: t.accent.withOpacity(.6))),
+          )),
+        ]),
+      ),
+    );
+  }
+
   Future<void> _royalStore() async {
     await showModalBottomSheet<void>(
       context: context,
@@ -2178,6 +2450,12 @@ class _ToraGamePageState extends State<ToraGamePage> {
                   color: t.accent, fontWeight: FontWeight.w900,
                   letterSpacing: 3, fontSize: 16)),
                 const Spacer(),
+                IconButton(
+                  onPressed: _royalAccount, tooltip: 'Royal Player Account',
+                  icon: const Icon(Icons.account_circle_outlined, size: 18),
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints.tightFor(width: 32, height: 28)),
                 IconButton(
                   onPressed: _royalStore, tooltip: 'Royal Store',
                   icon: const Icon(Icons.storefront_outlined, size: 18),
