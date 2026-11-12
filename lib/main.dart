@@ -937,9 +937,9 @@ class _ToraGamePageState extends State<ToraGamePage> {
     final w = constraints.maxWidth;
     final h = constraints.maxHeight;
     // Keep all four played cards together in the center in a clear plus layout.
-    final cardH = (h * .235).clamp(44.0, 64.0).toDouble();
+    final cardH = (h * .25).clamp(48.0, 74.0).toDouble();
     final cardW = cardH / 1.43;
-    final gap = (h * .025).clamp(5.0, 9.0).toDouble();
+    final gap = (h * .02).clamp(5.0, 8.0).toDouble();
     final sideSeatW = (w * .17).clamp(76.0, 118.0).toDouble();
     final seatFont = (w * .009).clamp(9.0, 12.0).toDouble();
     final cx = w / 2;
