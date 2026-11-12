@@ -1229,65 +1229,143 @@ class _ToraGamePageState extends State<ToraGamePage> {
           decoration: BoxDecoration(border: Border.all(color:t.accent.withOpacity(.85),width:style%3==0?2:1),borderRadius:BorderRadius.circular(style%2==0?5:18)),
           child: Stack(alignment:Alignment.center,children:[CustomPaint(size:Size(width*.7,height*.76),painter:_BackPatternPainter(t.accent,style)),Text(backSymbols[style],style:TextStyle(color:t.accent,fontSize:width*.48,fontWeight:FontWeight.w900))]))));
     }
+
     final suit = _suit(card);
-    final rank = _rank(card); // Extract card rank (2–A) for the royal face design.
-    final ink = suit == '♣' ? const Color(0xFF39D98A) : const Color(0xFFFFD76A);
+    final rank = _rank(card);
+    final suitIndex = _suits.indexOf(suit);
+    final isRedSuit = _isRed(suit);
+    // Standard, high-contrast suit colors: hearts/diamonds red; spades/clubs black.
+    final ink = isRedSuit ? const Color(0xFFB51F35) : const Color(0xFF151923);
+    const gold = Color(0xFFC49A43);
+    const ivory = Color(0xFFFFFDF7);
+    const facePalettes = [
+      Color(0xFF8D3152), Color(0xFF315A86),
+      Color(0xFF28765B), Color(0xFF794A91),
+    ];
+    final faceColor = facePalettes[suitIndex.clamp(0, 3)];
     final isFace = ['J', 'Q', 'K'].contains(rank);
     final isAce = rank == 'A';
     final faceStyle = _cardFaceStyle.clamp(0, 4).toInt();
-    final faceBorders = List<Color>.filled(5, const Color(0xFFFFC94A));
+    final radius = [5.0, 11.0, 7.0, 14.0][suitIndex.clamp(0, 3)];
+
     return Container(
-      width: width, height: height,
+      key: key,
+      width: width,
+      height: height,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(7),
-        gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
-          colors: [Color(0xFF17130C), Color(0xFF020202), Color(0xFF100C07)]),
-        border: Border.all(color: const Color(0xFFFFC94A), width: 2),
-        boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 5, offset: Offset(1, 2))],
+        borderRadius: BorderRadius.circular(8),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFFFFFFF), ivory, Color(0xFFECE5D6)],
+        ),
+        border: Border.all(color: gold, width: 1.8),
+        boxShadow: const [
+          BoxShadow(color: Colors.black54, blurRadius: 5, offset: Offset(1, 2)),
+        ],
       ),
-      child: Stack(children: [
-        Positioned.fill(child: IgnorePointer(child: CustomPaint(painter: _CardFacePatternPainter(faceBorders[faceStyle], faceStyle)))),
-        Positioned.fill(child: Padding(
-          padding: EdgeInsets.all(width * .075),
-          child: DecoratedBox(decoration: BoxDecoration(
-            border: Border.all(color: const Color(0xFFFFD66B).withOpacity(.95), width: faceStyle % 3 == 0 ? 1.4 : .85),
-            borderRadius: BorderRadius.circular(faceStyle % 2 == 0 ? 4 : 10),
-          )),
-        )),
-        Positioned(left: 4, top: 3, child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(rank, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: width * .22, height: 1)),
-          Text(suit, style: TextStyle(color: ink, fontSize: width * .19, height: 1)),
-        ])),
-        if (isFace)
-          Center(child: Container(
-            width: width * .68, height: height * .64,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(5),
-              gradient: const LinearGradient(colors: [Color(0xFF17120A), Color(0xFF030303), Color(0xFF1C150A)]),
-              border: Border.all(color: const Color(0xFFFFC94A), width: 1.25),
+      child: Stack(clipBehavior: Clip.hardEdge, children: [
+        // Four suit-specific corner ornaments make the card identities distinct.
+        Positioned.fill(
+          child: IgnorePointer(
+            child: CustomPaint(
+              painter: _CardFacePatternPainter(gold.withOpacity(.9), (faceStyle + suitIndex) % 5),
             ),
-            child: Stack(alignment: Alignment.center, children: [
-              Positioned(top: 2, child: Text(suit, style: TextStyle(color: ink, fontSize: width * .2))),
-              Positioned.fill(child: CustomPaint(
-                painter: _FacePortraitPainter(
-                  rank,
-                  rank == 'Q' ? [const Color(0xFF8D3152),const Color(0xFF315A86),const Color(0xFF28765B),const Color(0xFF794A91),const Color(0xFF9B3148),const Color(0xFF24758A),const Color(0xFF707B84),const Color(0xFF9A6037),const Color(0xFF34836A),const Color(0xFF4E8A9B)][faceStyle] : (rank == 'K' ? const Color(0xFF24527A) : const Color(0xFF3E7058)),
+          ),
+        ),
+        Positioned.fill(
+          child: Padding(
+            padding: EdgeInsets.all(width * .075),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                border: Border.all(color: faceColor.withOpacity(.72), width: 1.05),
+                borderRadius: BorderRadius.circular(radius),
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          left: 4, top: 3,
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Text(rank, style: TextStyle(
+              color: ink, fontWeight: FontWeight.w900,
+              fontSize: width * .25, height: .92,
+            )),
+            Text(suit, style: TextStyle(
+              color: ink, fontSize: width * .22, height: .92,
+              fontWeight: FontWeight.w900,
+            )),
+          ]),
+        ),
+        if (isFace)
+          Center(
+            child: Container(
+              width: width * .70,
+              height: height * .65,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(6),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [faceColor.withOpacity(.95), const Color(0xFF17202B), faceColor.withOpacity(.82)],
                 ),
-              )),
-              Positioned(bottom: 1, child: Text(rank == 'J' ? 'KNIGHT' : rank == 'Q' ? 'QUEEN' : 'KING',
-                style: TextStyle(color: const Color(0xFF5B3C1D), fontSize: width * .075, fontWeight: FontWeight.w900, letterSpacing: .3))),
-              Positioned.fill(child: IgnorePointer(child: CustomPaint(painter: _FaceOrnamentPainter(const Color(0xFFFFD15C))))),
-            ]),
-          ))
+                border: Border.all(color: gold, width: 1.35),
+              ),
+              child: Stack(alignment: Alignment.center, children: [
+                Positioned.fill(
+                  child: CustomPaint(painter: _FacePortraitPainter(rank, faceColor)),
+                ),
+                Positioned(top: 1, child: Text(suit, style: TextStyle(
+                  color: const Color(0xFFFFE7A5),
+                  fontSize: width * .20, fontWeight: FontWeight.w900,
+                ))),
+                Positioned(bottom: 1, child: Text(
+                  rank == 'J' ? 'KNIGHT' : rank == 'Q' ? 'QUEEN' : 'KING',
+                  style: TextStyle(
+                    color: const Color(0xFFFFE7A5),
+                    fontSize: width * .075,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: .3,
+                  ),
+                )),
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: CustomPaint(painter: _FaceOrnamentPainter(const Color(0xFFFFD15C))),
+                  ),
+                ),
+              ]),
+            ),
+          )
         else
-          Positioned.fill(child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: width * .16, vertical: height * .12),
-            child: CustomPaint(painter: _CardPipsPainter(rank, suit, ink, faceBorders[faceStyle])),
-          )),
-        Positioned(right: 4, bottom: 3, child: RotatedBox(quarterTurns: 2, child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(rank, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: width * .22, height: 1)),
-          Text(suit, style: TextStyle(color: ink, fontSize: width * .19, height: 1)),
-        ]))),
+          Positioned.fill(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: width * .16, vertical: height * .12),
+              child: CustomPaint(
+                painter: _CardPipsPainter(rank, suit, ink, gold),
+              ),
+            ),
+          ),
+        Positioned(
+          right: 4, bottom: 3,
+          child: RotatedBox(
+            quarterTurns: 2,
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Text(rank, style: TextStyle(
+                color: ink, fontWeight: FontWeight.w900,
+                fontSize: width * .25, height: .92,
+              )),
+              Text(suit, style: TextStyle(
+                color: ink, fontSize: width * .22, height: .92,
+                fontWeight: FontWeight.w900,
+              )),
+            ]),
+          ),
+        ),
+        if (isAce)
+          Center(child: IgnorePointer(child: Text(suit, style: TextStyle(
+            color: ink.withOpacity(.10), fontSize: width * .72,
+            fontWeight: FontWeight.w900,
+          )))),
       ]),
     );
   }
