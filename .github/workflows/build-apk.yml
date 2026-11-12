@@ -65,6 +65,10 @@ jobs:
               pubspec.write_text(content)
           PY
 
+      - name: Add local profile storage dependency
+        working-directory: project
+        run: flutter pub add shared_preferences
+
       - name: Install dependencies
         working-directory: project
         run: flutter pub get
