@@ -1536,111 +1536,254 @@ class _ToraGamePageState extends State<ToraGamePage> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (ctx) => SafeArea(
-        child: Container(
-          height: MediaQuery.of(ctx).size.height * .90,
+      useSafeArea: true,
+      builder: (ctx) {
+        final screenWidth = MediaQuery.of(ctx).size.width;
+        final tileWidth = (screenWidth - 52) / 2;
+        return Container(
+          height: MediaQuery.of(ctx).size.height * .94,
           decoration: BoxDecoration(
+            color: t.background,
             gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [t.panel, t.background],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color.lerp(t.panel, t.accent, .10)!, t.background, const Color(0xFF050506)],
             ),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
-            border: Border.all(color: t.accent.withOpacity(.72), width: 1.4),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+            border: Border.all(color: t.accent.withOpacity(.82), width: 1.5),
+            boxShadow: [BoxShadow(color: t.accent.withOpacity(.18), blurRadius: 28, spreadRadius: 2)],
           ),
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 18, 16, 24),
-            children: [
-              Center(child: Container(
-                width: 42, height: 4,
-                decoration: BoxDecoration(color: t.accent.withOpacity(.75), borderRadius: BorderRadius.circular(8)),
-              )),
-              const SizedBox(height: 14),
-              Text('♛  ROYAL TORA  ♛', textAlign: TextAlign.center,
-                style: TextStyle(color: t.accent, fontWeight: FontWeight.w900, fontSize: 19, letterSpacing: 2)),
-              const SizedBox(height: 4),
-              const Text('د شاهي ډیزاینونو او لوبې تنظیمات',
-                textAlign: TextAlign.center, style: TextStyle(color: Colors.white70, fontSize: 11)),
-              const SizedBox(height: 18),
-              _settingsHeading('TABLE THEMES  •  د میدان رنګ'),
-              const SizedBox(height: 8),
-              for (int i = 0; i < _themes.length; i++)
-                Container(
-                  margin: const EdgeInsets.only(bottom: 7),
+          child: ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(29)),
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+              children: [
+                Center(child: Container(
+                  width: 48, height: 5,
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(colors: [_themes[i].table, _themes[i].background]),
-                    borderRadius: BorderRadius.circular(13),
-                    border: Border.all(
-                      color: _activeTheme.name == _themes[i].name ? _themes[i].accent : _themes[i].accent.withOpacity(.35),
-                      width: _activeTheme.name == _themes[i].name ? 2 : 1,
+                    gradient: LinearGradient(colors: [t.accent.withOpacity(.35), t.accent, t.accent.withOpacity(.35)]),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                )),
+                const SizedBox(height: 18),
+                Container(
+                  padding: const EdgeInsets.fromLTRB(14, 18, 14, 16),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft, end: Alignment.bottomRight,
+                      colors: [Color.lerp(t.table, t.accent, .20)!, t.panel, const Color(0xFF08090D)],
+                    ),
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(color: t.accent.withOpacity(.75), width: 1.3),
+                    boxShadow: [BoxShadow(color: t.accent.withOpacity(.13), blurRadius: 18)],
+                  ),
+                  child: Column(children: [
+                    Icon(Icons.workspace_premium_rounded, color: t.accent, size: 30),
+                    const SizedBox(height: 5),
+                    Text('ROYAL TORA', textAlign: TextAlign.center,
+                      style: TextStyle(color: t.accent, fontSize: 22, fontWeight: FontWeight.w900, letterSpacing: 3,
+                        shadows: [Shadow(color: t.accent.withOpacity(.28), blurRadius: 12)])),
+                    const SizedBox(height: 5),
+                    const Text('د شاهي ډیزاینونو او لوبې تنظیمات',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: t.accent.withOpacity(.10),
+                        borderRadius: BorderRadius.circular(30),
+                        border: Border.all(color: t.accent.withOpacity(.42)),
+                      ),
+                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                        Icon(Icons.check_circle, color: t.accent, size: 14),
+                        const SizedBox(width: 6),
+                        Text('ACTIVE: ${_activeTheme.name}',
+                          style: TextStyle(color: t.accent, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: .7)),
+                      ]),
+                    ),
+                  ]),
+                ),
+                const SizedBox(height: 22),
+                _settingsHeading('01  •  ROYAL TABLE THEMES  /  د میدان رنګونه'),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 10, runSpacing: 10,
+                  children: [
+                    for (int i = 0; i < _themes.length; i++)
+                      SizedBox(
+                        width: tileWidth,
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(17),
+                            onTap: () {
+                              setState(() => _activeTheme = _themes[i]);
+                              widget.onThemeChanged(i);
+                            },
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 180),
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft, end: Alignment.bottomRight,
+                                  colors: [_themes[i].table, _themes[i].background],
+                                ),
+                                borderRadius: BorderRadius.circular(17),
+                                border: Border.all(
+                                  color: _activeTheme.name == _themes[i].name
+                                      ? _themes[i].accent : _themes[i].accent.withOpacity(.38),
+                                  width: _activeTheme.name == _themes[i].name ? 2.2 : 1,
+                                ),
+                                boxShadow: _activeTheme.name == _themes[i].name
+                                    ? [BoxShadow(color: _themes[i].accent.withOpacity(.20), blurRadius: 12)]
+                                    : [],
+                              ),
+                              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                Row(children: [
+                                  Container(
+                                    width: 34, height: 34,
+                                    decoration: BoxDecoration(
+                                      color: _themes[i].table,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: _themes[i].accent, width: 1.3),
+                                    ),
+                                    child: Center(child: Text(['♛','✦','❖','♜','♕'][i % 5],
+                                      style: TextStyle(color: _themes[i].accent, fontSize: 19))),
+                                  ),
+                                  const Spacer(),
+                                  if (_activeTheme.name == _themes[i].name)
+                                    Icon(Icons.verified_rounded, color: _themes[i].accent, size: 20)
+                                  else
+                                    Icon(Icons.circle_outlined, color: _themes[i].accent.withOpacity(.55), size: 18),
+                                ]),
+                                const SizedBox(height: 9),
+                                Text(_themes[i].name, maxLines: 1, overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 11)),
+                                const SizedBox(height: 7),
+                                Row(children: [
+                                  for (final c in [_themes[i].background, _themes[i].table, _themes[i].panel, _themes[i].accent])
+                                    Expanded(child: Container(
+                                      height: 5, margin: const EdgeInsets.only(right: 3),
+                                      decoration: BoxDecoration(color: c, borderRadius: BorderRadius.circular(5)),
+                                    )),
+                                ]),
+                              ]),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 22),
+                _settingsHeading('02  •  CARD FRONT  /  د ورقو مخ'),
+                const SizedBox(height: 9),
+                Wrap(spacing: 8, runSpacing: 8, children: [
+                  for (int i = 0; i < 5; i++)
+                    _royalStyleOption(
+                      label: 'FRONT ${i + 1}',
+                      symbol: ['A♠', 'K♥', 'Q♦', 'J♣', '10♠'][i],
+                      selected: _cardFaceStyle == i,
+                      onTap: () => setState(() => _cardFaceStyle = i),
+                    ),
+                ]),
+                const SizedBox(height: 18),
+                _settingsHeading('03  •  CARD BACK  /  د ورقو شا'),
+                const SizedBox(height: 9),
+                Wrap(spacing: 8, runSpacing: 8, children: [
+                  for (int i = 0; i < 5; i++)
+                    _royalStyleOption(
+                      label: 'BACK ${i + 1}',
+                      symbol: ['♛', '✦', '❖', '♜', '♕'][i],
+                      selected: _cardBackStyle == i,
+                      onTap: () => setState(() => _cardBackStyle = i),
+                    ),
+                ]),
+                const SizedBox(height: 20),
+                _settingsHeading('04  •  PLAYER SETTINGS  /  د لوبغاړو تنظیمات'),
+                const SizedBox(height: 9),
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(17),
+                    onTap: () { Navigator.pop(ctx); _editNames(); },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(colors: [t.panel, t.background]),
+                        borderRadius: BorderRadius.circular(17),
+                        border: Border.all(color: t.accent.withOpacity(.48)),
+                      ),
+                      child: Row(children: [
+                        Container(
+                          width: 42, height: 42,
+                          decoration: BoxDecoration(
+                            color: t.accent.withOpacity(.12), borderRadius: BorderRadius.circular(13),
+                            border: Border.all(color: t.accent.withOpacity(.5)),
+                          ),
+                          child: Icon(Icons.groups_rounded, color: t.accent, size: 23),
+                        ),
+                        const SizedBox(width: 12),
+                        const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text('د لوبغاړو نومونه بدلول',
+                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 13)),
+                          SizedBox(height: 3),
+                          Text('Edit player names', style: TextStyle(color: Colors.white60, fontSize: 10)),
+                        ])),
+                        Icon(Icons.arrow_forward_ios_rounded, color: t.accent, size: 16),
+                      ]),
                     ),
                   ),
-                  child: ListTile(
-                    dense: true,
-                    leading: CircleAvatar(
-                      backgroundColor: _themes[i].table,
-                      child: Text(['♛','✦','❖','♜','♕'][i],
-                        style: TextStyle(color: _themes[i].accent, fontSize: 19)),
-                    ),
-                    title: Text(_themes[i].name,
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 12)),
-                    trailing: _activeTheme.name == _themes[i].name
-                        ? Icon(Icons.verified, color: _themes[i].accent)
-                        : Icon(Icons.circle_outlined, color: _themes[i].accent.withOpacity(.6), size: 18),
-                    onTap: () {
-                      setState(() => _activeTheme = _themes[i]);
-                      widget.onThemeChanged(i);
-                    },
-                  ),
                 ),
-              const SizedBox(height: 12),
-              _settingsHeading('CARD FRONT  •  د ورقو مخ'),
-              const SizedBox(height: 7),
-              Wrap(spacing: 7, runSpacing: 7, children: [
-                for (int i = 0; i < 5; i++)
-                  ChoiceChip(
-                    label: Text('ROYAL ${i + 1}'),
-                    selected: _cardFaceStyle == i,
-                    selectedColor: t.accent.withOpacity(.28),
-                    side: BorderSide(color: _cardFaceStyle == i ? t.accent : t.accent.withOpacity(.35)),
-                    labelStyle: TextStyle(color: _cardFaceStyle == i ? t.accent : Colors.white70, fontWeight: FontWeight.w800),
-                    onSelected: (_) => setState(() => _cardFaceStyle = i),
-                  ),
-              ]),
-              const SizedBox(height: 14),
-              _settingsHeading('CARD BACK  •  د ورقو شا'),
-              const SizedBox(height: 7),
-              Wrap(spacing: 7, runSpacing: 7, children: [
-                for (int i = 0; i < 5; i++)
-                  ChoiceChip(
-                    label: Text('ROYAL ${i + 1}'),
-                    selected: _cardBackStyle == i,
-                    selectedColor: t.accent.withOpacity(.28),
-                    side: BorderSide(color: _cardBackStyle == i ? t.accent : t.accent.withOpacity(.35)),
-                    labelStyle: TextStyle(color: _cardBackStyle == i ? t.accent : Colors.white70, fontWeight: FontWeight.w800),
-                    onSelected: (_) => setState(() => _cardBackStyle = i),
-                  ),
-              ]),
-              const SizedBox(height: 14),
-              Container(
-                decoration: BoxDecoration(
-                  color: t.panel,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: t.accent.withOpacity(.4)),
-                ),
-                child: ListTile(
-                  leading: Icon(Icons.people_alt_outlined, color: t.accent),
-                  title: const Text('د لوبغاړو نومونه بدلول', style: TextStyle(fontWeight: FontWeight.w700)),
-                  trailing: Icon(Icons.chevron_right, color: t.accent),
-                  onTap: () { Navigator.pop(ctx); _editNames(); },
-                ),
-              ),
-            ],
+                const SizedBox(height: 18),
+                Center(child: Text('ADell SAHIL  •  TORA CARD GAME',
+                  style: TextStyle(color: t.accent.withOpacity(.65), fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 1.2))),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
+
+  Widget _royalStyleOption({
+    required String label,
+    required String symbol,
+    required bool selected,
+    required VoidCallback onTap,
+  }) => Material(
+    color: Colors.transparent,
+    child: InkWell(
+      borderRadius: BorderRadius.circular(13),
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        width: 91,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 9),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft, end: Alignment.bottomRight,
+            colors: selected ? [Color.lerp(t.panel, t.accent, .22)!, t.panel] : [t.panel, t.background],
+          ),
+          borderRadius: BorderRadius.circular(13),
+          border: Border.all(color: selected ? t.accent : t.accent.withOpacity(.30), width: selected ? 1.8 : 1),
+          boxShadow: selected ? [BoxShadow(color: t.accent.withOpacity(.14), blurRadius: 9)] : [],
+        ),
+        child: Column(children: [
+          Text(symbol, style: TextStyle(
+            color: (symbol.contains('♥') || symbol.contains('♦')) ? const Color(0xFFFF5A68) : t.accent,
+            fontSize: 24, fontWeight: FontWeight.w900)),
+          const SizedBox(height: 4),
+          Text(label, style: TextStyle(color: selected ? t.accent : Colors.white70,
+            fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: .5)),
+          if (selected) ...[
+            const SizedBox(height: 4),
+            Icon(Icons.check_circle, color: t.accent, size: 13),
+          ],
+        ]),
+      ),
+    ),
+  );
 
   Widget _settingsHeading(String title) => Padding(
     padding: const EdgeInsets.only(left: 2, bottom: 2),
