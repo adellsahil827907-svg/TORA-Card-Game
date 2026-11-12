@@ -639,6 +639,8 @@ class _ToraGamePageState extends State<ToraGamePage> {
   final List<int> _trickSeats = [];
   final List<String> _history = [];
   int _turn = 0, _leader = 0, _round = 0, _teamOne = 0, _teamTwo = 0;
+  // Successful Takkol events by team during the current 13-card hand.
+  final List<int> _takkolCount = [0, 0];
   // The player who captures Q♠ deals the next 52-card round and leads its first trick.
   int _nextDealerAndLeader = 0;
   bool _aiBusy = false, _gameOver = false, _matchFinished = false, _checkingClaim = false, _resolvingTrick = false, _auditShown = false, _dealing = false;
@@ -681,6 +683,8 @@ class _ToraGamePageState extends State<ToraGamePage> {
       _trickOrder.clear();
       _trickSeats.clear();
       _history.clear();
+      _takkolCount[0] = 0;
+      _takkolCount[1] = 0;
       _turn = startSeat;
       _leader = startSeat;
       _ledSuit = null;
@@ -760,14 +764,18 @@ class _ToraGamePageState extends State<ToraGamePage> {
       _trickSeats.add(seat);
       if (_ledSuit == null) {
         _ledSuit = _suit(card);
-        // Takkol: no other player has any card of the led suit.
-        if (List.generate(4, (i) => i).where((i) => i != seat).every((i) => !_hands[i].any((c) => _suit(c) == _ledSuit))) {
-          _transferThirty(_team(seat));
-          _history.add('${_names[seat]} made Takkol: 30 points transferred.');
+        // Any suit can trigger Takkol: the other three players must have none.
+        final noSuitInOtherHands = List.generate(4, (i) => i)
+            .where((i) => i != seat)
+            .every((i) => !_hands[i].any((c) => _suit(c) == _ledSuit));
+        if (noSuitInOtherHands) {
+          _recordTakkol(seat, 'played $_ledSuit');
           takkolNow = true;
         }
       }
-      _status = takkolNow ? 'TAKKOL! 30 points transferred.' : '${_names[seat]} played $card';
+      _status = _gameOver
+          ? '${_names[seat]} team loses: fourth Takkol in this hand.'
+          : (takkolNow ? 'TAKKOL! 30 points transferred.' : '${_names[seat]} played $card');
       if (_trickSeats.length == 4) {
         _resolvingTrick = true;
         _status = 'FOUR CARDS — TRICK COMPLETE';
@@ -886,9 +894,23 @@ class _ToraGamePageState extends State<ToraGamePage> {
     return best;
   }
 
-  void _transferThirty(int winningTeam) {
-    if (winningTeam == 0) { _teamOne += 30; _teamTwo -= 30; }
-    else { _teamTwo += 30; _teamOne -= 30; }
+  void _transferThirty(int winningTeam, {int times = 1}) {
+    final points = 30 * times;
+    if (winningTeam == 0) { _teamOne += points; _teamTwo -= points; }
+    else { _teamTwo += points; _teamOne -= points; }
+  }
+
+  void _recordTakkol(int seat, String reason, {int transferredCards = 1}) {
+    if (transferredCards <= 0 || _gameOver) return;
+    final team = _team(seat);
+    _transferThirty(team, times: transferredCards);
+    _takkolCount[team]++;
+    _history.add('${_names[seat]} made Takkol ($reason): ${30 * transferredCards} points transferred. Team Takkol count: ${_takkolCount[team]}/4.');
+    if (_takkolCount[team] >= 4) {
+      _gameOver = true;
+      _matchFinished = true;
+      _status = 'FOURTH TAKKOL — Team ${team + 1} loses this hand.';
+    }
   }
 
   int _trickWinner() {
@@ -1040,14 +1062,6 @@ class _ToraGamePageState extends State<ToraGamePage> {
       return;
     }
     final seat = _turn;
-    // Computer players also have the NO MORE option. They check the same 52-card state.
-    for (final suit in _suits) {
-      final othersCount = List.generate(4, (i) => i).where((i) => i != seat).fold<int>(0, (sum, i) => sum + _hands[i].where((c) => _suit(c) == suit).length);
-      if (othersCount == 0) {
-        _history.add('${_names[seat]} correctly used NO MORE for $suit.');
-        break;
-      }
-    }
     final legal = _legalCards(seat);
     if (legal.isNotEmpty) {
       final chosen = _chooseStrategicAiCard(seat, legal);
@@ -1062,25 +1076,82 @@ class _ToraGamePageState extends State<ToraGamePage> {
     if (_gameOver || _dealing || _aiBusy || _checkingClaim || _turn != seat) {
       _toast('Use this option when it is your turn.'); return;
     }
-    final suit = await showModalBottomSheet<String>(context: context, backgroundColor: t.panel, builder: (ctx) => SafeArea(child: Padding(padding: const EdgeInsets.all(18), child: Column(mainAxisSize: MainAxisSize.min, children: [Text('${_names[seat]} — choose a suit', style: TextStyle(color: t.accent, fontWeight: FontWeight.bold, fontSize: 18)), const SizedBox(height: 14), Wrap(spacing: 10, runSpacing: 10, alignment: WrapAlignment.center, children: [for (final s in _suits) _suitButton(ctx, s)])]))));
+    final suit = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: t.panel,
+      builder: (ctx) => SafeArea(child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Text('${_names[seat]} — choose a suit',
+            style: TextStyle(color: t.accent, fontWeight: FontWeight.bold, fontSize: 18)),
+          const SizedBox(height: 14),
+          Wrap(spacing: 10, runSpacing: 10, alignment: WrapAlignment.center,
+            children: [for (final s in _suits) _suitButton(ctx, s)]),
+        ]),
+      )),
+    );
     if (suit == null || !mounted) return;
-    final remaining = <int, List<String>>{};
-    for (int i = 0; i < 4; i++) { if (i != seat) remaining[i] = _hands[i].where((c) => _suit(c) == suit).toList(); }
-    final count = remaining.values.fold<int>(0, (sum, list) => sum + list.length);
-    setState(() => _checkingClaim = true);
-    final correct = count == 0;
-    if (!correct) {
-      final penalty = count * 30;
-      if (_team(seat) == 0) { _teamOne += penalty; } else { _teamTwo += penalty; }
-      _history.add('${_names[seat]} claimed no more $suit but $count remained: +$penalty penalty.');
-      if (_teamOne >= 200 || _teamTwo >= 200) { _gameOver = true; _matchFinished = true; }
-    } else {
-      _history.add('${_names[seat]} correctly claimed no more $suit.');
+
+    // "No more" is truthful only when the claimant has none of that suit.
+    final ownRemaining = _hands[seat].where((c) => _suit(c) == suit).toList();
+    final others = <int, List<String>>{};
+    for (int i = 0; i < 4; i++) {
+      if (i != seat) others[i] = _hands[i].where((c) => _suit(c) == suit).toList();
     }
-    await showDialog<void>(context: context, barrierDismissible: false, builder: (ctx) => AlertDialog(backgroundColor: t.panel, title: Text(correct ? 'CORRECT — NO TAKKOL' : 'TAKKOL! WRONG COUNT', style: TextStyle(color: correct ? t.accent : Colors.redAccent, fontWeight: FontWeight.w900)), content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [Text(correct ? 'No $suit cards were in the other three hands. No penalty.' : '$count $suit card(s) were still in the other players’ hands. ${count * 30} penalty points.'), const SizedBox(height: 10), for (final e in remaining.entries) Text('${_names[e.key]}: ${e.value.isEmpty ? 'none' : e.value.join('  ')}', style: const TextStyle(fontSize: 12, color: Colors.white70))]), actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: Text('CONTINUE', style: TextStyle(color: t.accent)))]));
+    final othersCount = others.values.fold<int>(0, (sum, cards) => sum + cards.length);
+
+    setState(() => _checkingClaim = true);
+    if (ownRemaining.isNotEmpty) {
+      // A false claim is cancelled: no score change and no penalty.
+      _history.add('${_names[seat]} made an invalid NO MORE claim for $suit; cancelled with no score change.');
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: t.panel,
+          title: Text('CLAIM CANCELLED', style: TextStyle(color: t.accent, fontWeight: FontWeight.w900)),
+          content: Text('You still hold ${ownRemaining.length} $suit card(s). The NO MORE claim is cancelled. No points are added or deducted.'),
+          actions: [TextButton(onPressed: () => Navigator.pop(ctx),
+            child: Text('CONTINUE', style: TextStyle(color: t.accent)))],
+        ),
+      );
+    } else {
+      // Only up to three remaining cards in the other hands score 30 each.
+      final countedCards = othersCount.clamp(0, 3);
+      setState(() {
+        if (countedCards > 0) {
+          _recordTakkol(seat, 'NO MORE $suit', transferredCards: countedCards);
+        } else {
+          _history.add('${_names[seat]} correctly called NO MORE for $suit; no cards remained to transfer.');
+        }
+      });
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: t.panel,
+          title: Text(_gameOver ? 'FOURTH TAKKOL — TEAM LOST' : 'CORRECT — NO MORE',
+            style: TextStyle(color: _gameOver ? Colors.redAccent : t.accent, fontWeight: FontWeight.w900)),
+          content: Text(countedCards == 0
+            ? 'Your hand has no $suit cards, and none remain in the other three hands. No points transferred.'
+            : 'Your hand has no $suit cards. $countedCards remaining $suit card(s) counted (maximum 3): ${countedCards * 30} points transferred to your team.'),
+          actions: [TextButton(onPressed: () => Navigator.pop(ctx),
+            child: Text('CONTINUE', style: TextStyle(color: t.accent)))],
+        ),
+      );
+    }
     if (!mounted) return;
-    setState(() { _checkingClaim = false; _status = _matchFinished ? '200 points reached — match over.' : (correct ? '${_names[seat]} counted correctly: no $suit remains.' : '${_names[seat]} was wrong: ${count * 30} penalty points.'); });
-    if (seat != 0 && !_gameOver) _runAi();
+    setState(() {
+      _checkingClaim = false;
+      if (_gameOver) _status = 'Fourth Takkol — Team ${_team(seat) + 1} loses this hand.';
+      else if (ownRemaining.isNotEmpty) _status = 'NO MORE claim cancelled — no score change.';
+      else _status = 'Correct NO MORE for $suit.';
+    });
+    if (_gameOver) {
+      _showFinalAudit();
+    } else if (seat != 0) {
+      _runAi();
+    }
   }
 
   Widget _suitButton(BuildContext ctx, String suit) => OutlinedButton(onPressed: () => Navigator.pop(ctx, suit), style: OutlinedButton.styleFrom(foregroundColor: _isRed(suit) ? Colors.redAccent : t.accent, side: BorderSide(color: t.accent), padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12)), child: Text(suit, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)));
@@ -1098,8 +1169,10 @@ class _ToraGamePageState extends State<ToraGamePage> {
 • If you do not have it, any suit may be played; it cannot win the trick.
 • Highest card of the led suit wins. Winner collects all four cards and leads next.
 • Whoever captures Q♠ deals the next round and plays its first card.
-• Takkol: when any suit is led, if nobody else holds a card of that suit, 30 points transfer.
-• “No more” checks a chosen suit in the other three hands; each remaining card causes 30 penalty points.
+• Takkol: any suit can trigger it when the other three players hold none of that suit; transfer 30 points to the caller's team.
+• NO MORE: the caller must have zero cards of the chosen suit. A false claim is cancelled with no score change.
+• For a correct NO MORE, up to 3 cards of that suit remaining in the other hands transfer 30 points each to the caller's team.
+• The fourth scoring Takkol by the same team in one hand makes that team lose the hand immediately.
 • Card penalties: each heart 1, Q♠ 9, J♣ 5, 10♦ 3.
 • Match ends when either team reaches 200 penalty points.''';
     showDialog<void>(
