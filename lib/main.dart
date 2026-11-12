@@ -366,48 +366,98 @@ class ToraSplashPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const gold = Color(0xFFFFD36A);
+    const deepGold = Color(0xFF9B681B);
     return Scaffold(
-      backgroundColor: theme.background,
+      backgroundColor: const Color(0xFF030303),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final scale = (constraints.maxHeight / 390).clamp(0.68, 1.0);
+            final scale = (constraints.maxHeight / 620).clamp(.72, 1.0);
             return Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      width: 94 * scale,
-                      height: 94 * scale,
+                      width: 238 * scale,
+                      padding: EdgeInsets.all(7 * scale),
                       decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(colors: [theme.cardTop, theme.cardBottom]),
-                        border: Border.all(color: theme.accent, width: 2),
-                        boxShadow: [BoxShadow(color: theme.accent.withOpacity(.2), blurRadius: 20)],
+                        borderRadius: BorderRadius.circular(26),
+                        gradient: const LinearGradient(
+                          colors: [gold, deepGold, Color(0xFFFFF0B0), deepGold, gold],
+                          begin: Alignment.topLeft, end: Alignment.bottomRight,
+                        ),
+                        boxShadow: [BoxShadow(color: gold.withOpacity(.28), blurRadius: 28, spreadRadius: 2)],
                       ),
-                      child: Center(
-                        child: Text('T', style: TextStyle(color: theme.accent, fontSize: 58 * scale, fontWeight: FontWeight.w900)),
+                      child: Container(
+                        height: 290 * scale,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF080705),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: gold.withOpacity(.85), width: 1.4),
+                        ),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Positioned.fill(child: CustomPaint(painter: _SplashOrnamentPainter())),
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  width: 172 * scale, height: 172 * scale,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: gold, width: 3),
+                                    boxShadow: [BoxShadow(color: gold.withOpacity(.22), blurRadius: 18)],
+                                  ),
+                                  child: ClipOval(
+                                    child: Container(
+                                      color: const Color(0xFF17110A),
+                                      child: Center(child: Text('AS', style: TextStyle(
+                                        color: gold, fontSize: 62 * scale,
+                                        fontWeight: FontWeight.w900, letterSpacing: 3,
+                                      ))),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: 15 * scale),
+                                Text('Adell Sahil', textAlign: TextAlign.center,
+                                  style: TextStyle(color: gold, fontSize: 25 * scale,
+                                    fontWeight: FontWeight.w900, letterSpacing: 1.8,
+                                    shadows: const [Shadow(color: deepGold, blurRadius: 12)])),
+                                SizedBox(height: 5 * scale),
+                                Text('FOUNDER • TORA', style: TextStyle(
+                                  color: const Color(0xFFE8D5A5), fontSize: 9 * scale,
+                                  letterSpacing: 2.2, fontWeight: FontWeight.w700)),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    SizedBox(height: 10 * scale),
-                    Text('TORA', style: TextStyle(color: theme.accent, fontSize: 34 * scale, fontWeight: FontWeight.w900, letterSpacing: 7)),
+                    SizedBox(height: 20 * scale),
+                    Text('TORA', style: TextStyle(
+                      color: gold, fontSize: 43 * scale, fontWeight: FontWeight.w900,
+                      letterSpacing: 8, shadows: const [Shadow(color: deepGold, blurRadius: 16)])),
                     SizedBox(height: 5 * scale),
-                    Text('THINK SMART • PLAY TORA', style: TextStyle(color: Colors.white70, letterSpacing: 1.5, fontSize: 10 * scale)),
-                    SizedBox(height: 12 * scale),
-                    CircleAvatar(radius: 25 * scale, backgroundColor: theme.panel, child: Text('AS', style: TextStyle(color: theme.accent, fontSize: 19 * scale, fontWeight: FontWeight.w900))),
-                    SizedBox(height: 6 * scale),
-                    Text('Created by Adell Sahil', style: TextStyle(color: Colors.white70, fontSize: 11 * scale)),
-                    SizedBox(height: 14 * scale),
+                    Text('ROYAL CARD GAME', style: TextStyle(
+                      color: const Color(0xFFE8D5A5), fontSize: 10 * scale,
+                      letterSpacing: 3, fontWeight: FontWeight.w700)),
+                    SizedBox(height: 24 * scale),
                     SizedBox(
-                      width: 220,
-                      height: 46 * scale,
+                      width: 238, height: 50 * scale,
                       child: FilledButton(
                         onPressed: () => onStart(context),
-                        style: FilledButton.styleFrom(backgroundColor: theme.accent, foregroundColor: Colors.black, padding: EdgeInsets.zero),
-                        child: Text('START GAME', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2, fontSize: 13 * scale)),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: gold, foregroundColor: Colors.black,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14),
+                            side: const BorderSide(color: deepGold, width: 2)),
+                          elevation: 10, shadowColor: gold.withOpacity(.35),
+                        ),
+                        child: Text('START GAME', style: TextStyle(
+                          fontWeight: FontWeight.w900, letterSpacing: 2.5, fontSize: 14 * scale)),
                       ),
                     ),
                   ],
@@ -419,6 +469,28 @@ class ToraSplashPage extends StatelessWidget {
       ),
     );
   }
+}
+
+class _SplashOrnamentPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final p = Paint()..color = const Color(0xFFFFD36A).withOpacity(.34)
+      ..style = PaintingStyle.stroke..strokeWidth = 1;
+    final r = Rect.fromLTWH(12, 12, size.width - 24, size.height - 24);
+    canvas.drawRRect(RRect.fromRectAndRadius(r, const Radius.circular(14)), p);
+    for (final x in [18.0, size.width - 18]) {
+      for (final y in [18.0, size.height - 18]) {
+        canvas.drawCircle(Offset(x, y), 5, p);
+        canvas.drawCircle(Offset(x, y), 9, p..strokeWidth = .6);
+        final path = Path()..moveTo(x - 11, y)..quadraticBezierTo(x, y - 13, x + 11, y)
+          ..quadraticBezierTo(x, y + 13, x - 11, y);
+        canvas.drawPath(path, p);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _SplashOrnamentPainter oldDelegate) => false;
 }
 
 class _FacePortraitPainter extends CustomPainter {
