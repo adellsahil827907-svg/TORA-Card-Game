@@ -1695,6 +1695,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
                 icon: Icons.style_rounded,
                 title: 'Royal Card Collection',
                 subtitle: 'ځانګړي د ورقو مخونه او شاګانې',
+                price: 'Global $4.99',
                 status: 'COMING SOON',
               ),
               const SizedBox(height: 9),
@@ -1702,6 +1703,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
                 icon: Icons.auto_awesome_rounded,
                 title: 'Golden Effects',
                 subtitle: 'طلایي ځلاوې او ځانګړي بصري افکتونه',
+                price: 'Global $2.99',
                 status: 'COMING SOON',
               ),
               const SizedBox(height: 9),
@@ -1709,15 +1711,54 @@ class _ToraGamePageState extends State<ToraGamePage> {
                 icon: Icons.workspace_premium_outlined,
                 title: 'Royal Profile Frames',
                 subtitle: 'د لوبغاړي لپاره ځانګړي شاهي چوکاټونه',
+                price: 'Global $2.99',
                 status: 'COMING SOON',
               ),
               const SizedBox(height: 9),
               _storeOffer(
                 icon: Icons.block_rounded,
-                title: 'Ad-Free TORA',
-                subtitle: 'د اعلانونو لرې کولو اختیاري نسخه',
+                title: 'Ad-Free TORA • Lifetime',
+                subtitle: 'د اعلانونو د تل لپاره بندول؛ یو ځل پېرود',
+                price: 'Global $29.99',
                 status: 'COMING SOON',
               ),
+              const SizedBox(height: 9),
+              _storeOffer(
+                icon: Icons.diamond_rounded,
+                title: 'Royal VIP • Lifetime',
+                subtitle: 'ټول Premium ډیزاینونه، افېکټونه او Ad-Free',
+                price: 'Global $49.99',
+                status: 'COMING SOON',
+              ),
+              const SizedBox(height: 18),
+              _settingsHeading('REGIONAL PRICE LIST  •  د هېوادونو نرخونه'),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: t.panel,
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(color: t.accent.withOpacity(.42)),
+                ),
+                child: Column(children: [
+                  Row(children: [
+                    const Expanded(flex: 5, child: Text('PRODUCT',
+                      style: TextStyle(color: Colors.white54, fontSize: 8, fontWeight: FontWeight.w900))),
+                    _priceHeader('GLOBAL'),
+                    _priceHeader('AF'),
+                    _priceHeader('PK'),
+                  ]),
+                  const SizedBox(height: 6),
+                  _regionalPriceRow('Royal Cards', r'$4.99', r'$2.49', r'$3.49'),
+                  _regionalPriceRow('Golden Effects', r'$2.99', r'$1.49', r'$2.49'),
+                  _regionalPriceRow('Profile Frames', r'$2.99', r'$1.49', r'$2.49'),
+                  _regionalPriceRow('Ad-Free Lifetime', r'$29.99', r'$9.99', r'$14.99'),
+                  _regionalPriceRow('Royal VIP Lifetime', r'$49.99', r'$19.99', r'$34.99', highlight: true),
+                ]),
+              ),
+              const SizedBox(height: 8),
+              const Text('VIP د ټولو Premium ظاهري ځانګړنو او د اعلانونو د تل لپاره بندولو امتیاز لري.',
+                style: TextStyle(color: Colors.white70, fontSize: 10, height: 1.4)),
               const SizedBox(height: 18),
               _settingsHeading('ADVERTISING  •  د اعلانونو سیستم'),
               const SizedBox(height: 9),
@@ -1771,6 +1812,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
     required IconData icon,
     required String title,
     required String subtitle,
+    required String price,
     required String status,
   }) => Container(
     padding: const EdgeInsets.all(12),
@@ -1796,17 +1838,46 @@ class _ToraGamePageState extends State<ToraGamePage> {
         Text(subtitle, style: const TextStyle(color: Colors.white60, fontSize: 10)),
       ])),
       const SizedBox(width: 6),
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        decoration: BoxDecoration(
-          color: t.accent.withOpacity(.10),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: t.accent.withOpacity(.38)),
+      Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+        Text(price, style: TextStyle(color: t.accent, fontSize: 10, fontWeight: FontWeight.w900)),
+        const SizedBox(height: 5),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
+          decoration: BoxDecoration(
+            color: t.accent.withOpacity(.10),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: t.accent.withOpacity(.38)),
+          ),
+          child: Text(status, style: TextStyle(color: t.accent, fontSize: 7, fontWeight: FontWeight.w900)),
         ),
-        child: Text(status, style: TextStyle(color: t.accent, fontSize: 8, fontWeight: FontWeight.w900)),
-      ),
+      ]),
     ]),
   );
+
+  Widget _priceHeader(String value) => SizedBox(
+    width: 53,
+    child: Text(value, textAlign: TextAlign.center,
+      style: TextStyle(color: t.accent, fontSize: 8, fontWeight: FontWeight.w900)),
+  );
+
+  Widget _regionalPriceRow(String title, String global, String af, String pk, {bool highlight = false}) =>
+    Container(
+      padding: const EdgeInsets.symmetric(vertical: 7),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: t.accent.withOpacity(.16))),
+        color: highlight ? t.accent.withOpacity(.07) : Colors.transparent,
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Row(children: [
+        Expanded(flex: 5, child: Text(title,
+          style: TextStyle(color: highlight ? t.accent : Colors.white70,
+            fontSize: 9, fontWeight: highlight ? FontWeight.w900 : FontWeight.w600))),
+        for (final value in [global, af, pk])
+          SizedBox(width: 53, child: Text(value, textAlign: TextAlign.center,
+            style: TextStyle(color: highlight ? t.accent : Colors.white,
+              fontSize: 9, fontWeight: FontWeight.w800))),
+      ]),
+    );
 
   Future<void> _settings() async {
     await showModalBottomSheet<void>(
