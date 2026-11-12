@@ -1043,9 +1043,43 @@ class _ToraGamePageState extends State<ToraGamePage> {
   }
 
   Future<void> _signOutRoyal() async {
-    await FirebaseAuth.instance.signOut();
-    await _loadRoyalProfile();
-    if (mounted) _toast('Signed out of TORA account.');
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: t.panel,
+        title: Text('SIGN OUT',
+          style: TextStyle(color: t.accent, fontWeight: FontWeight.w900)),
+        content: const Text(
+          'Are you sure you want to sign out of your TORA account?',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('CANCEL'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: t.accent,
+              foregroundColor: Colors.black,
+            ),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('SIGN OUT'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    // Close the account sheet before changing the signed-in state.
+    Navigator.of(context).pop();
+    try {
+      await FirebaseAuth.instance.signOut();
+      await _loadRoyalProfile();
+      if (mounted) _toast('Signed out of TORA account.');
+    } catch (e) {
+      if (mounted) _toast('Could not sign out: $e');
+    }
   }
 
   Future<void> _royalAccount() async {
