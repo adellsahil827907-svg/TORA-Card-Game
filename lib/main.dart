@@ -1094,60 +1094,50 @@ class _ToraGamePageState extends State<ToraGamePage> {
     );
     if (suit == null || !mounted) return;
 
-    // "No more" is truthful only when the claimant has none of that suit.
-    final ownRemaining = _hands[seat].where((c) => _suit(c) == suit).toList();
+    // NO MORE checks only the other three players' hands. The caller's own
+    // cards are irrelevant; every remaining card elsewhere costs 30 points.
     final others = <int, List<String>>{};
     for (int i = 0; i < 4; i++) {
       if (i != seat) others[i] = _hands[i].where((c) => _suit(c) == suit).toList();
     }
-    final othersCount = others.values.fold<int>(0, (sum, cards) => sum + cards.length);
+    final countedCards = others.values.fold<int>(0, (sum, cards) => sum + cards.length);
 
     setState(() => _checkingClaim = true);
-    if (ownRemaining.isNotEmpty) {
-      // A false claim is cancelled: no score change and no penalty.
-      _history.add('${_names[seat]} made an invalid NO MORE claim for $suit; cancelled with no score change.');
-      await showDialog<void>(
-        context: context,
-        barrierDismissible: false,
-        builder: (ctx) => AlertDialog(
-          backgroundColor: t.panel,
-          title: Text('CLAIM CANCELLED', style: TextStyle(color: t.accent, fontWeight: FontWeight.w900)),
-          content: Text('You still hold ${ownRemaining.length} $suit card(s). The NO MORE claim is cancelled. No points are added or deducted.'),
-          actions: [TextButton(onPressed: () => Navigator.pop(ctx),
-            child: Text('CONTINUE', style: TextStyle(color: t.accent)))],
-        ),
-      );
-    } else {
-      // Only up to three remaining cards in the other hands score 30 each.
-      final countedCards = othersCount.clamp(0, 3);
-      setState(() {
-        if (countedCards > 0) {
-          _recordTakkol(seat, 'NO MORE $suit', transferredCards: countedCards);
-        } else {
-          _history.add('${_names[seat]} correctly called NO MORE for $suit; no cards remained to transfer.');
-        }
-      });
-      await showDialog<void>(
-        context: context,
-        barrierDismissible: false,
-        builder: (ctx) => AlertDialog(
-          backgroundColor: t.panel,
-          title: Text(_gameOver ? 'FOURTH TAKKOL — TEAM LOST' : 'CORRECT — NO MORE',
-            style: TextStyle(color: _gameOver ? Colors.redAccent : t.accent, fontWeight: FontWeight.w900)),
-          content: Text(countedCards == 0
-            ? 'Your hand has no $suit cards, and none remain in the other three hands. No points transferred.'
-            : 'Your hand has no $suit cards. $countedCards remaining $suit card(s) counted (maximum 3): ${countedCards * 30} points transferred to your team.'),
-          actions: [TextButton(onPressed: () => Navigator.pop(ctx),
-            child: Text('CONTINUE', style: TextStyle(color: t.accent)))],
-        ),
-      );
-    }
+    setState(() {
+      if (countedCards > 0) {
+        // Add 30 penalty points per card to the caller's team and subtract
+        // the same amount from the opposing team's penalty account.
+        _recordTakkol(seat, 'NO MORE $suit', transferredCards: countedCards);
+      } else {
+        _history.add('${_names[seat]} called NO MORE for $suit; no cards remained in the other three hands.');
+      }
+      // Four or more cards remaining in the other hands means immediate loss.
+      if (countedCards >= 4) {
+        _gameOver = true;
+        _matchFinished = true;
+        _status = 'NO MORE failed: $countedCards cards remained. Team ${_team(seat) + 1} loses this hand.';
+        _history.add('NO MORE penalty reached ${countedCards * 30} points; team loses immediately.');
+      }
+    });
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: t.panel,
+        title: Text(_gameOver ? 'NO MORE — TEAM LOST' : 'NO MORE RESULT',
+          style: TextStyle(color: _gameOver ? Colors.redAccent : t.accent, fontWeight: FontWeight.w900)),
+        content: Text(countedCards == 0
+          ? 'No $suit cards remained in the other three players’ hands. No points transferred.'
+          : '$countedCards $suit card(s) remained in the other three players’ hands. $countedCards × 30 = ${countedCards * 30} penalty points added to your team and deducted from the opposing team.${countedCards >= 4 ? ' Your team loses immediately because four or more cards remained.' : ''}'),
+        actions: [TextButton(onPressed: () => Navigator.pop(ctx),
+          child: Text('CONTINUE', style: TextStyle(color: t.accent)))],
+      ),
+    );
     if (!mounted) return;
     setState(() {
       _checkingClaim = false;
-      if (_gameOver) _status = 'Fourth Takkol — Team ${_team(seat) + 1} loses this hand.';
-      else if (ownRemaining.isNotEmpty) _status = 'NO MORE claim cancelled — no score change.';
-      else _status = 'Correct NO MORE for $suit.';
+      if (_gameOver) _status = 'NO MORE — Team ${_team(seat) + 1} loses this hand.';
+      else _status = 'NO MORE for $suit: $countedCards card(s), ${countedCards * 30} penalty points.';
     });
     if (_gameOver) {
       _showFinalAudit();
@@ -1172,8 +1162,8 @@ class _ToraGamePageState extends State<ToraGamePage> {
 • Highest card of the led suit wins. Winner collects all four cards and leads next.
 • Whoever captures Q♠ deals the next round and plays its first card.
 • Takkol: any suit can trigger it when the other three players hold none of that suit; transfer 30 points to the caller's team.
-• NO MORE: the caller must have zero cards of the chosen suit. A false claim is cancelled with no score change.
-• For a correct NO MORE, up to 3 cards of that suit remaining in the other hands transfer 30 points each to the caller's team.
+• NO MORE: the caller's own hand is ignored. Count the chosen-suit cards in the other three hands, including the caller's partner.
+• Each remaining card adds 30 penalty points to the caller's team and subtracts 30 from the opposing team's penalty account. Four or more remaining cards make the caller's team lose immediately.
 • The fourth scoring Takkol by the same team in one hand makes that team lose the hand immediately.
 • Card penalties: each heart 1, Q♠ 9, J♣ 5, 10♦ 3.
 • Match ends when either team reaches 200 penalty points.''';
