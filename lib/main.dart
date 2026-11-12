@@ -898,12 +898,17 @@ class _ToraGamePageState extends State<ToraGamePage> {
     return best;
   }
 
-  // Takkol is a transfer inside the existing team score accounts; it never
-  // creates or updates a separate Takkol score. The caller's team receives
-  // 30 points per counted card and the opposing team's same account loses 30.
-  void _transferToSharedTeamScore(int winningTeam, {int times = 1}) {
-    if (times <= 0) return;
-    final points = 30 * times;
+  // Takkol transfers whole 30-point blocks only from the opposing team's
+  // existing ordinary-penalty balance. No partial block and no negative score.
+  // Both teams continue using these same two shared score accounts.
+  int _transferToSharedTeamScore(int winningTeam, {int times = 1}) {
+    if (times <= 0) return 0;
+    final opposingScore = winningTeam == 0 ? _teamTwo : _teamOne;
+    final availableBlocks = opposingScore ~/ 30;
+    final blocksToTransfer = times < availableBlocks ? times : availableBlocks;
+    if (blocksToTransfer <= 0) return 0;
+
+    final points = 30 * blocksToTransfer;
     if (winningTeam == 0) {
       _teamOne += points;
       _teamTwo -= points;
@@ -922,14 +927,19 @@ class _ToraGamePageState extends State<ToraGamePage> {
           : 'Team 2 (Player 2 + Player 4)';
       _status = '$loser reached 200 penalty points and loses the match.';
     }
+    return points;
   }
 
   void _recordTakkol(int seat, String reason, {int transferredCards = 1}) {
     if (transferredCards <= 0 || _gameOver) return;
     final team = _team(seat);
-    _transferToSharedTeamScore(team, times: transferredCards);
+    final transferredPoints =
+        _transferToSharedTeamScore(team, times: transferredCards);
     _takkolCount[team]++;
-    _history.add('${_names[seat]} made Takkol ($reason): ${30 * transferredCards} points transferred. Team Takkol count: ${_takkolCount[team]}/4.');
+    final transferMessage = transferredPoints == 0
+        ? 'no points transferred (opponent has less than 30 penalty points)'
+        : '$transferredPoints points transferred';
+    _history.add('${_names[seat]} made Takkol ($reason): $transferMessage. Team Takkol count: ${_takkolCount[team]}/4.');
     if (_takkolCount[team] >= 4) {
       _gameOver = true;
       _matchFinished = true;
