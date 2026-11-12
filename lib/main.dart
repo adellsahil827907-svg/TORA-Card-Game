@@ -993,21 +993,32 @@ class _ToraGamePageState extends State<ToraGamePage> {
                         return;
                       }
                       updateDialog(() => busy = true);
+                      final phoneCallback = Completer<void>();
+                      void finishPhoneRequest() {
+                        if (!phoneCallback.isCompleted) phoneCallback.complete();
+                      }
                       try {
                         await FirebaseAuth.instance.verifyPhoneNumber(
                           phoneNumber: phone,
+                          timeout: const Duration(seconds: 60),
                           verificationCompleted: (credential) async {
                             try {
                               final result = await FirebaseAuth.instance.signInWithCredential(credential);
                               await _finishRoyalSignIn(result);
                               if (dialogContext.mounted) Navigator.pop(dialogContext);
                             } on FirebaseAuthException catch (e) {
-                              _toast(e.message ?? e.code);
+                              _toast('Phone sign-in failed (${e.code}): ${e.message ?? 'Please try again.'}');
+                            } catch (e) {
+                              _toast('Phone sign-in failed: $e');
+                            } finally {
+                              if (dialogContext.mounted) updateDialog(() => busy = false);
+                              finishPhoneRequest();
                             }
                           },
                           verificationFailed: (e) {
-                            _toast(e.message ?? e.code);
+                            _toast('Phone verification failed (${e.code}): ${e.message ?? 'Check the number and try again.'}');
                             if (dialogContext.mounted) updateDialog(() => busy = false);
+                            finishPhoneRequest();
                           },
                           codeSent: (id, resendToken) {
                             verificationId = id;
@@ -1018,15 +1029,25 @@ class _ToraGamePageState extends State<ToraGamePage> {
                               });
                             }
                             _toast('SMS code sent. Enter the code to continue.');
+                            finishPhoneRequest();
                           },
                           codeAutoRetrievalTimeout: (id) {
                             verificationId = id;
                             if (dialogContext.mounted) updateDialog(() => busy = false);
+                            finishPhoneRequest();
+                          },
+                        );
+                        await phoneCallback.future.timeout(
+                          const Duration(seconds: 65),
+                          onTimeout: () {
+                            if (dialogContext.mounted) updateDialog(() => busy = false);
+                            _toast('Phone verification timed out. Check your internet and try again.');
                           },
                         );
                       } catch (e) {
-                        _toast('Could not send SMS: $e');
+                        _toast('Could not start phone verification: $e');
                         if (dialogContext.mounted) updateDialog(() => busy = false);
+                        finishPhoneRequest();
                       }
                     } else {
                       if (verificationId == null || smsController.text.trim().isEmpty) {
