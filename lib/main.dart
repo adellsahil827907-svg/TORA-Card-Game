@@ -25,67 +25,230 @@ class ToraTheme {
   const ToraTheme(this.name, this.background, this.panel, this.accent, this.table, this.cardTop, this.cardBottom, this.silver, this.pattern);
 }
 const List<ToraTheme> _themes = [
-  ToraTheme('Royal Black Gold', Color(0xFF090B10), Color(0xFF17130B), Color(0xFFD6B15C), Color(0xFF101114), Color(0xFF27231B), Color(0xFF090909), Color(0xFFE7D4A2), 0),
-  ToraTheme('Royal Green Gold', Color(0xFF071A14), Color(0xFF102B20), Color(0xFFD6B15C), Color(0xFF14513B), Color(0xFF234B3B), Color(0xFF10271F), Color(0xFFF0D98C), 1),
-  ToraTheme('Royal Red Gold', Color(0xFF1D090E), Color(0xFF35121D), Color(0xFFD6B15C), Color(0xFF741D2B), Color(0xFF612638), Color(0xFF260D16), Color(0xFFFFDCE0), 2),
-  ToraTheme('Royal Blue Gold', Color(0xFF071326), Color(0xFF12233D), Color(0xFFD6B15C), Color(0xFF123D70), Color(0xFF273A55), Color(0xFF101D31), Color(0xFFE6EDF7), 3),
-  ToraTheme('Royal White Gold', Color(0xFF17212B), Color(0xFF263746), Color(0xFFD6B15C), Color(0xFFF2EBDD), Color(0xFFE8DFC9), Color(0xFFCFC5B1), Color(0xFF806B43), 4),
-  ToraTheme('Ocean Blue', Color(0xFF061B2A), Color(0xFF0C2B40), Color(0xFF8DE1F5), Color(0xFF07506A), Color(0xFF17617A), Color(0xFF082638), Color(0xFFD1F5FF), 5),
-  ToraTheme('Silver Chrome', Color(0xFF171B20), Color(0xFF292F36), Color(0xFFE1E7ED), Color(0xFF35434A), Color(0xFF4B555D), Color(0xFF171D22), Color(0xFFF4F6F8), 6),
-  ToraTheme('Copper Luxe', Color(0xFF1D120C), Color(0xFF332016), Color(0xFFE6A66F), Color(0xFF563522), Color(0xFF70472D), Color(0xFF28180F), Color(0xFFFFD5B0), 7),
-  ToraTheme('Jade Table', Color(0xFF071A17), Color(0xFF102B25), Color(0xFF9DE0B9), Color(0xFF17634A), Color(0xFF28765B), Color(0xFF0B2B20), Color(0xFFD6F5E2), 8),
-  ToraTheme('Arctic White', Color(0xFF17212B), Color(0xFF263746), Color(0xFFFFD77A), Color(0xFF47717B), Color(0xFF607D86), Color(0xFF243E49), Color(0xFFEAF7FA), 9),
+  ToraTheme('Royal Black Gold', Color(0xFF08090D), Color(0xFF17130B), Color(0xFFE0BC68), Color(0xFF111216), Color(0xFF302719), Color(0xFF08090D), Color(0xFFFFE6A6), 0),
+  ToraTheme('Royal Green Gold', Color(0xFF061710), Color(0xFF10271D), Color(0xFFE0BC68), Color(0xFF0D4932), Color(0xFF1C5139), Color(0xFF062318), Color(0xFFFFE6A6), 1),
+  ToraTheme('Royal Red Gold', Color(0xFF1A080D), Color(0xFF32121A), Color(0xFFE0BC68), Color(0xFF641827), Color(0xFF762638), Color(0xFF260A12), Color(0xFFFFE6A6), 2),
+  ToraTheme('Royal Blue Gold', Color(0xFF071326), Color(0xFF12233D), Color(0xFFE0BC68), Color(0xFF123D70), Color(0xFF244D79), Color(0xFF091A31), Color(0xFFFFE6A6), 3),
+  ToraTheme('Royal White Gold', Color(0xFF17212B), Color(0xFF263746), Color(0xFFD2A84F), Color(0xFFE8DFC9), Color(0xFFF8F0DD), Color(0xFFBDB092), Color(0xFF80612B), 4),
 ];
 
 class _CardFacePatternPainter extends CustomPainter {
-  final Color color; final int style; const _CardFacePatternPainter(this.color,this.style);
-  @override void paint(Canvas c,Size s){
-    final p=Paint()..color=color.withOpacity(.17)..style=PaintingStyle.stroke..strokeWidth=1;
-    final r=Offset.zero&s;
-    if(style%4==0){c.drawRRect(RRect.fromRectAndRadius(r.deflate(3),const Radius.circular(5)),p);for(int i=0;i<4;i++){final x=i.isEven?5.0:s.width-5;final y=i<2?5.0:s.height-5;c.drawCircle(Offset(x,y),3,p);}}
-    else if(style%4==1){for(double y=7;y<s.height;y+=10){c.drawLine(Offset(4,y),Offset(s.width-4,y),p);}}
-    else if(style%4==2){for(double x=4;x<s.width;x+=10){c.drawLine(Offset(x,4),Offset(s.width-x,s.height-4),p);}}
-    else {c.drawRRect(RRect.fromRectAndRadius(r.deflate(5),Radius.circular(s.width*.18)),p);c.drawCircle(Offset(s.width/2,s.height/2),s.width*.27,p);}
+  final Color color;
+  final int style;
+  const _CardFacePatternPainter(this.color, this.style);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final gold = Paint()..color = color.withOpacity(.48)..style = PaintingStyle.stroke..strokeWidth = 1.05;
+    final glow = Paint()..color = const Color(0xFFFFE3A0).withOpacity(.22)..style = PaintingStyle.stroke..strokeWidth = .65;
+    final center = Offset(size.width / 2, size.height / 2);
+    final frame = rect.deflate(4);
+    canvas.drawRRect(RRect.fromRectAndRadius(frame, const Radius.circular(5)), gold);
+    canvas.drawRRect(RRect.fromRectAndRadius(frame.deflate(3), const Radius.circular(4)), glow);
+
+    if (style == 0) {
+      for (int i = 0; i < 4; i++) {
+        final x = i.isEven ? 8.0 : size.width - 8;
+        final y = i < 2 ? 9.0 : size.height - 9;
+        final path = Path()..moveTo(x, y + 7)..lineTo(x, y)..lineTo(x + (i.isEven ? 7 : -7), y);
+        canvas.drawPath(path, gold);
+      }
+      canvas.drawCircle(center, size.width * .20, gold);
+      canvas.drawCircle(center, size.width * .15, glow);
+      canvas.drawPath(Path()..moveTo(center.dx, center.dy-size.width*.12)..lineTo(center.dx+size.width*.12,center.dy)..lineTo(center.dx,center.dy+size.width*.12)..lineTo(center.dx-size.width*.12,center.dy)..close(), gold);
+    } else if (style == 1) {
+      for (double y = 8; y < size.height - 5; y += 9) {
+        canvas.drawLine(Offset(7, y), Offset(size.width - 7, y), glow);
+      }
+      for (double x = 8; x < size.width - 5; x += 9) {
+        canvas.drawLine(Offset(x, 7), Offset(size.width - x, size.height - 7), gold);
+      }
+      canvas.drawCircle(center, size.width * .18, gold);
+    } else if (style == 2) {
+      for (int i = 0; i < 8; i++) {
+        final a = i * pi / 4;
+        final p = Path()
+          ..moveTo(center.dx + cos(a) * size.width * .10, center.dy + sin(a) * size.width * .10)
+          ..lineTo(center.dx + cos(a + .22) * size.width * .31, center.dy + sin(a + .22) * size.width * .31)
+          ..lineTo(center.dx + cos(a - .22) * size.width * .31, center.dy + sin(a - .22) * size.width * .31)
+          ..close();
+        canvas.drawPath(p, gold);
+      }
+      canvas.drawCircle(center, size.width * .12, glow);
+    } else if (style == 3) {
+      for (int i = 0; i < 5; i++) {
+        final rr = frame.deflate(i * 4.0);
+        canvas.drawRRect(RRect.fromRectAndRadius(rr, Radius.circular(3 + i)), i.isEven ? gold : glow);
+      }
+      canvas.drawLine(Offset(8, center.dy), Offset(size.width - 8, center.dy), glow);
+    } else {
+      final path = Path();
+      for (int i = 0; i < 12; i++) {
+        final a = i * pi / 6;
+        final radius = i.isEven ? size.width * .27 : size.width * .13;
+        final point = Offset(center.dx + cos(a) * radius, center.dy + sin(a) * radius);
+        if (i == 0) { path.moveTo(point.dx, point.dy); } else { path.lineTo(point.dx, point.dy); }
+      }
+      path.close();
+      canvas.drawPath(path, gold);
+      canvas.drawCircle(center, size.width * .08, glow);
+    }
   }
-  @override bool shouldRepaint(covariant _CardFacePatternPainter o)=>o.color!=color||o.style!=style;
+
+  @override
+  bool shouldRepaint(covariant _CardFacePatternPainter old) => old.color != color || old.style != style;
 }
 
 class _BackPatternPainter extends CustomPainter {
-  final Color color; final int style; const _BackPatternPainter(this.color,this.style);
-  @override void paint(Canvas c,Size s){final p=Paint()..color=color.withOpacity(.7)..style=PaintingStyle.stroke..strokeWidth=1.1; final r=Offset.zero&s;
-    if(style%3==0){for(int i=0;i<4;i++){final rr=r.deflate(4.0+i*5);c.drawRRect(RRect.fromRectAndRadius(rr,Radius.circular(4+i*2)),p);}}
-    else if(style%3==1){for(double x=0;x<s.width;x+=9){c.drawLine(Offset(x,0),Offset(s.width-x,s.height),p);}}
-    else {for(int i=0;i<8;i++){final a=i*pi/4;final path=Path()..moveTo(s.width/2,s.height/2)..lineTo(s.width/2+cos(a)*s.width*.46,s.height/2+sin(a)*s.height*.46);c.drawPath(path,p);}c.drawCircle(Offset(s.width/2,s.height/2),s.width*.25,p);}
+  final Color color;
+  final int style;
+  const _BackPatternPainter(this.color, this.style);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final center = Offset(size.width / 2, size.height / 2);
+    final line = Paint()..color = color.withOpacity(.92)..style = PaintingStyle.stroke..strokeWidth = 1.15;
+    final highlight = Paint()..color = const Color(0xFFFFE7AC).withOpacity(.55)..style = PaintingStyle.stroke..strokeWidth = .7;
+    canvas.drawRRect(RRect.fromRectAndRadius(rect.deflate(2), const Radius.circular(5)), line);
+    canvas.drawRRect(RRect.fromRectAndRadius(rect.deflate(6), const Radius.circular(4)), highlight);
+
+    if (style == 0) {
+      for (int i = 0; i < 5; i++) {
+        canvas.drawRRect(RRect.fromRectAndRadius(rect.deflate(5 + i * 4), Radius.circular(4 + i)), i.isEven ? line : highlight);
+      }
+      canvas.drawCircle(center, size.width * .23, line);
+      canvas.drawCircle(center, size.width * .17, highlight);
+    } else if (style == 1) {
+      for (int i = -4; i <= 4; i++) {
+        final dx = i * size.width * .13;
+        canvas.drawLine(Offset(center.dx + dx, 4), Offset(center.dx - dx, size.height - 4), line);
+        canvas.drawLine(Offset(4, center.dy + dx), Offset(size.width - 4, center.dy - dx), highlight);
+      }
+    } else if (style == 2) {
+      for (int i = 0; i < 12; i++) {
+        final a = i * pi / 6;
+        final path = Path()
+          ..moveTo(center.dx, center.dy)
+          ..lineTo(center.dx + cos(a) * size.width * .46, center.dy + sin(a) * size.width * .46);
+        canvas.drawPath(path, line);
+      }
+      canvas.drawCircle(center, size.width * .29, highlight);
+      canvas.drawCircle(center, size.width * .20, line);
+    } else if (style == 3) {
+      for (int i = 0; i < 4; i++) {
+        final inset = 8.0 + i * 7;
+        final p = Path()
+          ..moveTo(center.dx, inset)
+          ..lineTo(size.width - inset, center.dy)
+          ..lineTo(center.dx, size.height - inset)
+          ..lineTo(inset, center.dy)
+          ..close();
+        canvas.drawPath(p, i.isEven ? line : highlight);
+      }
+    } else {
+      for (int i = 0; i < 8; i++) {
+        final a = i * pi / 4;
+        final path = Path()
+          ..moveTo(center.dx + cos(a) * size.width * .08, center.dy + sin(a) * size.width * .08)
+          ..quadraticBezierTo(center.dx + cos(a + .35) * size.width * .48, center.dy + sin(a + .35) * size.width * .48, center.dx + cos(a) * size.width * .36, center.dy + sin(a) * size.width * .36);
+        canvas.drawPath(path, line);
+      }
+      canvas.drawCircle(center, size.width * .14, highlight);
+    }
   }
-  @override bool shouldRepaint(covariant _BackPatternPainter o)=>o.style!=style||o.color!=color;
+
+  @override
+  bool shouldRepaint(covariant _BackPatternPainter old) => old.style != style || old.color != color;
 }
 
 class _RoyalTablePainter extends CustomPainter {
-  final Color accent; final int pattern;
+  final Color accent;
+  final int pattern;
   const _RoyalTablePainter(this.accent, this.pattern);
-  @override void paint(Canvas canvas, Size size) {
-    final stroke = Paint()..color = accent.withOpacity(.48)..style = PaintingStyle.stroke..strokeWidth = 1.2;
-    final soft = Paint()..color = accent.withOpacity(.13)..style = PaintingStyle.stroke..strokeWidth = 1;
-    final r = Offset.zero & size;
-    canvas.drawRRect(RRect.fromRectAndRadius(r.deflate(8), const Radius.circular(18)), stroke);
-    canvas.drawRRect(RRect.fromRectAndRadius(r.deflate(15), Radius.circular(pattern.isEven ? 14 : 28)), soft);
-    // Ten visibly different ornamental table motifs.
-    if (pattern == 0 || pattern == 5) {
-      for (int i=0;i<4;i++) { final x=i.isEven?18.0:size.width-18; final y=i<2?18.0:size.height-18; final path=Path()..moveTo(x,y+22)..quadraticBezierTo(x,y,x+(i.isEven?22:-22),y)..quadraticBezierTo(x,y,x,y+22); canvas.drawPath(path,stroke); }
-    } else if (pattern == 1 || pattern == 6) {
-      for(double x=24;x<size.width;x+=28){canvas.drawLine(Offset(x,18),Offset(x,size.height-18),soft);} for(double y=24;y<size.height;y+=28){canvas.drawLine(Offset(18,y),Offset(size.width-18,y),soft);}
-    } else if (pattern == 2 || pattern == 8) {
-      for(int i=0;i<8;i++){final a=i*pi/4; final c=Offset(size.width/2,size.height/2); final path=Path()..moveTo(c.dx+cos(a)*18,c.dy+sin(a)*18)..quadraticBezierTo(c.dx+cos(a+.25)*75,c.dy+sin(a+.25)*75,c.dx+cos(a)*105,c.dy+sin(a)*105);canvas.drawPath(path,soft);} canvas.drawCircle(Offset(size.width/2,size.height/2),46,stroke);
-    } else if (pattern == 3 || pattern == 7) {
-      for(int i=0;i<5;i++){final inset=28.0+i*13; canvas.drawRRect(RRect.fromRectAndRadius(r.deflate(inset),Radius.circular(8+i*2)),soft);} 
-    } else {
-      final c=Offset(size.width/2,size.height/2); for(int i=0;i<12;i++){final a=i*pi/6; final path=Path()..moveTo(c.dx+cos(a)*28,c.dy+sin(a)*28)..lineTo(c.dx+cos(a+.12)*90,c.dy+sin(a+.12)*90)..lineTo(c.dx+cos(a-.12)*90,c.dy+sin(a-.12)*90)..close();canvas.drawPath(path,soft);} canvas.drawCircle(c,30,stroke);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final center = Offset(size.width / 2, size.height / 2);
+    final shadow = Paint()..color = Colors.black.withOpacity(.38)..style = PaintingStyle.stroke..strokeWidth = 7;
+    final gold = Paint()..color = accent.withOpacity(.78)..style = PaintingStyle.stroke..strokeWidth = 1.7;
+    final shine = Paint()..color = const Color(0xFFFFE8B0).withOpacity(.42)..style = PaintingStyle.stroke..strokeWidth = .8;
+    final soft = Paint()..color = accent.withOpacity(.22)..style = PaintingStyle.stroke..strokeWidth = 1;
+    final outer = RRect.fromRectAndRadius(rect.deflate(7), const Radius.circular(18));
+    canvas.drawRRect(outer, shadow);
+    canvas.drawRRect(outer, gold);
+    canvas.drawRRect(RRect.fromRectAndRadius(rect.deflate(13), const Radius.circular(15)), shine);
+    canvas.drawRRect(RRect.fromRectAndRadius(rect.deflate(20), const Radius.circular(12)), soft);
+
+    // Raised corner ornaments and beveled gold rails.
+    for (int i = 0; i < 4; i++) {
+      final x = i.isEven ? 22.0 : size.width - 22;
+      final y = i < 2 ? 22.0 : size.height - 22;
+      final corner = Path()
+        ..moveTo(x, y + 18)
+        ..quadraticBezierTo(x, y, x + (i.isEven ? 18 : -18), y)
+        ..moveTo(x, y + 13)
+        ..quadraticBezierTo(x, y + 5, x + (i.isEven ? 13 : -13), y + 5);
+      canvas.drawPath(corner, gold);
+      canvas.drawCircle(Offset(x, y), 2.6, shine);
     }
-    final symbol = ['♛','✦','❖','♜','♕','✧','◈','♔','❋','✥'][pattern];
-    final tp=TextPainter(text:TextSpan(text:symbol,style:TextStyle(color:accent.withOpacity(.20),fontSize:52,fontWeight:FontWeight.w900)),textDirection:TextDirection.ltr)..layout();
-    tp.paint(canvas,Offset((size.width-tp.width)/2,(size.height-tp.height)/2));
+
+    if (pattern == 0) {
+      for (int i = 0; i < 4; i++) {
+        final inset = 30.0 + i * 8;
+        canvas.drawRRect(RRect.fromRectAndRadius(rect.deflate(inset), Radius.circular(10 + i)), soft);
+      }
+      canvas.drawCircle(center, 42, gold);
+      canvas.drawCircle(center, 34, shine);
+      canvas.drawCircle(center, 25, soft);
+    } else if (pattern == 1) {
+      for (double x = 28; x < size.width - 20; x += 24) {
+        canvas.drawLine(Offset(x, 22), Offset(x, size.height - 22), soft);
+      }
+      for (double y = 28; y < size.height - 20; y += 24) {
+        canvas.drawLine(Offset(22, y), Offset(size.width - 22, y), soft);
+      }
+      canvas.drawRRect(RRect.fromRectAndRadius(rect.deflate(34), const Radius.circular(22)), gold);
+    } else if (pattern == 2) {
+      for (int i = 0; i < 12; i++) {
+        final a = i * pi / 6;
+        final path = Path()
+          ..moveTo(center.dx + cos(a) * 20, center.dy + sin(a) * 20)
+          ..quadraticBezierTo(center.dx + cos(a + .18) * 62, center.dy + sin(a + .18) * 62, center.dx + cos(a) * 92, center.dy + sin(a) * 92);
+        canvas.drawPath(path, gold);
+      }
+      canvas.drawCircle(center, 48, shine);
+      canvas.drawCircle(center, 38, soft);
+    } else if (pattern == 3) {
+      for (int i = 0; i < 6; i++) {
+        final inset = 28.0 + i * 12;
+        canvas.drawRRect(RRect.fromRectAndRadius(rect.deflate(inset), Radius.circular(8 + i * 2)), i.isEven ? gold : soft);
+      }
+      canvas.drawLine(Offset(center.dx, 22), Offset(center.dx, size.height - 22), shine);
+    } else {
+      final path = Path();
+      for (int i = 0; i < 16; i++) {
+        final a = i * pi / 8;
+        final radius = i.isEven ? 57.0 : 28.0;
+        final p = Offset(center.dx + cos(a) * radius, center.dy + sin(a) * radius);
+        if (i == 0) { path.moveTo(p.dx, p.dy); } else { path.lineTo(p.dx, p.dy); }
+      }
+      path.close();
+      canvas.drawPath(path, gold);
+      canvas.drawCircle(center, 19, shine);
+    }
+    final symbols = ['♛', '✦', '❖', '♜', '♕'];
+    final tp = TextPainter(
+      text: TextSpan(text: symbols[pattern.clamp(0, 4)], style: TextStyle(color: accent.withOpacity(.22), fontSize: 48, fontWeight: FontWeight.w900)),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    tp.paint(canvas, Offset(center.dx - tp.width / 2, center.dy - tp.height / 2));
   }
-  @override bool shouldRepaint(covariant _RoyalTablePainter old)=>old.pattern!=pattern||old.accent!=accent;
+
+  @override
+  bool shouldRepaint(covariant _RoyalTablePainter old) => old.pattern != pattern || old.accent != accent;
 }
 
 class ToraApp extends StatefulWidget {
@@ -786,9 +949,9 @@ class _ToraGamePageState extends State<ToraGamePage> {
 
   Widget _cardFace(String card, {Key? key, double width = 52, double height = 74, bool back = false}) {
     if (back) {
-      const backSymbols = ['♛', '♠', '♜', '❖', '♔', '✥', '✦', '♕', '❋', '◈'];
-      const backColors = [Color(0xFF17120A), Color(0xFF10233C), Color(0xFF123B2B), Color(0xFF32183F), Color(0xFF501827), Color(0xFF063C50), Color(0xFF333B42), Color(0xFF56351F), Color(0xFF124A3C), Color(0xFF34535A)];
-      final style = _cardBackStyle.clamp(0, 9).toInt();
+      const backSymbols = ['♛', '✦', '❖', '♜', '♕'];
+      const backColors = [Color(0xFF17120A), Color(0xFF102B20), Color(0xFF35121D), Color(0xFF12233D), Color(0xFFEEE3CB)];
+      final style = _cardBackStyle.clamp(0, 4).toInt();
       return Container(key: key, width: width, height: height,
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(8),
           gradient: LinearGradient(colors: [Color.lerp(backColors[style], t.accent, .25)!, backColors[style]], begin: Alignment.topLeft, end: Alignment.bottomRight),
@@ -804,8 +967,8 @@ class _ToraGamePageState extends State<ToraGamePage> {
     final ink = red ? const Color(0xFFC6283D) : const Color(0xFF17202A);
     final isFace = ['J', 'Q', 'K'].contains(rank);
     final isAce = rank == 'A';
-    final faceStyle = _cardFaceStyle.clamp(0, 9).toInt();
-    final faceBorders = [const Color(0xFFB58A3A), const Color(0xFF315A86), const Color(0xFF28765B), const Color(0xFF794A91), const Color(0xFF9B3148), const Color(0xFF24758A), const Color(0xFF707B84), const Color(0xFF9A6037), const Color(0xFF34836A), const Color(0xFF4E8A9B)];
+    final faceStyle = _cardFaceStyle.clamp(0, 4).toInt();
+    final faceBorders = [const Color(0xFFB58A3A), const Color(0xFF28765B), const Color(0xFF9B3148), const Color(0xFF315A86), const Color(0xFF9A7137)];
     return Container(
       width: width, height: height,
       decoration: BoxDecoration(
@@ -998,12 +1161,12 @@ class _ToraGamePageState extends State<ToraGamePage> {
     await showModalBottomSheet<void>(context: context, backgroundColor: t.panel, isScrollControlled: true,
       builder: (ctx) => SafeArea(child: SizedBox(height: MediaQuery.of(ctx).size.height*.88, child: ListView(padding: const EdgeInsets.all(14), children: [
         Text('ROYAL TORA DESIGNS', textAlign: TextAlign.center, style: TextStyle(color:t.accent,fontWeight:FontWeight.w900,fontSize:16)),
-        const SizedBox(height:8), const Text('۱۰ بېلابېل شاهي میدانونه',textAlign:TextAlign.center,style:TextStyle(color:Colors.white70)),
-        for (int i=0;i<_themes.length;i++) ListTile(leading:CircleAvatar(backgroundColor:_themes[i].table,child:Text(['♛','✦','❖','♜','♕','✧','◈','♔','❋','✥'][i],style:TextStyle(color:_themes[i].accent))),title:Text(_themes[i].name),trailing:_activeTheme.name==_themes[i].name?Icon(Icons.check_circle,color:t.accent):null,onTap:(){setState((){_activeTheme=_themes[i];});widget.onThemeChanged(i);}),
-        const Divider(), Text('CARD FRONT DESIGN — ۱۰ ډولونه',style:TextStyle(color:t.accent,fontWeight:FontWeight.bold)),
-        Wrap(spacing:6,children:[for(int i=0;i<10;i++)ChoiceChip(label:Text('${i+1}'),selected:_cardFaceStyle==i,onSelected:(_){setState(()=>_cardFaceStyle=i);})]),
-        const SizedBox(height:8), Text('CARD BACK DESIGN — ۱۰ ډولونه',style:TextStyle(color:t.accent,fontWeight:FontWeight.bold)),
-        Wrap(spacing:6,children:[for(int i=0;i<10;i++)ChoiceChip(label:Text('${i+1}'),selected:_cardBackStyle==i,onSelected:(_){setState(()=>_cardBackStyle=i);})]),
+        const SizedBox(height:8), const Text('۵ عصري لوکس شاهي میدانونه',textAlign:TextAlign.center,style:TextStyle(color:Colors.white70)),
+        for (int i=0;i<_themes.length;i++) ListTile(leading:CircleAvatar(backgroundColor:_themes[i].table,child:Text(['♛','✦','❖','♜','♕'][i],style:TextStyle(color:_themes[i].accent))),title:Text(_themes[i].name),trailing:_activeTheme.name==_themes[i].name?Icon(Icons.check_circle,color:t.accent):null,onTap:(){setState((){_activeTheme=_themes[i];});widget.onThemeChanged(i);}),
+        const Divider(), Text('CARD FRONT — ۵ LUXURY DESIGNS',style:TextStyle(color:t.accent,fontWeight:FontWeight.bold)),
+        Wrap(spacing:6,children:[for(int i=0;i<5;i++)ChoiceChip(label:Text('${i+1}'),selected:_cardFaceStyle==i,onSelected:(_){setState(()=>_cardFaceStyle=i);})]),
+        const SizedBox(height:8), Text('CARD BACK — ۵ LUXURY DESIGNS',style:TextStyle(color:t.accent,fontWeight:FontWeight.bold)),
+        Wrap(spacing:6,children:[for(int i=0;i<5;i++)ChoiceChip(label:Text('${i+1}'),selected:_cardBackStyle==i,onSelected:(_){setState(()=>_cardBackStyle=i);})]),
         const Divider(), ListTile(leading:Icon(Icons.people,color:t.accent),title:const Text('د لوبغاړو نومونه بدلول'),onTap:(){Navigator.pop(ctx);_editNames();})
       ]))));
   }
