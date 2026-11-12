@@ -895,6 +895,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
     final passwordController = TextEditingController();
     bool createAccount = false;
     bool busy = false;
+    String? authError;
 
     await showDialog<void>(
       context: context,
@@ -933,29 +934,52 @@ class _ToraGamePageState extends State<ToraGamePage> {
                     final email = emailController.text.trim();
                     final password = passwordController.text;
                     if (email.isEmpty || password.length < 6) {
-                      _toast('Enter an email and a password of at least 6 characters.');
+                      updateDialog(() => authError = 'Enter a valid email and a password of at least 6 characters.');
                       return;
                     }
-                    updateDialog(() => busy = true);
+                    updateDialog(() {
+                      busy = true;
+                      authError = null;
+                    });
                     try {
                       final auth = FirebaseAuth.instance;
-                      final result = createAccount
-                          ? await auth.createUserWithEmailAndPassword(email: email, password: password)
-                          : await auth.signInWithEmailAndPassword(email: email, password: password);
+                      final result = await (createAccount
+                          ? auth.createUserWithEmailAndPassword(email: email, password: password)
+                          : auth.signInWithEmailAndPassword(email: email, password: password))
+                          .timeout(const Duration(seconds: 25));
                       await _finishRoyalSignIn(result);
                       if (dialogContext.mounted) Navigator.pop(dialogContext);
                     } on FirebaseAuthException catch (e) {
-                      _toast(e.message ?? e.code);
+                      if (dialogContext.mounted) {
+                        updateDialog(() => authError = e.message ?? e.code);
+                      }
+                    } on TimeoutException {
+                      if (dialogContext.mounted) {
+                        updateDialog(() => authError = 'Connection timed out. Check internet and try again.');
+                      }
                     } catch (e) {
-                      _toast('Login failed: $e');
+                      if (dialogContext.mounted) {
+                        updateDialog(() => authError = 'Login failed: $e');
+                      }
                     } finally {
                       if (dialogContext.mounted) updateDialog(() => busy = false);
                     }
                   },
                   child: Text(createAccount ? 'CREATE EMAIL ACCOUNT' : 'SIGN IN WITH EMAIL'),
                 )),
+                if (authError != null) Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    authError!,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.redAccent, fontSize: 12),
+                  ),
+                ),
                 TextButton(
-                  onPressed: busy ? null : () => updateDialog(() => createAccount = !createAccount),
+                  onPressed: busy ? null : () => updateDialog(() {
+                    createAccount = !createAccount;
+                    authError = null;
+                  }),
                   child: Text(createAccount ? 'Already registered? Sign in' : 'New player? Create account'),
                 ),
                 const Divider(color: Colors.white24, height: 22),
