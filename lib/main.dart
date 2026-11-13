@@ -477,7 +477,73 @@ class _ToraAppState extends State<ToraApp> {
       theme: ThemeData(
         brightness: Brightness.dark,
         scaffoldBackgroundColor: t.background,
-        colorScheme: ColorScheme.dark(primary: t.accent, secondary: t.accent, surface: t.panel),
+        colorScheme: ColorScheme.dark(
+          primary: t.accent,
+          secondary: t.accent,
+          surface: t.panel,
+          onPrimary: Colors.black,
+          onSecondary: Colors.black,
+          onSurface: Colors.white,
+        ),
+        // Shared Royal styling for account dialogs, settings and game controls.
+        // This changes presentation only; authentication and game logic are untouched.
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: t.background.withOpacity(.78),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 14),
+          labelStyle: const TextStyle(color: Colors.white70),
+          hintStyle: const TextStyle(color: Colors.white38),
+          prefixIconColor: t.accent,
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide(color: t.accent.withOpacity(.38)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide(color: t.accent, width: 1.8),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: Colors.redAccent),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: Colors.redAccent, width: 1.8),
+          ),
+        ),
+        filledButtonTheme: FilledButtonThemeData(
+          style: FilledButton.styleFrom(
+            backgroundColor: t.accent,
+            foregroundColor: Colors.black,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            textStyle: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: .5),
+          ),
+        ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: t.accent,
+            side: BorderSide(color: t.accent.withOpacity(.72)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            textStyle: const TextStyle(fontWeight: FontWeight.w800, letterSpacing: .25),
+          ),
+        ),
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(
+            foregroundColor: t.accent,
+            textStyle: const TextStyle(fontWeight: FontWeight.w800),
+          ),
+        ),
+        progressIndicatorTheme: ProgressIndicatorThemeData(color: t.accent),
+        dividerTheme: DividerThemeData(color: t.accent.withOpacity(.24), thickness: 1),
+        snackBarTheme: SnackBarThemeData(
+          backgroundColor: t.panel,
+          contentTextStyle: const TextStyle(color: Colors.white),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: t.accent.withOpacity(.55)),
+          ),
+        ),
         useMaterial3: true,
       ),
       home: ToraSplashPage(
