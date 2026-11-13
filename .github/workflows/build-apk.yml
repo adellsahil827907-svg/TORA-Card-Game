@@ -201,6 +201,25 @@ jobs:
               manifest.write_text(content)
           PY
 
+      - name: Configure Google Mobile Ads test App ID
+        working-directory: project
+        run: |
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          manifest = Path("android/app/src/main/AndroidManifest.xml")
+          content = manifest.read_text()
+          metadata = '''    <meta-data
+                  android:name="com.google.android.gms.ads.APPLICATION_ID"
+                  android:value="ca-app-pub-3940256099942544~3347511713" />'''
+          if "com.google.android.gms.ads.APPLICATION_ID" not in content:
+              match = re.search(r"<application\\b[^>]*>", content, flags=re.S)
+              if not match:
+                  raise SystemExit("Android application tag not found")
+              content = content[:match.end()] + "\\n" + metadata + content[match.end():]
+              manifest.write_text(content)
+          PY
+
       - name: Install dependencies
         working-directory: project
         run: flutter pub get
