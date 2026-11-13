@@ -551,7 +551,10 @@ class _ToraAppState extends State<ToraApp> {
         onStart: (splashContext) {
           Navigator.of(splashContext).push(
             MaterialPageRoute(
-              builder: (_) => ToraGamePage(theme: t, onThemeChanged: setTheme),
+              builder: (_) => GameSelectionPage(
+                theme: t,
+                onThemeChanged: setTheme,
+              ),
             ),
           );
         },
@@ -750,6 +753,197 @@ class ToraSplashPage extends StatelessWidget {
               ),
             );
           },
+        ),
+      ),
+    );
+  }
+}
+
+
+class GameSelectionPage extends StatelessWidget {
+  final ToraTheme theme;
+  final ValueChanged<int> onThemeChanged;
+  const GameSelectionPage({
+    super.key,
+    required this.theme,
+    required this.onThemeChanged,
+  });
+
+  void _openTora(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ToraGamePage(
+          theme: theme,
+          onThemeChanged: onThemeChanged,
+        ),
+      ),
+    );
+  }
+
+  void _showManfiComingSoon(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: const Color(0xFF111015),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(22),
+          side: const BorderSide(color: Color(0xFFD6B15C), width: 1.4),
+        ),
+        title: const Text(
+          'MANFI',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Color(0xFFFFD36A),
+            fontWeight: FontWeight.w900,
+            letterSpacing: 3,
+          ),
+        ),
+        content: const Text(
+          'MANFI Card Game is coming soon. Its rules and gameplay will be built separately from TORA.',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.white70, height: 1.5),
+        ),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFFD6B15C),
+              foregroundColor: Colors.black,
+            ),
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _gameTile({
+    required BuildContext context,
+    required String title,
+    required String subtitle,
+    required String symbol,
+    required bool available,
+    required VoidCallback onTap,
+  }) {
+    const gold = Color(0xFFFFD36A);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(22),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF242019), Color(0xFF09090B), Color(0xFF17130B)],
+            ),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: gold.withOpacity(available ? .95 : .48), width: available ? 2 : 1.2),
+            boxShadow: [
+              BoxShadow(color: gold.withOpacity(available ? .16 : .07), blurRadius: 18, spreadRadius: 1),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 66,
+                height: 82,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF080808),
+                  borderRadius: BorderRadius.circular(13),
+                  border: Border.all(color: gold.withOpacity(.8), width: 1.2),
+                ),
+                child: Center(
+                  child: Text(
+                    symbol,
+                    style: const TextStyle(color: gold, fontSize: 35, fontWeight: FontWeight.w900),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 17),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: const TextStyle(color: gold, fontSize: 23, fontWeight: FontWeight.w900, letterSpacing: 2)),
+                    const SizedBox(height: 5),
+                    Text(subtitle, style: const TextStyle(color: Colors.white70, fontSize: 11, height: 1.4)),
+                    const SizedBox(height: 9),
+                    Text(
+                      available ? 'PLAY NOW' : 'COMING SOON',
+                      style: TextStyle(color: gold.withOpacity(available ? 1 : .75), fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.6),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                available ? Icons.arrow_forward_ios_rounded : Icons.lock_clock_outlined,
+                color: gold.withOpacity(.9),
+                size: 19,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const gold = Color(0xFFFFD36A);
+    return Scaffold(
+      backgroundColor: const Color(0xFF050505),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 26),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 480),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.workspace_premium_rounded, color: gold, size: 54),
+                  const SizedBox(height: 12),
+                  const Text('CHOOSE YOUR GAME', textAlign: TextAlign.center,
+                    style: TextStyle(color: gold, fontSize: 24, fontWeight: FontWeight.w900, letterSpacing: 2)),
+                  const SizedBox(height: 7),
+                  const Text('THE ROYAL WORLD OF CARD GAMES', textAlign: TextAlign.center,
+                    style: TextStyle(color: Color(0xFFE8D5A5), fontSize: 10, letterSpacing: 2, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 30),
+                  _gameTile(
+                    context: context,
+                    title: 'TORA',
+                    subtitle: 'Royal Card Game • Existing game',
+                    symbol: '♛',
+                    available: true,
+                    onTap: () => _openTora(context),
+                  ),
+                  const SizedBox(height: 16),
+                  _gameTile(
+                    context: context,
+                    title: 'MANFI',
+                    subtitle: 'A separate card game with its own rules',
+                    symbol: '♠',
+                    available: false,
+                    onTap: () => _showManfiComingSoon(context),
+                  ),
+                  const SizedBox(height: 28),
+                  TextButton.icon(
+                    onPressed: () => Navigator.of(context).maybePop(),
+                    icon: const Icon(Icons.arrow_back_rounded, color: gold, size: 17),
+                    label: const Text('BACK', style: TextStyle(color: gold, fontWeight: FontWeight.w800, letterSpacing: 1.4)),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text('CREATED BY ADELL SAHIL',
+                    style: TextStyle(color: Colors.white38, fontSize: 9, letterSpacing: 1.8, fontWeight: FontWeight.w700)),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
