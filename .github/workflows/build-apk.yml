@@ -167,6 +167,10 @@ jobs:
         working-directory: project
         run: flutter pub add firebase_core firebase_auth flutter_facebook_auth
 
+      - name: Add Google Mobile Ads dependency
+        working-directory: project
+        run: flutter pub add google_mobile_ads
+
 
       - name: Configure Facebook Login
         working-directory: project
