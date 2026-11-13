@@ -65,37 +65,27 @@ jobs:
               d = ImageDraw.Draw(im)
               gold = (255, 211, 106, 255)
               pale = (255, 231, 160, 255)
-              dark = (18, 13, 7, 255)
               muted = (155, 104, 27, 255)
-              m = int(size * .08)
-              d.rounded_rectangle((m, m, size-m, size-m), radius=int(size*.17), outline=gold, width=max(2,size//42))
-              m2 = int(size * .14)
-              d.rounded_rectangle((m2, m2, size-m2, size-m2), radius=int(size*.12), outline=muted, width=max(1,size//90))
-              # Queen's three-point crown.
-              crown = [(int(size*.29),int(size*.34)),(int(size*.25),int(size*.20)),
-                       (int(size*.39),int(size*.27)),(int(size*.50),int(size*.12)),
-                       (int(size*.61),int(size*.27)),(int(size*.75),int(size*.20)),
-                       (int(size*.71),int(size*.34))]
+              m = int(size * .09)
+              d.rounded_rectangle((m,m,size-m,size-m), radius=int(size*.18),
+                                  outline=muted, width=max(2,size//48))
+              # Simple three-point royal crown.
+              crown = [(int(size*.25),int(size*.43)),(int(size*.20),int(size*.19)),
+                       (int(size*.39),int(size*.31)),(int(size*.50),int(size*.11)),
+                       (int(size*.61),int(size*.31)),(int(size*.80),int(size*.19)),
+                       (int(size*.75),int(size*.43))]
               d.polygon(crown, fill=gold)
-              d.rounded_rectangle((int(size*.29),int(size*.33),int(size*.71),int(size*.39)),
+              d.rounded_rectangle((int(size*.25),int(size*.41),int(size*.75),int(size*.48)),
                                   radius=max(2,size//90), fill=muted)
-              # Hair silhouette, face and royal shoulders.
-              d.ellipse((int(size*.34),int(size*.34),int(size*.66),int(size*.66)), fill=muted)
-              d.ellipse((int(size*.40),int(size*.39),int(size*.60),int(size*.61)), fill=pale)
-              d.polygon([(int(size*.29),int(size*.73)),(int(size*.34),int(size*.62)),
-                         (int(size*.44),int(size*.58)),(int(size*.50),int(size*.66)),
-                         (int(size*.56),int(size*.58)),(int(size*.66),int(size*.62)),
-                         (int(size*.71),int(size*.73))], fill=gold)
-              d.polygon([(int(size*.43),int(size*.60)),(int(size*.50),int(size*.69)),
-                         (int(size*.57),int(size*.60)),(int(size*.54),int(size*.75)),
-                         (int(size*.46),int(size*.75))], fill=dark)
-              # Queen of Spades emblem at the base.
-              cx, cy = size*.50, size*.82
-              spade = [(cx,cy-size*.065),(cx-size*.075,cy),(cx-size*.045,cy+size*.045),
-                       (cx,cy+size*.025),(cx+size*.045,cy+size*.045),(cx+size*.075,cy)]
-              d.polygon([(int(x),int(y)) for x,y in spade], fill=pale)
-              d.line((int(cx),int(cy+size*.02),int(cx),int(cy+size*.085)),
-                     fill=gold, width=max(1,size//65))
+              for x,y in [(0.20,0.19),(0.50,0.11),(0.80,0.19)]:
+                  rr=max(2,int(size*.018))
+                  d.ellipse((int(size*x)-rr,int(size*y)-rr,int(size*x)+rr,int(size*y)+rr),fill=pale)
+              # Clear Q and spade mark.
+              font = ImageFont.truetype(font_path, int(size*.38))
+              d.text((int(size*.24),int(size*.51)), "Q", font=font, fill=gold,
+                     stroke_width=max(0,size//220))
+              suit_font = ImageFont.truetype(font_path, int(size*.27))
+              d.text((int(size*.53),int(size*.59)), "♠", font=suit_font, fill=pale)
               return im
           
           for density, pixels in [("mdpi",48),("hdpi",72),("xhdpi",96),("xxhdpi",144),("xxxhdpi",192)]:
