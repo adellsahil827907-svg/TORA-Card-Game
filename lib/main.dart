@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
@@ -1002,13 +1003,38 @@ class _ToraGamePageState extends State<ToraGamePage> {
                   onPressed: busy ? null : () async {
                     updateDialog(() => busy = true);
                     try {
-                      final result = await FirebaseAuth.instance.signInWithProvider(FacebookAuthProvider());
-                      await _finishRoyalSignIn(result);
-                      if (dialogContext.mounted) Navigator.pop(dialogContext);
+                      final facebookResult = await FacebookAuth.instance.login(
+                        permissions: const ['email', 'public_profile'],
+                      );
+                      if (facebookResult.status == LoginStatus.success &&
+                          facebookResult.accessToken != null) {
+                        final credential = FacebookAuthProvider.credential(
+                          facebookResult.accessToken!.tokenString,
+                        );
+                        final result = await FirebaseAuth.instance
+                            .signInWithCredential(credential)
+                            .timeout(const Duration(seconds: 30));
+                        await _finishRoyalSignIn(result);
+                        if (dialogContext.mounted) Navigator.pop(dialogContext);
+                      } else if (facebookResult.status == LoginStatus.cancelled) {
+                        if (dialogContext.mounted) {
+                          updateDialog(() => authError = 'Facebook login was cancelled.');
+                        }
+                      } else {
+                        final message = facebookResult.message ??
+                            facebookResult.status.name;
+                        if (dialogContext.mounted) {
+                          updateDialog(() => authError = 'Facebook login failed: $message');
+                        }
+                      }
                     } on FirebaseAuthException catch (e) {
-                      _toast(e.message ?? e.code);
+                      if (dialogContext.mounted) {
+                        updateDialog(() => authError = e.message ?? e.code);
+                      }
                     } catch (e) {
-                      _toast('Facebook login is not configured yet: $e');
+                      if (dialogContext.mounted) {
+                        updateDialog(() => authError = 'Facebook login failed: $e');
+                      }
                     } finally {
                       if (dialogContext.mounted) updateDialog(() => busy = false);
                     }
