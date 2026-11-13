@@ -1412,6 +1412,8 @@ class _ToraGamePageState extends State<ToraGamePage> {
       _leader = startSeat;
       _status = 'CARDS DEALT — ${_names[startSeat]} DEALS AND PLAYS FIRST';
     });
+    // Automatically exchange Q♠ after all 52 cards have been dealt.
+    _resolveQueenOfSpadesExchange();
     // If the Q♠ winner is an AI player, let that player make the first play
     // automatically; otherwise the human player (seat 0) can play manually.
     if (startSeat != 0 && mounted && !_gameOver) {
@@ -1420,6 +1422,63 @@ class _ToraGamePageState extends State<ToraGamePage> {
         _runAi();
       }
     }
+  }
+
+  void _resolveQueenOfSpadesExchange() {
+    const queen = 'Q♠';
+    final owner = _hands.indexWhere((hand) => hand.contains(queen));
+    if (owner < 0) return;
+
+    // The Queen holder must have no other Spades.
+    final ownerSpades = _hands[owner].where((card) => _suit(card) == '♠').length;
+    if (ownerSpades != 1) return;
+
+    final partner = (owner + 2) % 4;
+    final partnerSpades = _hands[partner]
+        .where((card) => _suit(card) == '♠' && card != queen)
+        .toList()
+      ..sort(_compareCards);
+
+    late int recipient;
+    late String returnedSpade;
+    late String message;
+
+    if (partnerSpades.length >= 3) {
+      // Partner qualifies: exchange Q♠ for their lowest Spade automatically.
+      recipient = partner;
+      returnedSpade = partnerSpades.first;
+      message = 'Q♠ EXCHANGE: ${_names[owner]} gave Q♠ to ${_names[recipient]} and received ${returnedSpade}.';
+    } else {
+      // Partner has 0–2 Spades: pass Q♠ to the opposing player holding most Spades.
+      final opponents = [for (int seat = 0; seat < 4; seat++) if (_team(seat) != _team(owner)) seat];
+      opponents.sort((a, b) {
+        final countA = _hands[a].where((card) => _suit(card) == '♠').length;
+        final countB = _hands[b].where((card) => _suit(card) == '♠').length;
+        if (countA != countB) return countB.compareTo(countA);
+        return a.compareTo(b);
+      });
+      recipient = opponents.first;
+      final available = _hands[recipient]
+          .where((card) => _suit(card) == '♠')
+          .toList()
+        ..sort(_compareCards);
+      if (available.isEmpty) return;
+      returnedSpade = available.first;
+      message = 'Q♠ TRANSFER: ${_names[owner]} gave Q♠ to opposing player ${_names[recipient]} and received ${returnedSpade}.';
+    }
+
+    setState(() {
+      _hands[owner].remove(queen);
+      _hands[recipient].remove(returnedSpade);
+      _hands[recipient].add(queen);
+      _hands[owner].add(returnedSpade);
+      _hands[owner].sort(_compareCards);
+      _hands[recipient].sort(_compareCards);
+      _status = message;
+    });
+
+    // Keep the exchange visible so the human player can see who gave and received which card.
+    _toast(message);
   }
 
   int _compareCards(String a, String b) {
@@ -1879,6 +1938,10 @@ class _ToraGamePageState extends State<ToraGamePage> {
 • Follow the suit led if you have that suit.
 • If you do not have it, any suit may be played; it cannot win the trick.
 • Highest card of the led suit wins. Winner collects all four cards and leads next.
+• After dealing, if a player has Q♠ and no other Spades, an automatic exchange happens before play.
+• If that player's partner has 3 or more Spades, the partner receives Q♠ and gives their lowest Spade in return.
+• If the partner has 0–2 Spades, Q♠ goes to the opposing player holding the most Spades; that player gives their lowest Spade in return.
+• The exchange is identical for both teams and every player keeps 13 cards. A notice names both players and the exchanged card.
 • Whoever captures Q♠ deals the next round and plays its first card.
 • Takkol and ordinary card penalties use the SAME two team score accounts; there is no separate Takkol score.
 • Ordinary Takkol: any suit can trigger it when the other three players hold none of that suit; transfer 30 points from the opposing team's account to the caller's team account.
