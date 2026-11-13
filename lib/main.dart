@@ -600,7 +600,7 @@ class _RoyalToraLogoPainter extends CustomPainter {
       Paint()..color = gold,
     );
     for (final x in [.20, .50, .80]) {
-      canvas.drawCircle(Offset(w*x,h*(x==.50?.10:.17)),w*.025,
+      canvas.drawCircle(Offset(w*x,h * (x == .50 ? .10 : .17)),w*.025,
         Paint()..color=paleGold);
     }
 
