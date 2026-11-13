@@ -1034,16 +1034,78 @@ class _ToraGamePageState extends State<ToraGamePage> {
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (dialogContext, updateDialog) => AlertDialog(
-          backgroundColor: t.panel,
-          title: Text('TORA ACCOUNT LOGIN',
-            style: TextStyle(color: t.accent, fontWeight: FontWeight.w900)),
+          backgroundColor: const Color(0xFF0D0E12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: BorderSide(color: t.accent.withOpacity(.85), width: 1.4),
+          ),
+          titlePadding: const EdgeInsets.fromLTRB(22, 22, 22, 8),
+          contentPadding: const EdgeInsets.fromLTRB(22, 8, 22, 8),
+          title: Row(
+            children: [
+              Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [t.accent, const Color(0xFF8B6428)],
+                  ),
+                  boxShadow: [
+                    BoxShadow(color: t.accent.withOpacity(.22), blurRadius: 14),
+                  ],
+                ),
+                child: const Icon(Icons.workspace_premium_rounded,
+                    color: Color(0xFF090B10), size: 27),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('TORA ACCOUNT',
+                      style: TextStyle(
+                        color: t.accent, fontSize: 17,
+                        fontWeight: FontWeight.w900, letterSpacing: 1.1,
+                      )),
+                    const SizedBox(height: 2),
+                    const Text('WELCOME TO THE ROYAL TABLE',
+                      style: TextStyle(
+                        color: Colors.white54, fontSize: 9,
+                        letterSpacing: 1.0, fontWeight: FontWeight.w600,
+                      )),
+                  ],
+                ),
+              ),
+            ],
+          ),
           content: SingleChildScrollView(
             child: SizedBox(
               width: 360,
               child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Text('Email or Facebook',
-                  style: const TextStyle(color: Colors.white60, fontSize: 11)),
-                const SizedBox(height: 12),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 12),
+                  margin: const EdgeInsets.only(bottom: 13),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF17130B),
+                    borderRadius: BorderRadius.circular(13),
+                    border: Border.all(color: t.accent.withOpacity(.38)),
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.lock_rounded, color: Color(0xFFD6B15C), size: 15),
+                      SizedBox(width: 7),
+                      Text('SIGN IN TO SAVE YOUR PLAYER PROFILE',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white70, fontSize: 9,
+                          fontWeight: FontWeight.w700, letterSpacing: .65,
+                        )),
+                    ],
+                  ),
+                ),
                 TextField(
                   controller: emailController,
                   keyboardType: TextInputType.emailAddress,
@@ -1062,7 +1124,20 @@ class _ToraGamePageState extends State<ToraGamePage> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                SizedBox(width: double.infinity, child: OutlinedButton(
+                SizedBox(width: double.infinity, child: ElevatedButton.icon(
+                  icon: const Icon(Icons.email_rounded, size: 20),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: t.accent,
+                    foregroundColor: const Color(0xFF090B10),
+                    elevation: 3,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(13),
+                    ),
+                    textStyle: const TextStyle(
+                      fontWeight: FontWeight.w900, letterSpacing: .7, fontSize: 11,
+                    ),
+                  ),
                   onPressed: busy ? null : () async {
                     final email = emailController.text.trim();
                     final password = passwordController.text;
@@ -1098,7 +1173,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
                       if (dialogContext.mounted) updateDialog(() => busy = false);
                     }
                   },
-                  child: Text(createAccount ? 'CREATE EMAIL ACCOUNT' : 'SIGN IN WITH EMAIL'),
+                  label: Text(createAccount ? 'CREATE EMAIL ACCOUNT' : 'SIGN IN WITH EMAIL'),
                 )),
                 if (authError != null) Padding(
                   padding: const EdgeInsets.only(top: 8),
@@ -1132,6 +1207,18 @@ class _ToraGamePageState extends State<ToraGamePage> {
                 ),
                 const Divider(color: Colors.white24, height: 22),
                 SizedBox(width: double.infinity, child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: const Color(0xFF1877F2).withOpacity(.10),
+                    side: const BorderSide(color: Color(0xFF1877F2), width: 1.3),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(13),
+                    ),
+                    textStyle: const TextStyle(
+                      fontWeight: FontWeight.w900, letterSpacing: .7, fontSize: 11,
+                    ),
+                  ),
                   onPressed: busy ? null : () async {
                     updateDialog(() => busy = true);
                     try {
@@ -1171,7 +1258,7 @@ class _ToraGamePageState extends State<ToraGamePage> {
                       if (dialogContext.mounted) updateDialog(() => busy = false);
                     }
                   },
-                  icon: const Icon(Icons.facebook),
+                  icon: const Icon(Icons.facebook, color: Color(0xFF1877F2), size: 27),
                   label: const Text('CONTINUE WITH FACEBOOK'),
                 )),
                 if (busy) const Padding(
