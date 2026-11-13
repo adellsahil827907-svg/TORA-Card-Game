@@ -14,7 +14,11 @@ Future<void> main() async {
     DeviceOrientation.portraitUp,
   ]);
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-  await MobileAds.instance.initialize();
+  try {
+    await MobileAds.instance.initialize();
+  } catch (error) {
+    debugPrint('Google Mobile Ads initialization failed: $error');
+  }
   await Firebase.initializeApp(
     options: const FirebaseOptions(
       apiKey: 'AIzaSyAn0lTS0y_seDTOQv89Ni5AE2VKFVqmFdI',
