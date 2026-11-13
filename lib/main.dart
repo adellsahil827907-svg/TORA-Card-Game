@@ -576,115 +576,62 @@ class _RoyalToraLogoPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     const gold = Color(0xFFFFD36A);
-    const deepGold = Color(0xFF9B681B);
+    const paleGold = Color(0xFFFFE7A0);
     final w = size.width;
     final h = size.height;
-    final card = Rect.fromLTWH(w * .13, h * .07, w * .74, h * .86);
 
-    // Black-and-gold royal playing card frame.
-    final shadow = Paint()..color = const Color(0x99000000)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 9);
-    canvas.drawRRect(RRect.fromRectAndRadius(card.shift(Offset(0, h * .018)),
-      Radius.circular(w * .105)), shadow);
-    final cardPaint = Paint()..shader = const LinearGradient(
-      begin: Alignment.topLeft, end: Alignment.bottomRight,
-      colors: [Color(0xFF282016), Color(0xFF070707), Color(0xFF171108)],
-    ).createShader(card);
-    canvas.drawRRect(RRect.fromRectAndRadius(card, Radius.circular(w * .105)), cardPaint);
-    canvas.drawRRect(RRect.fromRectAndRadius(card.deflate(w * .025),
-      Radius.circular(w * .085)), Paint()..color = gold
-      ..style = PaintingStyle.stroke..strokeWidth = w * .012);
-    canvas.drawRRect(RRect.fromRectAndRadius(card.deflate(w * .055),
-      Radius.circular(w * .065)), Paint()..color = deepGold.withOpacity(.9)
-      ..style = PaintingStyle.stroke..strokeWidth = w * .004);
-
-    // Queen's crown with three raised points and jewel.
+    // Minimal royal crown.
     final crown = Path()
-      ..moveTo(w * .29, h * .34)
-      ..lineTo(w * .25, h * .20)
-      ..lineTo(w * .39, h * .27)
-      ..lineTo(w * .50, h * .12)
-      ..lineTo(w * .61, h * .27)
-      ..lineTo(w * .75, h * .20)
-      ..lineTo(w * .71, h * .34)
+      ..moveTo(w * .25, h * .38)
+      ..lineTo(w * .20, h * .17)
+      ..lineTo(w * .38, h * .29)
+      ..lineTo(w * .50, h * .10)
+      ..lineTo(w * .62, h * .29)
+      ..lineTo(w * .80, h * .17)
+      ..lineTo(w * .75, h * .38)
       ..close();
     canvas.drawPath(crown, Paint()..shader = const LinearGradient(
-      colors: [Color(0xFFFFF0B0), Color(0xFFD6A642), Color(0xFF8B5A16)],
       begin: Alignment.topCenter, end: Alignment.bottomCenter,
-    ).createShader(Rect.fromLTWH(w * .25, h * .12, w * .5, h * .22)));
-    canvas.drawRRect(RRect.fromRectAndRadius(
-      Rect.fromLTWH(w * .29, h * .335, w * .42, h * .055), Radius.circular(w * .018)),
-      Paint()..color = gold);
-    for (final x in [.25, .50, .75]) {
-      canvas.drawCircle(Offset(w * x, h * (x == .50 ? .12 : .20)),
-        w * .022, Paint()..color = const Color(0xFFFFF0B0));
+      colors: [Color(0xFFFFF0B0), Color(0xFFD6A642), Color(0xFF9B681B)],
+    ).createShader(Rect.fromLTWH(w*.2,h*.1,w*.6,h*.3)));
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(Rect.fromLTWH(w*.25,h*.36,w*.5,h*.075),
+        Radius.circular(w*.025)),
+      Paint()..color = gold,
+    );
+    for (final x in [.20, .50, .80]) {
+      canvas.drawCircle(Offset(w*x,h*(x==.50?.10:.17)),w*.025,
+        Paint()..color=paleGold);
     }
-    canvas.drawCircle(Offset(w * .50, h * .295), w * .025,
-      Paint()..color = const Color(0xFF17100A));
 
-    // Stylized queen portrait: hair, face, shoulders and royal collar.
-    final hair = Path()
-      ..moveTo(w * .34, h * .43)
-      ..quadraticBezierTo(w * .30, h * .34, w * .40, h * .35)
-      ..quadraticBezierTo(w * .50, h * .29, w * .60, h * .35)
-      ..quadraticBezierTo(w * .70, h * .35, w * .66, h * .47)
-      ..lineTo(w * .64, h * .64)
-      ..lineTo(w * .36, h * .64)
-      ..close();
-    canvas.drawPath(hair, Paint()..color = const Color(0xFFD6A642));
-    final face = Path()
-      ..moveTo(w * .40, h * .405)
-      ..quadraticBezierTo(w * .50, h * .365, w * .60, h * .405)
-      ..lineTo(w * .585, h * .535)
-      ..quadraticBezierTo(w * .50, h * .615, w * .415, h * .535)
-      ..close();
-    canvas.drawPath(face, Paint()..color = const Color(0xFFFFE5AC));
-    final faceShade = Paint()..color = const Color(0xFFB77C36).withOpacity(.42);
-    canvas.drawLine(Offset(w * .455, h * .47), Offset(w * .475, h * .47), faceShade..strokeWidth = w * .012);
-    canvas.drawLine(Offset(w * .525, h * .47), Offset(w * .545, h * .47), faceShade..strokeWidth = w * .012);
-    canvas.drawLine(Offset(w * .48, h * .535), Offset(w * .52, h * .535), faceShade..strokeWidth = w * .009);
+    // Bold Queen of Spades mark: Q with a clear spade glyph.
+    final painter = TextPainter(
+      text: const TextSpan(
+        text: 'Q♠',
+        style: TextStyle(
+          color: Color(0xFFFFD36A),
+          fontSize: 1,
+          fontWeight: FontWeight.w900,
+          letterSpacing: -1,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    );
+    painter.layout();
+    final targetWidth = w * .66;
+    final scale = targetWidth / painter.width;
+    canvas.save();
+    canvas.translate((w-targetWidth)/2, h*.49);
+    canvas.scale(scale, scale);
+    painter.paint(canvas, Offset.zero);
+    canvas.restore();
 
-    final shoulders = Path()
-      ..moveTo(w * .30, h * .72)
-      ..quadraticBezierTo(w * .32, h * .60, w * .43, h * .585)
-      ..lineTo(w * .50, h * .64)
-      ..lineTo(w * .57, h * .585)
-      ..quadraticBezierTo(w * .68, h * .60, w * .70, h * .72)
-      ..lineTo(w * .70, h * .77)
-      ..lineTo(w * .30, h * .77)
-      ..close();
-    canvas.drawPath(shoulders, Paint()..color = const Color(0xFFD6A642));
-    final collar = Path()
-      ..moveTo(w * .43, h * .59)
-      ..lineTo(w * .50, h * .68)
-      ..lineTo(w * .57, h * .59)
-      ..lineTo(w * .54, h * .76)
-      ..lineTo(w * .46, h * .76)
-      ..close();
-    canvas.drawPath(collar, Paint()..color = const Color(0xFF100D08));
-    canvas.drawCircle(Offset(w * .50, h * .70), w * .025,
-      Paint()..color = const Color(0xFFFFF0B0));
-
-    // Queen of Spades mark at the foot of the emblem.
-    final spade = Path()
-      ..moveTo(w * .50, h * .77)
-      ..cubicTo(w * .44, h * .82, w * .39, h * .85, w * .42, h * .89)
-      ..cubicTo(w * .44, h * .92, w * .48, h * .91, w * .50, h * .88)
-      ..cubicTo(w * .52, h * .91, w * .56, h * .92, w * .58, h * .89)
-      ..cubicTo(w * .61, h * .85, w * .56, h * .82, w * .50, h * .77)
-      ..close();
-    canvas.drawPath(spade, Paint()..color = const Color(0xFFFFE7A0));
-    canvas.drawLine(Offset(w * .50, h * .88), Offset(w * .50, h * .925),
-      Paint()..color = gold..strokeWidth = w * .018..strokeCap = StrokeCap.round);
-
-    // Fine gold glints and corner rivets.
-    final dot = Paint()..color = const Color(0xFFFFE7A0);
-    for (final p in [
-      Offset(w * .20, h * .14), Offset(w * .80, h * .14),
-      Offset(w * .20, h * .86), Offset(w * .80, h * .86),
-    ]) {
-      canvas.drawCircle(p, w * .012, dot);
-    }
+    // Fine underline, no portrait or extra card decorations.
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(Rect.fromLTWH(w*.32,h*.83,w*.36,h*.012),
+        Radius.circular(w*.01)),
+      Paint()..color=const Color(0xFF9B681B),
+    );
   }
 
   @override
