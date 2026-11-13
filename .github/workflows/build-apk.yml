@@ -121,10 +121,10 @@ jobs:
           app_id = '    <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/facebook_app_id" />'
           client = '    <meta-data android:name="com.facebook.sdk.ClientToken" android:value="@string/facebook_client_token" />'
           if "com.facebook.sdk.ApplicationId" not in content:
-              match = re.search(r"<application\\b[^>]*>", content, flags=re.S)
+              match = re.search(r"<application\b[^>]*>", content, flags=re.S)
               if not match:
                   raise SystemExit("Android application tag not found")
-              metadata = "\\n" + app_id + "\\n" + client
+              metadata = "\n" + app_id + "\n" + client
               content = content[:match.end()] + metadata + content[match.end():]
               manifest.write_text(content)
           PY
