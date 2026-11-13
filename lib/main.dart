@@ -560,6 +560,72 @@ class _ToraAppState extends State<ToraApp> {
   }
 }
 
+class RoyalToraLogo extends StatelessWidget {
+  final double size;
+  const RoyalToraLogo({super.key, required this.size});
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: size,
+    height: size,
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(size * .20),
+      color: const Color(0xFF100D08),
+      border: Border.all(color: const Color(0xFFFFD36A), width: size * .018),
+      boxShadow: const [
+        BoxShadow(color: Color(0x55FFD36A), blurRadius: 20, spreadRadius: 1),
+      ],
+    ),
+    child: CustomPaint(
+      painter: _RoyalToraLogoPainter(),
+      child: Center(
+        child: Text('T', style: TextStyle(
+          color: const Color(0xFFFFD36A),
+          fontSize: size * .55,
+          fontWeight: FontWeight.w900,
+          height: 1,
+          shadows: const [Shadow(color: Color(0xFF9B681B), blurRadius: 9)],
+        )),
+      ),
+    ),
+  );
+}
+
+class _RoyalToraLogoPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    const gold = Color(0xFFFFD36A);
+    final frame = Paint()..color = gold.withOpacity(.78)
+      ..style = PaintingStyle.stroke..strokeWidth = size.width * .012;
+    final inner = Rect.fromLTWH(size.width * .09, size.height * .09,
+      size.width * .82, size.height * .82);
+    canvas.drawRRect(RRect.fromRectAndRadius(inner, Radius.circular(size.width * .12)), frame);
+    final crown = Path()
+      ..moveTo(size.width * .30, size.height * .31)
+      ..lineTo(size.width * .34, size.height * .19)
+      ..lineTo(size.width * .44, size.height * .27)
+      ..lineTo(size.width * .50, size.height * .14)
+      ..lineTo(size.width * .56, size.height * .27)
+      ..lineTo(size.width * .66, size.height * .19)
+      ..lineTo(size.width * .70, size.height * .31)
+      ..close();
+    canvas.drawPath(crown, Paint()..color = gold);
+    final suits = TextPainter(
+      text: const TextSpan(text: '♠  ♥  ♦  ♣', style: TextStyle(
+        color: gold, fontSize: 15, fontWeight: FontWeight.w900,
+        letterSpacing: 1.5,
+      )),
+      textDirection: TextDirection.ltr,
+    )..layout(maxWidth: size.width * .82);
+    suits.paint(canvas, Offset((size.width - suits.width) / 2, size.height * .75));
+    canvas.drawLine(Offset(size.width * .22, size.height * .70),
+      Offset(size.width * .78, size.height * .70), frame);
+  }
+
+  @override
+  bool shouldRepaint(covariant _RoyalToraLogoPainter oldDelegate) => false;
+}
+
 class ToraSplashPage extends StatelessWidget {
   final ToraTheme theme;
   final ValueChanged<BuildContext> onStart;
@@ -628,23 +694,7 @@ class ToraSplashPage extends StatelessWidget {
                                   ),
                                 ),
                                 SizedBox(height: 12 * scale),
-                                Container(
-                                  width: 172 * scale, height: 172 * scale,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(color: gold, width: 3),
-                                    boxShadow: [BoxShadow(color: gold.withOpacity(.22), blurRadius: 18)],
-                                  ),
-                                  child: ClipOval(
-                                    child: Container(
-                                      color: const Color(0xFF17110A),
-                                      child: Center(child: Text('AS', style: TextStyle(
-                                        color: gold, fontSize: 62 * scale,
-                                        fontWeight: FontWeight.w900, letterSpacing: 3,
-                                      ))),
-                                    ),
-                                  ),
-                                ),
+                                RoyalToraLogo(size: 172 * scale),
                                 SizedBox(height: 15 * scale),
                                 Text('Adell Sahil', textAlign: TextAlign.center,
                                   style: TextStyle(color: gold, fontSize: 25 * scale,
