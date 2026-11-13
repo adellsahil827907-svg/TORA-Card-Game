@@ -156,7 +156,13 @@ jobs:
               -dname "CN=Android Debug,O=Android,C=US"
           fi
           ./gradlew signingReport | tee signing-report.txt
+          KEY_HASH="$(keytool -exportcert -alias androiddebugkey -keystore "$HOME/.android/debug.keystore" -storepass android | openssl sha1 -binary | openssl base64 -A)"
           {
+            echo "### Android Facebook Login setup"
+            echo "Package name: com.example.tora_app"
+            echo "Default activity: com.example.tora_app.MainActivity"
+            echo "Debug key hash: $KEY_HASH"
+            echo
             echo "### Android signing fingerprints"
             grep -E 'Variant:|SHA1:|SHA-1:' signing-report.txt || true
           } >> "$GITHUB_STEP_SUMMARY"
