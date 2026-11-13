@@ -6,7 +6,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,11 +13,6 @@ Future<void> main() async {
     DeviceOrientation.portraitUp,
   ]);
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-  try {
-    await MobileAds.instance.initialize();
-  } catch (error) {
-    debugPrint('Google Mobile Ads initialization failed: $error');
-  }
   await Firebase.initializeApp(
     options: const FirebaseOptions(
       apiKey: 'AIzaSyAn0lTS0y_seDTOQv89Ni5AE2VKFVqmFdI',
@@ -893,75 +887,6 @@ class _FaceOrnamentPainter extends CustomPainter {
 
 /// Google test banner. Replace the test unit ID only after the real AdMob
 /// account and production ad unit have been verified.
-class ToraBannerAd extends StatefulWidget {
-  const ToraBannerAd({super.key});
-
-  @override
-  State<ToraBannerAd> createState() => _ToraBannerAdState();
-}
-
-class _ToraBannerAdState extends State<ToraBannerAd> {
-  static const String _testBannerUnitId =
-      'ca-app-pub-3940256099942544/9214589741';
-  BannerAd? _banner;
-  bool _loaded = false;
-
-  @override
-  void initState() {
-    super.initState();
-    final banner = BannerAd(
-      adUnitId: _testBannerUnitId,
-      size: AdSize.banner,
-      request: const AdRequest(),
-      listener: BannerAdListener(
-        onAdLoaded: (ad) {
-          if (!mounted) {
-            ad.dispose();
-            return;
-          }
-          setState(() {
-            _banner = ad as BannerAd;
-            _loaded = true;
-          });
-        },
-        onAdFailedToLoad: (ad, error) {
-          ad.dispose();
-          if (mounted) {
-            setState(() {
-              _banner = null;
-              _loaded = false;
-            });
-          }
-        },
-      ),
-    );
-    _banner = banner;
-    banner.load();
-  }
-
-  @override
-  void dispose() {
-    _banner?.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final banner = _banner;
-    if (!_loaded || banner == null) return const SizedBox.shrink();
-    return SafeArea(
-      top: false,
-      child: Container(
-        alignment: Alignment.center,
-        color: Colors.black,
-        width: double.infinity,
-        height: banner.size.height.toDouble(),
-        child: AdWidget(ad: banner),
-      ),
-    );
-  }
-}
-
 class ToraGamePage extends StatefulWidget {
   final ToraTheme theme;
   final ValueChanged<int> onThemeChanged;
@@ -2801,7 +2726,6 @@ class _ToraGamePageState extends State<ToraGamePage> {
     final legal = _legalCards(0);
     return Scaffold(
       backgroundColor: t.background,
-      bottomNavigationBar: const ToraBannerAd(),
       body: SafeArea(
         child: Column(
           children: [
