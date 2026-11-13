@@ -91,9 +91,38 @@ jobs:
         working-directory: project
         run: flutter pub add shared_preferences
 
-      - name: Add Firebase Authentication dependencies
+      - name: Add Firebase Authentication and Facebook dependencies
         working-directory: project
-        run: flutter pub add firebase_core firebase_auth
+        run: flutter pub add firebase_core firebase_auth flutter_facebook_auth
+
+
+      - name: Configure Facebook Login
+        working-directory: project
+        env:
+          FB_CLIENT_TOKEN: ${{ secrets.FB_CLIENT_TOKEN }}
+        run: |
+          if [ -z "$FB_CLIENT_TOKEN" ]; then
+            echo "::error::Add the Meta Client Token as the GitHub Actions repository secret FB_CLIENT_TOKEN, then rerun this workflow."
+            exit 1
+          fi
+          mkdir -p android/app/src/main/res/values
+          cat > android/app/src/main/res/values/facebook_strings.xml <<EOF
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <string name="facebook_app_id">1855587878967556</string>
+              <string name="facebook_client_token">$FB_CLIENT_TOKEN</string>
+          </resources>
+          EOF
+          python3 - <<'PY'
+          from pathlib import Path
+          manifest = Path("android/app/src/main/AndroidManifest.xml")
+          content = manifest.read_text()
+          app_id = '            <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/facebook_app_id" />'
+          client = '            <meta-data android:name="com.facebook.sdk.ClientToken" android:value="@string/facebook_client_token" />'
+          if "com.facebook.sdk.ApplicationId" not in content:
+              content = content.replace("<application", "<application\\n" + app_id + "\\n" + client, 1)
+              manifest.write_text(content)
+          PY
 
       - name: Install dependencies
         working-directory: project
