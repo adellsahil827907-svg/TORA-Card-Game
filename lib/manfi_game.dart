@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 
+// Separate MANFI gameplay module; TORA gameplay remains untouched.
 class ManfiGamePage extends StatefulWidget {
   final String styleName;
   final Color background, panel, felt, accent;
