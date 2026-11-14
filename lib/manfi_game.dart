@@ -101,14 +101,12 @@ class _ManfiGamePageState extends State<ManfiGamePage> {
   }
 
   Future<void> computerTurn() async {
-    while (mounted && dealt && !finished && !busy && turn != 0 && trick.length < 4) {
-      await Future.delayed(const Duration(milliseconds: 600));
-      if (!mounted || busy || finished || turn == 0) return;
-      final p = turn;
-      final options = legal(p);
-      if (options.isEmpty) return;
-      play(p, options.first);
-    }
+    if (!mounted || !dealt || finished || busy || turn == 0 || trick.length >= 4) return;
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (!mounted || busy || finished || turn == 0 || trick.length >= 4) return;
+    final p = turn;
+    final options = legal(p);
+    if (options.isNotEmpty) play(p, options.first);
   }
 
   Color ink(String c) => c.endsWith('♥') || c.endsWith('♦')
