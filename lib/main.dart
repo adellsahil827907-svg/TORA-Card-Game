@@ -1580,10 +1580,13 @@ class _ManfiTablePainter extends CustomPainter {
     for (final seat in seats) {
       final seatRect = Rect.fromCenter(center: seat,
         width: shortSide * .12, height: shortSide * .12);
-      canvas.drawRRect(RRect.fromRectAndRadius(seatRect, Radius.circular(shortSide * .035)),
-        Paint()..color = style.panel..style = PaintingStyle.fill);
-      canvas.drawRRect(RRect.fromRectAndRadius(seatRect, Radius.circular(shortSide * .035)),
-        Paint()..color = style.accent..style = PaintingStyle.stroke..strokeWidth = 1.1);
+      final seatFill = Paint()..color = style.panel;
+      final seatBorder = Paint()
+        ..color = style.accent
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.1;
+      canvas.drawRRect(RRect.fromRectAndRadius(seatRect, Radius.circular(shortSide * .035)), seatFill);
+      canvas.drawRRect(RRect.fromRectAndRadius(seatRect, Radius.circular(shortSide * .035)), seatBorder);
     }
   }
 
