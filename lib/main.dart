@@ -6,6 +6,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'manfi_game.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -1437,6 +1438,34 @@ class _ManfiHomePageState extends State<ManfiHomePage> {
                 ),
                 const SizedBox(height: 16),
                 _accountPanel(style),
+                const SizedBox(height: 14),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: FilledButton.icon(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => ManfiGamePage(
+                          styleName: style.name,
+                          background: style.background,
+                          panel: style.panel,
+                          felt: style.felt,
+                          accent: style.accent,
+                        ),
+                      ),
+                    ),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: style.accent,
+                      foregroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(13),
+                      ),
+                    ),
+                    icon: const Icon(Icons.play_arrow_rounded),
+                    label: const Text('START MANFI GAME',
+                      style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1)),
+                  ),
+                ),
                 const SizedBox(height: 20),
                 Text('CHOOSE YOUR TABLE DESIGN',
                   style: TextStyle(color: style.accent, fontSize: 12,
