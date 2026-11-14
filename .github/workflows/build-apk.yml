@@ -1,6 +1,7 @@
 
 name: Build TORA APK
 # Rebuild requested to provide a fresh release APK
+# MANFI stage 1: separate table lobby and shared account login
 
 on:
   workflow_dispatch:
