@@ -1101,7 +1101,7 @@ class _ManfiHomePageState extends State<ManfiHomePage> {
     final prefs = await SharedPreferences.getInstance();
     final saved = prefs.getInt('manfi_table_style') ?? 0;
     if (!mounted) return;
-    setState(() => _selectedStyle = saved.clamp(0, _manfiTableStyles.length - 1));
+    setState(() => _selectedStyle = saved.clamp(0, _manfiTableStyles.length - 1).toInt());
   }
 
   Future<void> _selectStyle(int index) async {
