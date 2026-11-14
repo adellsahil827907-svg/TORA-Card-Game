@@ -21,7 +21,7 @@ class _ManfiGamePageState extends State<ManfiGamePage> {
   void _dealCards() {
     final deck = <String>[
       for (final suit in _suits)
-        for (final rank in _ranks) '\$rank\$suit',
+        for (final rank in _ranks) '$rank$suit',
     ]..shuffle(Random());
     final hands = List.generate(4, (_) => <String>[]);
     for (int i = 0; i < deck.length; i++) {
@@ -84,7 +84,7 @@ class _ManfiGamePageState extends State<ManfiGamePage> {
           Text(team, maxLines: 1, overflow: TextOverflow.ellipsis,
             style: const TextStyle(color: Colors.white54, fontSize: 9)),
         ])),
-        if (_dealt) Text('\${_hands[index].length}/13',
+        if (_dealt) Text('${_hands[index].length}/13',
           style: const TextStyle(color: Colors.white70, fontSize: 10)),
         if (leader) Icon(Icons.stars_rounded, color: widget.accent, size: 18),
       ]),
@@ -136,7 +136,7 @@ class _ManfiGamePageState extends State<ManfiGamePage> {
                   textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70, fontSize: 11)),
                 if (_dealt && _openingLeader != null) ...[
                   const SizedBox(height: 10),
-                  Text('لومړی وار: \${_players[_openingLeader!]}',
+                  Text('لومړی وار: ${_players[_openingLeader!]}',
                     style: TextStyle(color: widget.accent, fontSize: 15, fontWeight: FontWeight.w900)),
                   const SizedBox(height: 3),
                   const Text('د چمچي ۲ (2♣) خاوند لومړی کارت پیلوي.',
