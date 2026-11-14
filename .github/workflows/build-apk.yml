@@ -8,6 +8,7 @@ on:
   push:
     paths:
       - 'lib/main.dart'
+      - 'lib/manfi_game.dart'
       - 'TORA_Sahil_Fixed.zip'
       - 'google-services.json'
       - '.github/workflows/build-apk.yml'
@@ -125,6 +126,7 @@ jobs:
       - name: Apply new TORA code
         run: |
           cp lib/main.dart project/lib/main.dart
+          cp lib/manfi_game.dart project/lib/manfi_game.dart
           mkdir -p project/assets
           cp assets/adell_sahil.png project/assets/adell_sahil.png
           python3 - <<'PY'
