@@ -1490,111 +1490,199 @@ class _ManfiTablePainter extends CustomPainter {
         end: Alignment.bottomRight,
         colors: [style.felt, style.background, style.panel],
       ).createShader(board);
-    final rail = Paint()..color = style.accent..style = PaintingStyle.stroke..strokeWidth = 2.2;
-    final fine = Paint()..color = style.accent.withOpacity(.42)
-      ..style = PaintingStyle.stroke..strokeWidth = 1;
+    final rail = Paint()
+      ..color = style.accent
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = style.shape == 2 ? 4 : 2.8;
+    final fine = Paint()
+      ..color = style.accent.withOpacity(.58)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.15;
+    final glow = Paint()..color = style.accent.withOpacity(.10);
 
+    // Each MANFI theme has its own unmistakable table silhouette.
     Path boardPath;
-    if (style.shape == 0) {
-      boardPath = Path()..addOval(board);
-    } else if (style.shape == 1) {
-      boardPath = Path();
-      for (int i = 0; i < 8; i++) {
-        final a = -pi / 8 + i * pi / 4;
-        final p = Offset(center.dx + cos(a) * board.width * .49,
-          center.dy + sin(a) * board.height * .49);
-        if (i == 0) { boardPath.moveTo(p.dx, p.dy); } else { boardPath.lineTo(p.dx, p.dy); }
-      }
-      boardPath.close();
-    } else if (style.shape == 2) {
-      boardPath = Path()..addRRect(RRect.fromRectAndRadius(board, Radius.circular(shortSide * .16)));
-    } else if (style.shape == 3) {
-      final circle = Rect.fromCircle(center: center, radius: shortSide * .48);
-      boardPath = Path()..addOval(circle);
-    } else {
-      boardPath = Path()
-        ..moveTo(center.dx, board.top)
-        ..lineTo(board.right, center.dy)
-        ..lineTo(center.dx, board.bottom)
-        ..lineTo(board.left, center.dy)
-        ..close();
+    switch (style.shape) {
+      case 0: // Obsidian Crown — elongated oval.
+        boardPath = Path()..addOval(board);
+        break;
+      case 1: // Emerald Arena — clipped eight-sided arena.
+        boardPath = Path();
+        for (int i = 0; i < 8; i++) {
+          final a = -pi / 8 + i * pi / 4;
+          final p = Offset(center.dx + cos(a) * board.width * .49,
+              center.dy + sin(a) * board.height * .49);
+          if (i == 0) { boardPath.moveTo(p.dx, p.dy); } else { boardPath.lineTo(p.dx, p.dy); }
+        }
+        boardPath.close();
+        break;
+      case 2: // Crimson Royale — squared, layered tournament table.
+        boardPath = Path()
+          ..addRRect(RRect.fromRectAndRadius(board, Radius.circular(shortSide * .075)));
+        break;
+      case 3: // Azure Orbit — circular arena.
+        final circle = Rect.fromCircle(center: center, radius: shortSide * .485);
+        boardPath = Path()..addOval(circle);
+        break;
+      default: // Ivory Diamond — four-sided diamond.
+        boardPath = Path()
+          ..moveTo(center.dx, board.top)
+          ..lineTo(board.right, center.dy)
+          ..lineTo(center.dx, board.bottom)
+          ..lineTo(board.left, center.dy)
+          ..close();
     }
 
-    canvas.drawShadow(boardPath, Colors.black.withOpacity(.55), 7, true);
+    canvas.drawShadow(boardPath, Colors.black.withOpacity(.62), 9, true);
+    canvas.drawPath(boardPath, glow);
     canvas.drawPath(boardPath, fill);
     canvas.drawPath(boardPath, rail);
-    canvas.drawPath(boardPath, fine..strokeWidth = 1);
-    final inner = board.deflate(8);
-    if (style.shape == 0 || style.shape == 3) {
-      canvas.drawOval(inner, fine);
-    } else if (style.shape == 1) {
-      canvas.drawPath(Path()
-        ..moveTo(center.dx, inner.top)
-        ..lineTo(inner.right, center.dy)
-        ..lineTo(center.dx, inner.bottom)
-        ..lineTo(inner.left, center.dy)
-        ..close(), fine);
-    } else if (style.shape == 2) {
-      canvas.drawRRect(RRect.fromRectAndRadius(inner, Radius.circular(shortSide * .12)), fine);
-    } else {
-      canvas.drawRRect(RRect.fromRectAndRadius(inner, const Radius.circular(13)), fine);
-    }
 
-    if (style.shape == 0) {
-      canvas.drawOval(board.deflate(shortSide * .17), fine);
-      canvas.drawLine(Offset(center.dx - board.width * .25, center.dy),
-        Offset(center.dx + board.width * .25, center.dy), fine);
-    } else if (style.shape == 1) {
-      for (int i = 0; i < 4; i++) {
-        final a = i * pi / 2;
-        canvas.drawCircle(Offset(center.dx + cos(a) * shortSide * .18,
-          center.dy + sin(a) * shortSide * .18), shortSide * .10, fine);
-      }
-    } else if (style.shape == 2) {
-      for (int i = 1; i <= 3; i++) {
-        canvas.drawRRect(RRect.fromRectAndRadius(board.deflate(i * 7.0),
-          Radius.circular(7 + i * 2)), fine);
-      }
+    canvas.save();
+    canvas.clipPath(boardPath);
+
+    // Different internal architecture for each table, not just a recolor.
+    switch (style.shape) {
+      case 0:
+        canvas.drawOval(board.deflate(shortSide * .105), fine);
+        canvas.drawOval(board.deflate(shortSide * .19), fine);
+        canvas.drawLine(Offset(center.dx - board.width * .28, center.dy),
+            Offset(center.dx + board.width * .28, center.dy), fine);
+        canvas.drawCircle(center, shortSide * .075, rail);
+        break;
+      case 1:
+        final innerOctagon = Path();
+        final oct = board.deflate(shortSide * .075);
+        for (int i = 0; i < 8; i++) {
+          final a = -pi / 8 + i * pi / 4;
+          final p = Offset(center.dx + cos(a) * oct.width * .49,
+              center.dy + sin(a) * oct.height * .49);
+          if (i == 0) { innerOctagon.moveTo(p.dx, p.dy); } else { innerOctagon.lineTo(p.dx, p.dy); }
+        }
+        innerOctagon.close();
+        canvas.drawPath(innerOctagon, fine);
+        for (int i = 0; i < 4; i++) {
+          final a = pi / 4 + i * pi / 2;
+          canvas.drawCircle(
+            Offset(center.dx + cos(a) * shortSide * .19,
+                center.dy + sin(a) * shortSide * .19),
+            shortSide * .075, fine);
+        }
+        canvas.drawCircle(center, shortSide * .105, rail);
+        break;
+      case 2:
+        for (int i = 1; i <= 4; i++) {
+          final inset = shortSide * (.045 + i * .045);
+          canvas.drawRRect(
+            RRect.fromRectAndRadius(board.deflate(inset), Radius.circular(5 + i * 3)),
+            i.isOdd ? rail : fine,
+          );
+        }
+        // Corner inlays make this theme visibly different from the other four.
+        for (int i = 0; i < 4; i++) {
+          final x = i.isEven ? board.left + 18 : board.right - 18;
+          final y = i < 2 ? board.top + 18 : board.bottom - 18;
+          canvas.drawCircle(Offset(x, y), shortSide * .035, rail);
+        }
+        break;
+      case 3:
+        for (int i = 1; i <= 4; i++) {
+          canvas.drawCircle(center, shortSide * (.105 + i * .085), fine);
+        }
+        canvas.drawLine(Offset(center.dx, board.top), Offset(center.dx, board.bottom), fine);
+        canvas.drawLine(Offset(board.left, center.dy), Offset(board.right, center.dy), fine);
+        canvas.drawCircle(center, shortSide * .07, rail);
+        break;
+      default:
+        for (int i = 1; i <= 4; i++) {
+          final inset = shortSide * i * .055;
+          canvas.drawPath(Path()
+            ..moveTo(center.dx, board.top + inset)
+            ..lineTo(board.right - inset, center.dy)
+            ..lineTo(center.dx, board.bottom - inset)
+            ..lineTo(board.left + inset, center.dy)
+            ..close(), fine);
+        }
+        canvas.drawLine(Offset(center.dx, board.top + 8),
+            Offset(center.dx, board.bottom - 8), fine);
+        canvas.drawLine(Offset(board.left + 8, center.dy),
+            Offset(board.right - 8, center.dy), fine);
+        canvas.drawCircle(center, shortSide * .055, rail);
+    }
+    canvas.restore();
+
+    // Seat locations and seat frames also change with the selected table form.
+    final List<Offset> seats;
+    if (style.shape == 1) {
+      seats = [
+        Offset(center.dx, board.top + shortSide * .105),
+        Offset(board.right - shortSide * .105, center.dy),
+        Offset(center.dx, board.bottom - shortSide * .105),
+        Offset(board.left + shortSide * .105, center.dy),
+      ];
+    } else if (style.shape == 4) {
+      seats = [
+        Offset(center.dx, board.top + shortSide * .17),
+        Offset(board.right - shortSide * .17, center.dy),
+        Offset(center.dx, board.bottom - shortSide * .17),
+        Offset(board.left + shortSide * .17, center.dy),
+      ];
     } else if (style.shape == 3) {
-      for (int i = 1; i <= 3; i++) {
-        canvas.drawCircle(center, shortSide * (.13 + i * .09), fine);
-      }
+      seats = [
+        Offset(center.dx, center.dy - shortSide * .34),
+        Offset(center.dx + shortSide * .34, center.dy),
+        Offset(center.dx, center.dy + shortSide * .34),
+        Offset(center.dx - shortSide * .34, center.dy),
+      ];
     } else {
-      for (int i = 1; i <= 3; i++) {
-        final d = i * 9.0;
-        canvas.drawPath(Path()
-          ..moveTo(center.dx, board.top + d)
-          ..lineTo(board.right - d, center.dy)
-          ..lineTo(center.dx, board.bottom - d)
-          ..lineTo(board.left + d, center.dy)
-          ..close(), fine);
-      }
+      seats = [
+        Offset(center.dx, board.top + shortSide * .105),
+        Offset(board.right - shortSide * .14, center.dy),
+        Offset(center.dx, board.bottom - shortSide * .105),
+        Offset(board.left + shortSide * .14, center.dy),
+      ];
     }
 
-    final seats = [
-      Offset(center.dx, board.top + shortSide * .12),
-      Offset(board.right - shortSide * .12, center.dy),
-      Offset(center.dx, board.bottom - shortSide * .12),
-      Offset(board.left + shortSide * .12, center.dy),
-    ];
-    for (final seat in seats) {
-      final seatRect = Rect.fromCenter(center: seat,
-        width: shortSide * .12, height: shortSide * .12);
-      final seatFill = Paint()..color = style.panel;
+    for (int i = 0; i < seats.length; i++) {
+      final seat = seats[i];
+      final seatSize = shortSide * (style.shape == 2 ? .145 : .125);
+      final seatRect = Rect.fromCenter(
+        center: seat,
+        width: seatSize * (i.isEven ? 1.25 : 1.0),
+        height: seatSize,
+      );
+      final seatFill = Paint()..color = style.panel.withOpacity(.96);
       final seatBorder = Paint()
         ..color = style.accent
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.1;
-      canvas.drawRRect(RRect.fromRectAndRadius(seatRect, Radius.circular(shortSide * .035)), seatFill);
-      canvas.drawRRect(RRect.fromRectAndRadius(seatRect, Radius.circular(shortSide * .035)), seatBorder);
+        ..strokeWidth = style.shape == 4 ? 1.8 : 1.35;
+      if (style.shape == 1 || style.shape == 4) {
+        final seatPath = Path()
+          ..moveTo(seatRect.center.dx, seatRect.top)
+          ..lineTo(seatRect.right, seatRect.center.dy)
+          ..lineTo(seatRect.center.dx, seatRect.bottom)
+          ..lineTo(seatRect.left, seatRect.center.dy)
+          ..close();
+        canvas.drawPath(seatPath, seatFill);
+        canvas.drawPath(seatPath, seatBorder);
+      } else if (style.shape == 3) {
+        canvas.drawOval(seatRect, seatFill);
+        canvas.drawOval(seatRect, seatBorder);
+      } else {
+        final radius = Radius.circular(style.shape == 2 ? 3 : seatSize * .42);
+        canvas.drawRRect(RRect.fromRectAndRadius(seatRect, radius), seatFill);
+        canvas.drawRRect(RRect.fromRectAndRadius(seatRect, radius), seatBorder);
+      }
     }
   }
 
   @override
   bool shouldRepaint(covariant _ManfiTablePainter oldDelegate) =>
-      oldDelegate.style.name != style.name || oldDelegate.style.shape != style.shape;
+      oldDelegate.style.name != style.name ||
+      oldDelegate.style.shape != style.shape ||
+      oldDelegate.style.accent != style.accent ||
+      oldDelegate.style.felt != style.felt;
 }
-
 
 /// Google test banner. Replace the test unit ID only after the real AdMob
 /// account and production ad unit have been verified.
