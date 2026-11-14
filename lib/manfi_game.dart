@@ -142,7 +142,7 @@ class _ManfiGamePageState extends State<ManfiGamePage> {
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         Icon(active ? Icons.play_circle_fill : Icons.person, color: active ? Colors.greenAccent : widget.accent, size: 17),
         const SizedBox(width: 4),
-        Expanded(child: Column(crossAxisSize: CrossAxisAlignment.start, children: [
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(players[p], maxLines: 1, overflow: TextOverflow.ellipsis,
             style: TextStyle(color: widget.accent, fontSize: small ? 10 : 12, fontWeight: FontWeight.bold)),
           Text(team, maxLines: 1, overflow: TextOverflow.ellipsis,
