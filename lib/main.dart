@@ -780,41 +780,9 @@ class GameSelectionPage extends StatelessWidget {
     );
   }
 
-  void _showManfiComingSoon(BuildContext context) {
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: const Color(0xFF111015),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(22),
-          side: const BorderSide(color: Color(0xFFD6B15C), width: 1.4),
-        ),
-        title: const Text(
-          'MANFI',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: Color(0xFFFFD36A),
-            fontWeight: FontWeight.w900,
-            letterSpacing: 3,
-          ),
-        ),
-        content: const Text(
-          'MANFI Card Game is coming soon. Its rules and gameplay will be built separately from TORA.',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.white70, height: 1.5),
-        ),
-        actionsAlignment: MainAxisAlignment.center,
-        actions: [
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFFD6B15C),
-              foregroundColor: Colors.black,
-            ),
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
+  void _openManfi(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const ManfiHomePage()),
     );
   }
 
@@ -824,6 +792,7 @@ class GameSelectionPage extends StatelessWidget {
     required String subtitle,
     required String symbol,
     required bool available,
+    String? statusText,
     required VoidCallback onTap,
   }) {
     const gold = Color(0xFFFFD36A);
@@ -874,7 +843,7 @@ class GameSelectionPage extends StatelessWidget {
                     Text(subtitle, style: const TextStyle(color: Colors.white70, fontSize: 11, height: 1.4)),
                     const SizedBox(height: 9),
                     Text(
-                      available ? 'PLAY NOW' : 'COMING SOON',
+                      statusText ?? (available ? 'PLAY NOW' : 'COMING SOON'),
                       style: TextStyle(color: gold.withOpacity(available ? 1 : .75), fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.6),
                     ),
                   ],
@@ -926,10 +895,11 @@ class GameSelectionPage extends StatelessWidget {
                   _gameTile(
                     context: context,
                     title: 'MANFI',
-                    subtitle: 'A separate card game with its own rules',
+                    subtitle: 'Separate game • Five modern table designs',
                     symbol: '♠',
-                    available: false,
-                    onTap: () => _showManfiComingSoon(context),
+                    available: true,
+                    statusText: 'OPEN MANFI',
+                    onTap: () => _openManfi(context),
                   ),
                   const SizedBox(height: 28),
                   TextButton.icon(
@@ -1077,6 +1047,550 @@ class _FaceOrnamentPainter extends CustomPainter {
   bool shouldRepaint(covariant _FaceOrnamentPainter oldDelegate) => oldDelegate.color != color;
 }
 
+
+
+
+class ManfiTableStyle {
+  final String name;
+  final String description;
+  final Color background;
+  final Color panel;
+  final Color felt;
+  final Color accent;
+  final int shape;
+  const ManfiTableStyle(
+    this.name, this.description, this.background, this.panel,
+    this.felt, this.accent, this.shape,
+  );
+}
+
+const List<ManfiTableStyle> _manfiTableStyles = [
+  ManfiTableStyle('Obsidian Crown', 'Oval velvet table • Gold inlay',
+    Color(0xFF080A0F), Color(0xFF171923), Color(0xFF10151D), Color(0xFFE4BD68), 0),
+  ManfiTableStyle('Emerald Arena', 'Octagonal table • Emerald felt',
+    Color(0xFF061A16), Color(0xFF102B24), Color(0xFF0D4938), Color(0xFFD8C078), 1),
+  ManfiTableStyle('Crimson Royale', 'Modern rectangle • Layered rails',
+    Color(0xFF1B090F), Color(0xFF35121D), Color(0xFF641D32), Color(0xFFFFC477), 2),
+  ManfiTableStyle('Azure Orbit', 'Circular arena • Orbit details',
+    Color(0xFF071426), Color(0xFF122B49), Color(0xFF123E68), Color(0xFF9FD9FF), 3),
+  ManfiTableStyle('Ivory Diamond', 'Diamond table • Ivory and champagne',
+    Color(0xFF242019), Color(0xFF3B3328), Color(0xFFE9DFC9), Color(0xFFB88A43), 4),
+];
+
+class ManfiHomePage extends StatefulWidget {
+  const ManfiHomePage({super.key});
+
+  @override
+  State<ManfiHomePage> createState() => _ManfiHomePageState();
+}
+
+class _ManfiHomePageState extends State<ManfiHomePage> {
+  int _selectedStyle = 0;
+  bool _authBusy = false;
+  String? _authMessage;
+
+  ManfiTableStyle get _style => _manfiTableStyles[_selectedStyle];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSelectedStyle();
+  }
+
+  Future<void> _loadSelectedStyle() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getInt('manfi_table_style') ?? 0;
+    if (!mounted) return;
+    setState(() => _selectedStyle = saved.clamp(0, _manfiTableStyles.length - 1));
+  }
+
+  Future<void> _selectStyle(int index) async {
+    setState(() => _selectedStyle = index);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('manfi_table_style', index);
+  }
+
+  Future<void> _emailLogin() async {
+    final emailController = TextEditingController();
+    final passwordController = TextEditingController();
+    bool createAccount = false;
+    bool busy = false;
+    String? errorText;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, updateDialog) => AlertDialog(
+          backgroundColor: const Color(0xFF11151D),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(22),
+            side: BorderSide(color: _style.accent, width: 1.3),
+          ),
+          title: Text(
+            'MANFI ACCOUNT',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: _style.accent, fontWeight: FontWeight.w900, letterSpacing: 1.5),
+          ),
+          content: SizedBox(
+            width: 340,
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              TextField(
+                controller: emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(
+                  labelText: 'Email address',
+                  prefixIcon: Icon(Icons.email_outlined),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: passwordController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'Password',
+                  prefixIcon: Icon(Icons.lock_outline),
+                ),
+              ),
+              if (errorText != null) ...[
+                const SizedBox(height: 10),
+                Text(errorText!, textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.redAccent, fontSize: 11)),
+              ],
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: busy ? null : () async {
+                    final email = emailController.text.trim();
+                    final password = passwordController.text;
+                    if (email.isEmpty || password.length < 6) {
+                      updateDialog(() => errorText = 'Enter an email and a password with at least 6 characters.');
+                      return;
+                    }
+                    updateDialog(() { busy = true; errorText = null; });
+                    try {
+                      final auth = FirebaseAuth.instance;
+                      if (createAccount) {
+                        await auth.createUserWithEmailAndPassword(email: email, password: password)
+                            .timeout(const Duration(seconds: 25));
+                      } else {
+                        await auth.signInWithEmailAndPassword(email: email, password: password)
+                            .timeout(const Duration(seconds: 25));
+                      }
+                      if (dialogContext.mounted) Navigator.pop(dialogContext);
+                      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('MANFI account connected.')),
+                      );
+                    } on FirebaseAuthException catch (e) {
+                      if (dialogContext.mounted) updateDialog(() => errorText = e.message ?? e.code);
+                    } on TimeoutException {
+                      if (dialogContext.mounted) updateDialog(() => errorText = 'Connection timed out. Check internet and try again.');
+                    } catch (e) {
+                      if (dialogContext.mounted) updateDialog(() => errorText = 'Login failed: $e');
+                    } finally {
+                      if (dialogContext.mounted) updateDialog(() => busy = false);
+                    }
+                  },
+                  child: Text(createAccount ? 'CREATE EMAIL ACCOUNT' : 'SIGN IN WITH EMAIL'),
+                ),
+              ),
+              TextButton(
+                onPressed: busy ? null : () => updateDialog(() {
+                  createAccount = !createAccount;
+                  errorText = null;
+                }),
+                child: Text(createAccount ? 'Already registered? Sign in' : 'New player? Create account'),
+              ),
+              if (busy) const Padding(
+                padding: EdgeInsets.only(top: 8),
+                child: CircularProgressIndicator(),
+              ),
+            ]),
+          ),
+          actions: [
+            TextButton(
+              onPressed: busy ? null : () => Navigator.pop(dialogContext),
+              child: const Text('CLOSE'),
+            ),
+          ],
+        ),
+      ),
+    );
+    emailController.dispose();
+    passwordController.dispose();
+  }
+
+  Future<void> _facebookLogin() async {
+    if (_authBusy) return;
+    setState(() { _authBusy = true; _authMessage = null; });
+    try {
+      final result = await FacebookAuth.instance.login(
+        permissions: const ['email', 'public_profile'],
+      );
+      if (result.status == LoginStatus.success && result.accessToken != null) {
+        final credential = FacebookAuthProvider.credential(result.accessToken!.tokenString);
+        await FirebaseAuth.instance.signInWithCredential(credential)
+            .timeout(const Duration(seconds: 30));
+        if (mounted) setState(() => _authMessage = 'Facebook account connected.');
+      } else if (result.status == LoginStatus.cancelled) {
+        if (mounted) setState(() => _authMessage = 'Facebook login was cancelled.');
+      } else {
+        if (mounted) setState(() => _authMessage = 'Facebook login failed: ' + (result.message ?? result.status.name));
+      }
+    } on FirebaseAuthException catch (e) {
+      if (mounted) setState(() => _authMessage = e.message ?? e.code);
+    } catch (e) {
+      if (mounted) setState(() => _authMessage = 'Facebook login failed: $e');
+    } finally {
+      if (mounted) setState(() => _authBusy = false);
+    }
+  }
+
+  Future<void> _signOut() async {
+    await FirebaseAuth.instance.signOut();
+    if (mounted) setState(() => _authMessage = 'Signed out.');
+  }
+
+  Widget _accountPanel(ManfiTableStyle style) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        final user = snapshot.data;
+        return Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: style.panel.withOpacity(.88),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: style.accent.withOpacity(.55)),
+          ),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Row(children: [
+              Icon(Icons.verified_user_rounded, color: style.accent, size: 22),
+              const SizedBox(width: 9),
+              Expanded(child: Text(
+                user == null ? 'MANFI PLAYER ACCOUNT' : (user.displayName ?? 'MANFI PLAYER'),
+                style: TextStyle(color: style.accent, fontWeight: FontWeight.w900, letterSpacing: .8),
+              )),
+              if (user != null) Icon(Icons.check_circle, color: style.accent, size: 19),
+            ]),
+            const SizedBox(height: 7),
+            if (user == null) ...[
+              const Text('Use the same secure Firebase account system as TORA.',
+                style: TextStyle(color: Colors.white60, fontSize: 11)),
+              const SizedBox(height: 12),
+              Row(children: [
+                Expanded(child: OutlinedButton.icon(
+                  onPressed: _authBusy ? null : _emailLogin,
+                  icon: const Icon(Icons.email_outlined),
+                  label: const Text('EMAIL LOGIN'),
+                )),
+                const SizedBox(width: 8),
+                Expanded(child: OutlinedButton.icon(
+                  onPressed: _authBusy ? null : _facebookLogin,
+                  icon: const Icon(Icons.facebook, color: Color(0xFF1877F2)),
+                  label: const Text('FACEBOOK'),
+                )),
+              ]),
+            ] else ...[
+              Text(user.email ?? user.phoneNumber ?? 'Signed in with Facebook',
+                style: const TextStyle(color: Colors.white70, fontSize: 11)),
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: _signOut,
+                  icon: const Icon(Icons.logout_rounded),
+                  label: const Text('SIGN OUT'),
+                ),
+              ),
+            ],
+            if (_authMessage != null) ...[
+              const SizedBox(height: 6),
+              Text(_authMessage!, style: TextStyle(color: style.accent, fontSize: 11)),
+            ],
+            if (_authBusy) const Padding(
+              padding: EdgeInsets.only(top: 8),
+              child: LinearProgressIndicator(),
+            ),
+          ]),
+        );
+      },
+    );
+  }
+
+  Widget _themeCard(int index, double width) {
+    final style = _manfiTableStyles[index];
+    final selected = _selectedStyle == index;
+    return SizedBox(
+      width: width,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(17),
+          onTap: () => _selectStyle(index),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            padding: const EdgeInsets.all(9),
+            decoration: BoxDecoration(
+              color: style.panel,
+              borderRadius: BorderRadius.circular(17),
+              border: Border.all(color: selected ? style.accent : style.accent.withOpacity(.32),
+                width: selected ? 2 : 1),
+              boxShadow: selected ? [BoxShadow(color: style.accent.withOpacity(.16), blurRadius: 12)] : [],
+            ),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              SizedBox(
+                height: 104,
+                width: double.infinity,
+                child: CustomPaint(
+                  painter: _ManfiTablePainter(style),
+                  child: Center(child: Text('MANFI',
+                    style: TextStyle(color: style.accent, fontSize: 12,
+                      fontWeight: FontWeight.w900, letterSpacing: 2))),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(style.name, maxLines: 1, overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: style.accent, fontWeight: FontWeight.w900, fontSize: 11)),
+              const SizedBox(height: 3),
+              Text(style.description, maxLines: 2, overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: Colors.white60, fontSize: 9, height: 1.25)),
+              const SizedBox(height: 6),
+              Row(children: [
+                Icon(selected ? Icons.check_circle : Icons.circle_outlined,
+                  color: style.accent, size: 15),
+                const SizedBox(width: 5),
+                Text(selected ? 'SELECTED' : 'SELECT TABLE',
+                  style: TextStyle(color: style.accent, fontSize: 8, fontWeight: FontWeight.w900)),
+              ]),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final style = _style;
+    return Scaffold(
+      backgroundColor: style.background,
+      appBar: AppBar(
+        backgroundColor: style.background,
+        foregroundColor: style.accent,
+        elevation: 0,
+        title: Text('MANFI', style: TextStyle(color: style.accent,
+          fontWeight: FontWeight.w900, letterSpacing: 3)),
+        actions: [
+          IconButton(
+            tooltip: 'Back to game selection',
+            onPressed: () => Navigator.of(context).pop(),
+            icon: const Icon(Icons.grid_view_rounded),
+          ),
+        ],
+      ),
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final width = (constraints.maxWidth - 30) / 2;
+            return SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(14, 4, 14, 24),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [style.panel, style.background],
+                      begin: Alignment.topLeft, end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: style.accent.withOpacity(.55)),
+                  ),
+                  child: Column(children: [
+                    Text('THE MANFI TABLE COLLECTION',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: style.accent, fontSize: 15,
+                        fontWeight: FontWeight.w900, letterSpacing: 1.2)),
+                    const SizedBox(height: 5),
+                    const Text('Five independent modern table designs',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.white60, fontSize: 10)),
+                    const SizedBox(height: 13),
+                    SizedBox(
+                      height: 174,
+                      child: CustomPaint(
+                        painter: _ManfiTablePainter(style),
+                        child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+                          Text('♠', style: TextStyle(color: style.accent, fontSize: 34,
+                            fontWeight: FontWeight.w900)),
+                          Text('MANFI', style: TextStyle(color: style.accent, fontSize: 18,
+                            fontWeight: FontWeight.w900, letterSpacing: 3)),
+                          const Text('FOUR PLAYER TABLE',
+                            style: TextStyle(color: Colors.white70, fontSize: 8, letterSpacing: 1.4)),
+                        ])),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(style.name, style: TextStyle(color: style.accent,
+                      fontWeight: FontWeight.w900, fontSize: 13)),
+                  ]),
+                ),
+                const SizedBox(height: 16),
+                _accountPanel(style),
+                const SizedBox(height: 20),
+                Text('CHOOSE YOUR TABLE DESIGN',
+                  style: TextStyle(color: style.accent, fontSize: 12,
+                    fontWeight: FontWeight.w900, letterSpacing: 1.1)),
+                const SizedBox(height: 9),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    for (int i = 0; i < _manfiTableStyles.length; i++)
+                      _themeCard(i, width),
+                  ],
+                ),
+                const SizedBox(height: 18),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: style.panel.withOpacity(.75),
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(color: style.accent.withOpacity(.35)),
+                  ),
+                  child: const Text(
+                    'MANFI gameplay is being built as a separate game module. TORA rules, cards and gameplay are not changed by this design page.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white60, fontSize: 10, height: 1.45),
+                  ),
+                ),
+              ]),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _ManfiTablePainter extends CustomPainter {
+  final ManfiTableStyle style;
+  const _ManfiTablePainter(this.style);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.width <= 0 || size.height <= 0) return;
+    final rect = Offset.zero & size;
+    final board = rect.deflate(10);
+    final center = board.center;
+    final shortSide = min(board.width, board.height);
+    final fill = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [style.felt, style.background, style.panel],
+      ).createShader(board);
+    final rail = Paint()..color = style.accent..style = PaintingStyle.stroke..strokeWidth = 2.2;
+    final fine = Paint()..color = style.accent.withOpacity(.42)
+      ..style = PaintingStyle.stroke..strokeWidth = 1;
+
+    Path boardPath;
+    if (style.shape == 0) {
+      boardPath = Path()..addOval(board);
+    } else if (style.shape == 1) {
+      boardPath = Path();
+      for (int i = 0; i < 8; i++) {
+        final a = -pi / 8 + i * pi / 4;
+        final p = Offset(center.dx + cos(a) * board.width * .49,
+          center.dy + sin(a) * board.height * .49);
+        if (i == 0) { boardPath.moveTo(p.dx, p.dy); } else { boardPath.lineTo(p.dx, p.dy); }
+      }
+      boardPath.close();
+    } else if (style.shape == 2) {
+      boardPath = Path()..addRRect(RRect.fromRectAndRadius(board, Radius.circular(shortSide * .16)));
+    } else if (style.shape == 3) {
+      final circle = Rect.fromCircle(center: center, radius: shortSide * .48);
+      boardPath = Path()..addOval(circle);
+    } else {
+      boardPath = Path()
+        ..moveTo(center.dx, board.top)
+        ..lineTo(board.right, center.dy)
+        ..lineTo(center.dx, board.bottom)
+        ..lineTo(board.left, center.dy)
+        ..close();
+    }
+
+    canvas.drawShadow(boardPath, Colors.black.withOpacity(.55), 7, true);
+    canvas.drawPath(boardPath, fill);
+    canvas.drawPath(boardPath, rail);
+    canvas.drawPath(boardPath, fine..strokeWidth = 1);
+    final inner = board.deflate(8);
+    if (style.shape == 0 || style.shape == 3) {
+      canvas.drawOval(inner, fine);
+    } else if (style.shape == 1) {
+      canvas.drawPath(Path()
+        ..moveTo(center.dx, inner.top)
+        ..lineTo(inner.right, center.dy)
+        ..lineTo(center.dx, inner.bottom)
+        ..lineTo(inner.left, center.dy)
+        ..close(), fine);
+    } else if (style.shape == 2) {
+      canvas.drawRRect(RRect.fromRectAndRadius(inner, Radius.circular(shortSide * .12)), fine);
+    } else {
+      canvas.drawRRect(RRect.fromRectAndRadius(inner, const Radius.circular(13)), fine);
+    }
+
+    if (style.shape == 0) {
+      canvas.drawOval(board.deflate(shortSide * .17), fine);
+      canvas.drawLine(Offset(center.dx - board.width * .25, center.dy),
+        Offset(center.dx + board.width * .25, center.dy), fine);
+    } else if (style.shape == 1) {
+      for (int i = 0; i < 4; i++) {
+        final a = i * pi / 2;
+        canvas.drawCircle(Offset(center.dx + cos(a) * shortSide * .18,
+          center.dy + sin(a) * shortSide * .18), shortSide * .10, fine);
+      }
+    } else if (style.shape == 2) {
+      for (int i = 1; i <= 3; i++) {
+        canvas.drawRRect(RRect.fromRectAndRadius(board.deflate(i * 7.0),
+          Radius.circular(7 + i * 2)), fine);
+      }
+    } else if (style.shape == 3) {
+      for (int i = 1; i <= 3; i++) {
+        canvas.drawCircle(center, shortSide * (.13 + i * .09), fine);
+      }
+    } else {
+      for (int i = 1; i <= 3; i++) {
+        final d = i * 9.0;
+        canvas.drawPath(Path()
+          ..moveTo(center.dx, board.top + d)
+          ..lineTo(board.right - d, center.dy)
+          ..lineTo(center.dx, board.bottom - d)
+          ..lineTo(board.left + d, center.dy)
+          ..close(), fine);
+      }
+    }
+
+    final seats = [
+      Offset(center.dx, board.top + shortSide * .12),
+      Offset(board.right - shortSide * .12, center.dy),
+      Offset(center.dx, board.bottom - shortSide * .12),
+      Offset(board.left + shortSide * .12, center.dy),
+    ];
+    for (final seat in seats) {
+      final seatRect = Rect.fromCenter(center: seat,
+        width: shortSide * .12, height: shortSide * .12);
+      canvas.drawRRect(RRect.fromRectAndRadius(seatRect, Radius.circular(shortSide * .035)),
+        Paint()..color = style.panel..style = PaintingStyle.fill);
+      canvas.drawRRect(RRect.fromRectAndRadius(seatRect, Radius.circular(shortSide * .035)),
+        Paint()..color = style.accent..style = PaintingStyle.stroke..strokeWidth = 1.1);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _ManfiTablePainter oldDelegate) =>
+      oldDelegate.style.name != style.name || oldDelegate.style.shape != style.shape;
+}
 
 
 /// Google test banner. Replace the test unit ID only after the real AdMob
